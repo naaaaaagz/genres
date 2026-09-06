@@ -1,0 +1,898 @@
+Nr.,Name,Nametech,Area,Area misc.,Importance,Parent,Decade,Year,Country?
+,Afrobeat,afrobeat,african,jazz,4,Highlife,1960s,late 1960s,"Nigeria, Ghana"
+,Afrobeats,afrobeats,african,pop,5,Hiplife,2000s,late 2000s,"Nigeria, Ghana"
+,Afropop,afropop,african,pop,4,Highlife,1960s,1960s,Africa / worldwide
+,Afroswing,afroswing,african,hiphop,3,Afrobeats,2010s,mid-2010s,UK
+,Amapiano,amapiano,african,house,4,Deep House,2010s,mid-2010s,South Africa
+,Apala,apala,african,folk,4,(none),1930s,1930s,Nigeria
+,Azonto,azonto,african,hiphop,3,Hiplife,2010s,early 2010s,Ghana
+,Bongo Flava,bongoflava,african,hiphop,5,Hiphop,1990s,early 1990s,Tanzania
+,Bubu (sierra leone),bubusierraleone,african,folk,2,(none),ancient,precolonial traditional origins,Sierra Leone
+,Chimurenga,chimurenga,african,rock,5,Shona Music,1970s,early 1970s,Zimbabwe
+,Congolese Rumba,congoleserumba,african,latin,5,Son Cubano,1940s,late 1940s,"DR Congo, Republic of the Congo"
+,Coupé-Décalé,coupedecale,african,edm,4,Zouglou,2000s,early 2000s,"Ivory Coast, France"
+,Fuji,fuji,african,folk,4,Wéré Music,1960s,late 1960s,Nigeria
+,Genge,genge,african,hiphop,4,Hiphop,1990s,late 1990s,Kenya
+,Gengetone,gengetone,african,hiphop,4,Genge,2010s,late 2010s,Kenya
+,Gnawa,gnawa,african,folk,5,(none),1600s,16th–17th centuries,Morocco
+,Gqom,gqom,african,house,3,Kwaito,2010s,early 2010s,South Africa
+,Highlife,highlife,african,folk,4,(none),1920s,early 1920s,Ghana
+,Hiplife,hiplife,african,hiphop,4,Highlife,1990s,early 1990s,Ghana
+,Jùjú,juju,african,folk,4,Palm-Wine Music,1920s,mid-1920s,Nigeria
+,Kuduro,kuduro,african,latin,3,Semba,1980s,late 1980s,Angola
+,Kwaito,kwaito,african,house,4,House,1980s,late 1980s,South Africa
+,Kwela,kwela,african,jazz,4,Marabi,1950s,1950s,South Africa
+,Mahraganat,mahraganat,african,edm,4,Shaabi,2000s,late 2000s,Egypt
+,Makossa,makossa,african,folk,4,(none),1950s,1950s,Cameroon
+,Marabi,marabi,african,jazz,5,(none),1920s,1920s,South Africa
+,Mbalax,mbalax,african,folk,4,(none),1970s,1970s,"Senegal, Gambia"
+,Mbube (+ isicathamiya),mbubeisicathamiya,african,,4,Zulu Music,1920s,1920s,South Africa
+,Palm-Wine Music,palmwinemusic,african,folk,4,Highlife,1920s,early 1920s,West Africa
+,Rough Kuduro,roughkuduro,african,edm,2,Kuduro,2000s,mid-2000s,"Angola, Portugal"
+,Sakara,sakara,african,folk,3,(none),1920s,1920s,Nigeria
+,Sega,sega,african,folk,4,(none),1700s,late 17th–early 18th centuries,"Mauritius, Réunion"
+,Seggae,seggae,african,jamaican,2,Sega,1980s,late 1980s,Mauritius
+,Semba,semba,african,latin,4,(none),1940s,1940s,Angola
+,Shangaan Electro,shangaanelectro,african,edm,3,Tsonga Disco,2000s,mid-2000s,South Africa
+,Shona Music,shonamusic,african,folk,4,(none),ancient,precolonial traditional origins,Zimbabwe
+,Singeli,singeli,african,edm,4,Taarab,2000s,mid-2000s,Tanzania
+,Soukous,soukous,african,latin,4,Congolese Rumba,1960s,1960s,DR Congo
+,Taarab,taarab,african,folk,5,(none),1880s,late 1800s,"Tanzania, Kenya"
+,Tishoumaren,tishoumaren,african,rock,4,Tuareg Music,1980s,early 1980s,"Mali, Niger"
+,Tsonga Disco,tsongadisco,african,soulful,3,Disco,1980s,1980s,South Africa
+,Tuareg Music,tuaregmusic,african,folk,4,(none),ancient,precolonial traditional origins,"Sahara, Sahel"
+,Wéré Music,weremusic,african,folk,3,(none),1900s,early 20th century; popularized 1950s,Nigeria
+,Zouglou,zouglou,african,pop,4,(none),1990s,mid-1990s,Ivory Coast
+,Zulu Music,zulumusic,african,folk,4,(none),ancient,precolonial traditional origins,South Africa
+,Street Pop,streetpop,african,hiphop,3,Afrobeats,2010s,late-2010s,Nigeria
+,Ambient,ambient,ambient,experimental,5,(none),1970s,mid-1970s,UK
+,Ambient Dub,ambientdub,ambient,jamaican,4,Dub,1980s,late 1980s,UK
+,Dark Ambient,darkambient,ambient,industrial,3,Ambient,1970s,late 1970s,UK
+,Drone Music,dronemusic,ambient,experimental,4,Minimal Music,1960s,early 1960s,USA
+,Dungeon Synth,dungeonsynth,ambient,metal,3,Black Metal,1990s,early 1990s,Norway
+,Ethereal,ethereal,ambient,rock,2,Darkwave,1980s,mid-1980s,UK
+,Isolationism,isolationism,ambient,industrial,3,Dark Ambient,1990s,early 1990s,UK
+,Lowercase,lowercase,ambient,experimental,1,Sound Art,2000s,early 2000s,USA
+,Mallsoft,mallsoft,ambient,,2,Vaporwave,2010s,mid-2010s,"Worldwide, online"
+,Muzak,muzak,ambient,pop,3,(none),1930s,1930s,USA
+,New Age,newage,ambient,classical,4,Ambient,1970s,late 1970s,Worldwide
+,Oceangrunge,oceangrunge,ambient,,1,Vaporwave,2010s,mid-2010s,"Worldwide, online"
+,Space Ambient,spaceambient,ambient,experimental,3,Ambient,1970s,late 1970s,Europe
+,Vaporwave,vaporwave,ambient,edm,5,Chillwave,2010s,early 2010s,"Worldwide, online"
+,2-Step Garage,2stepgarage,breakbeat,house,4,UK Garage,1990s,late 1990s,UK
+,Acid Breakbeat,acidbreakbeat,breakbeat,house,2,Breakbeat,1980s,late 1980s,UK
+,Big Beat,bigbeat,breakbeat,rock,4,Breakbeat,1990s,mid-1990s,UK
+,Breakbeat,breakbeat,breakbeat,,5,Hiphop,1980s,late 1980s,"USA, UK"
+,Breakstep,breakstep,breakbeat,dubstep,2,2-Step Garage,2000s,early 2000s,UK
+,Chemical Breakbeat,chemicalbreakbeat,breakbeat,rock,1,Big Beat,1990s,late 1990s,UK
+,Dark Breakbeat,darkbreakbeat,breakbeat,industrial,2,Breakbeat,1990s,mid-1990s,Europe
+,Dubstazz,dubstazz,breakbeat,jazz,1,Breakbeat,2000s,mid-2000s,Worldwide
+,Florida Breakbeat,floridabreakbeat,breakbeat,edm,3,Electro,1980s,late 1980s,USA
+,Future Garage,futuregarage,breakbeat,ambient,3,UK Garage,2000s,late 2000s,UK
+,Neurohop,neurohop,breakbeat,dnb,2,Neurofunk,2010s,early 2010s,"USA, Europe"
+,Newschool Breakbeat,newschoolbreakbeat,breakbeat,edm,2,Breakbeat,1990s,mid-1990s,UK
+,Progressive Breakbeat,progressivebreakbeat,breakbeat,trance,2,Breakbeat,1990s,late 1990s,Europe
+,Speed Garage,speedgarage,breakbeat,house,4,UK Garage,1990s,mid-1990s,UK
+,UK Bass,ukbass,breakbeat,edm,4,UK Garage,2000s,late 2000s,UK
+,UK Garage,ukgarage,breakbeat,house,5,Garage,1990s,early 1990s,UK
+,Black Midi,blackmidi,chiptune,experimental,2,MIDI Music,2010s,early 2010s,"Japan, online"
+,Casiocore,casiocore,chiptune,rock,1,Chiptune,1980s,late 1980s,USA
+,Chiptune,chiptune,chiptune,edm,4,VGM,1980s,early 1980s,"Japan, Europe"
+,Doskpop,doskpop,chiptune,pop,1,Chiptune,2000s,mid-2000s,Sweden
+,MIDI Music,midimusic,chiptune,edm,2,Electronic Music,1980s,early 1980s,Worldwide
+,Picopop,picopop,chiptune,pop,2,Chiptune,2000s,early 2000s,Japan
+,Skweee,skweee,chiptune,soulful,2,Electro Funk,2000s,mid-2000s,"Finland, Sweden"
+,Tracker Music,trackermusic,chiptune,edm,3,Chiptune,1980s,late 1980s,Europe
+,VGM,vgm,chiptune,classical,4,(none),1970s,late 1970s,"Japan, USA"
+,Bitpop,bitpop,chiptune,pop,3,Chiptune,1990s,late-1990s,Worldwide
+,Aleatoric Music,aleatoricmusic,classical,experimental,3,Modernism,1950s,early 1950s,"Europe, USA"
+,Ars Nova,arsnova,classical,,3,Medieval Music,1300s,early 1300s,"France, Italy"
+,Ballet Music,balletmusic,classical,pop,5,Baroque,1600s,mid-1600s,"France, Italy"
+,Baroque,baroque,classical,,5,Renaissance,1600s,c. 1600,Europe
+,Cantata,cantata,classical,folk,4,Baroque,1600s,early 1600s,"Italy, Germany"
+,Carnatic Music,carnaticmusic,classical,folk,5,(none),1400s,15th century,South India
+,Chamber Music,chambermusic,classical,,5,Baroque,1600s,late 1600s,Europe
+,Classical,classical,classical,,5,Baroque,1730s,c. 1730,Europe
+,Concerto,concerto,classical,,5,Baroque,1600s,late 1600s,Italy
+,Contemporary Classical,contemporaryclassical,classical,experimental,4,Modernism,1940s,mid-1900s,Worldwide
+,Contemporary Symphonic,contemporarysymphonic,classical,experimental,2,Modernism,1970s,1970s,Worldwide
+,Film Score,filmscore,classical,,5,Classical,1900s,1910s,"USA, Europe"
+,Gagaku,gagaku,classical,folk,4,(none),700s,8th century,Japan
+,Gregorian,gregorian,classical,folk,4,(none),800s,c. 900,Western Europe
+,Hindustani Classical,hindustaniclassical,classical,folk,5,(none),1200s,13th century,"North India, Pakistan, Bangladesh"
+,Impressionism,impressionism,classical,,4,Romantic,1890s,1890s,France
+,Madrigal,madrigal,classical,,4,Renaissance,1500s,early 1500s,Italy
+,Mass,mass,classical,folk,4,Gregorian,1300s,14th century,Europe
+,Medieval Music,medievalmusic,classical,folk,5,(none),500s,c. 500,Europe
+,Minimal Music,minimalmusic,classical,experimental,5,Modernism,1960s,early 1960s,USA
+,Modernism,modernism,classical,experimental,5,Romantic,1890s,1890s,Europe
+,Motet,motet,classical,folk,4,Medieval Music,1200s,13th century,Europe
+,Neoclassicism,neoclassicism,classical,,4,Modernism,1920s,1920s,Europe
+,Opera,opera,classical,,5,Renaissance,1600s,c. 1600,Italy
+,Operetta,operetta,classical,pop,4,Opera,1800s,mid-1800s,"France, Austria"
+,Oratorio,oratorio,classical,folk,4,Opera,1600s,early 1600s,Italy
+,Postminimalism,postminimalism,classical,experimental,3,Minimal Music,1970s,late 1970s,USA
+,Renaissance,renaissance,classical,,5,Medieval Music,1400s,c. 1400,Europe
+,Romantic,romantic,classical,,5,Classical,1820s,c. 1820,Europe
+,Serialism,serialism,classical,experimental,4,Modernism,1920s,early 1920s,"Austria, Germany"
+,Spectral Music,spectralmusic,classical,experimental,3,Modernism,1970s,early 1970s,France
+,Symphony,symphony,classical,,5,Baroque,1700s,early 1700s,Europe
+,Artcore,artcore,dnb,experimental,2,Drum & Bass,1990s,mid-1990s,"UK, Japan"
+,Atmospheric D&B,atmosphericdandb,dnb,ambient,3,Drum & Bass,1990s,late 1990s,UK
+,Breakcore,breakcore,dnb,experimental,3,Jungle,1990s,mid-1990s,Europe
+,Clownstep,clownstep,dnb,,1,Jump-up,2000s,early 2000s,UK
+,Dancefloor Drum & Bass,dancefloordrumandbass,dnb,edm,4,Drum & Bass,2000s,mid-2000s,UK
+,Darkcore Jungle,darkcorejungle,dnb,hardcore,3,Jungle,1990s,early 1990s,UK
+,Darkstep,darkstep,dnb,industrial,2,Drum & Bass,1990s,late 1990s,UK
+,Drum & Bass,drumandbass,dnb,breakbeat,5,Jungle,1990s,early 1990s,UK
+,Drumfunk,drumfunk,dnb,,2,Drum & Bass,2000s,early 2000s,UK
+,Drumstep,drumstep,dnb,dubstep,2,Drum & Bass,2000s,late 2000s,"UK, USA"
+,Halftime Drum & Bass,halftimedrumandbass,dnb,hiphop,3,Drum & Bass,2000s,late 2000s,"USA, UK"
+,Hardstep,hardstep,dnb,hardcore,2,Jungle,1990s,mid-1990s,UK
+,Intelligent Drum & Bass,intelligentdrumandbass,dnb,ambient,4,Drum & Bass,1990s,mid-1990s,UK
+,Jazzstep,jazzstep,dnb,jazz,2,Drum & Bass,1990s,mid-1990s,UK
+,Jump-up,jumpup,dnb,,3,Drum & Bass,1990s,mid-1990s,UK
+,Jungle,jungle,dnb,breakbeat,5,Breakbeat,1990s,early 1990s,UK
+,Jungle Jazz,junglejazz,dnb,jazz,1,Jazzstep,1990s,late 1990s,UK
+,Liquid Funk,liquidfunk,dnb,soulful,3,Drum & Bass,1990s,late 1990s,UK
+,Minimal Drum & Bass,minimaldrumandbass,dnb,ambient,3,Drum & Bass,2000s,late 2000s,UK
+,Neurofunk,neurofunk,dnb,techno,3,Techstep,1990s,late 1990s,UK
+,Ragga Jungle,raggajungle,dnb,jamaican,3,Jungle,1990s,early 1990s,UK
+,Raggacore,raggacore,dnb,hardcore,2,Ragga Jungle,2000s,early 2000s,Europe
+,Sambass,sambass,dnb,latin,2,Drum & Bass,1990s,late 1990s,Brazil
+,Skullstep,skullstep,dnb,hardcore,1,Darkstep,2000s,mid-2000s,Europe
+,Technoid,technoid,dnb,industrial,2,Techstep,2000s,early 2000s,Europe
+,Techstep,techstep,dnb,techno,3,Drum & Bass,1990s,mid-1990s,UK
+,Trancestep,trancestep,dnb,trance,1,Drum & Bass,2000s,early 2000s,Europe
+,Ambient Breaks,ambientbreaks,downtempo,breakbeat,2,Ambient,1990s,early 1990s,UK
+,Balearic Beat,balearicbeat,downtempo,house,4,House,1980s,mid-1980s,Spain
+,Chill-Out,chillout,downtempo,ambient,5,Ambient,1980s,late 1980s,Europe
+,Classic Breakbeat,classicbreakbeat,downtempo,breakbeat,2,Breakbeat,1980s,late 1980s,UK
+,Downtempo,downtempo,downtempo,ambient,4,Ambient,1990s,early 1990s,UK
+,Illbient,illbient,downtempo,hiphop,2,Ambient,1990s,mid-1990s,USA
+,Lounge Music,loungemusic,downtempo,jazz,5,Easy Listening,1950s,early 1950s,"USA, Europe"
+,Nu Jazz,nujazz,downtempo,jazz,3,Acid Jazz,1990s,late 1990s,Europe
+,Trip Hop,triphop,downtempo,hiphop,4,Downtempo,1990s,early 1990s,UK
+,Brostep,brostep,dubstep,rock,3,Dubstep,2000s,late 2000s,USA
+,Chillstep,chillstep,dubstep,ambient,2,Dubstep,2010s,early 2010s,Worldwide
+,Classic Dubstep,classicdubstep,dubstep,breakbeat,4,2-Step Garage,2000s,early 2000s,UK
+,Dubstep,dubstep,dubstep,breakbeat,5,UK Garage,2000s,early 2000s,UK
+,Industrial Dubstep,industrialdubstep,dubstep,industrial,2,Dubstep,2000s,late 2000s,Worldwide
+,Post-Dubstep,postdubstep,dubstep,experimental,3,Dubstep,2000s,late 2000s,UK
+,Riddim,riddim,dubstep,,3,Dubstep,2010s,early 2010s,"USA, UK"
+,Tearout,tearout,dubstep,hardcore,2,Dubstep,2000s,late 2000s,UK
+,Budots,budots,edm,folk,3,Electronic Dance Music,2000s,early 2000s,Philippines
+,Electro,electro,edm,soulful,5,Electro Funk,1980s,early 1980s,USA
+,Electroclash,electroclash,edm,rock,4,New Wave,1990s,late 1990s,"USA, Europe"
+,Electronic Dance Music,electronicdancemusic,edm,,5,Disco,1980s,late 1980s,Worldwide
+,Electronica,electronica,edm,experimental,4,Electronic Music,1990s,early 1990s,UK
+,Electroswing,electroswing,edm,jazz,4,Swing,1990s,late 1990s,Europe
+,Future Bass,futurebass,edm,dubstep,4,Wonky,2000s,late 2000s,"UK, USA"
+,Kawaii Bass,kawaiibass,edm,pop,2,Future Bass,2010s,mid-2010s,Japan
+,Midtempo,midtempo,edm,dubstep,3,Dubstep,2010s,mid-2010s,Worldwide
+,Outrun,outrun,edm,,3,Synthwave,2000s,mid-2000s,"Worldwide, online"
+,Rave,rave,edm,house,5,Acid House,1980s,late 1980s,"UK, Europe"
+,Seapunk,seapunk,edm,ambient,2,Vaporwave,2010s,early 2010s,"Worldwide, online"
+,Synthwave,synthwave,edm,,5,Synthpop,2000s,mid-2000s,"Worldwide, online"
+,Acousmatic Music,acousmaticmusic,experimental,classical,3,Musique Concrete,1950s,mid-1950s,France
+,Algorave,algorave,experimental,edm,3,IDM,2010s,early 2010s,UK
+,Aquacrunk,aquacrunk,experimental,hiphop,1,Wonky,2000s,late 2000s,Scotland
+,Danger Music,dangermusic,experimental,noise,2,Fluxus,1960s,early 1960s,"Japan, USA"
+,Deconstructed Club,deconstructedclub,experimental,edm,3,Electronic Dance Music,2010s,early 2010s,"Worldwide, online"
+,Drill & Bass,drillandbass,experimental,dnb,3,Drum & Bass,1990s,mid-1990s,UK
+,EAI,eai,experimental,jazz,2,Free Improvisation,2000s,early 2000s,"Europe, USA"
+,Electroacoustic Music,electroacousticmusic,experimental,classical,4,Electronic Music,1940s,late 1940s,Europe
+,Electronic Music,electronicmusic,experimental,,5,(none),1940s,late 1940s,"Europe, USA"
+,Fluxus,fluxus,experimental,,4,(none),1960s,early 1960s,"Europe, USA, Japan"
+,Free Improvisation,freeimprovisation,experimental,jazz,4,Free Jazz,1960s,early 1960s,"UK, Europe, USA"
+,Futurism,futurism,experimental,noise,4,(none),1910s,early 1910s,Italy
+,Glitch,glitch,experimental,edm,4,IDM,1990s,mid-1990s,"Germany, USA"
+,HexD,hexd,experimental,edm,1,Glitch,2010s,late 2010s,"Worldwide, online"
+,IDM,idm,experimental,techno,4,Techno,1990s,early 1990s,UK
+,Laptop Music,laptopmusic,experimental,edm,3,Electroacoustic Music,1990s,late 1990s,Worldwide
+,Live Coding,livecoding,experimental,edm,3,Electronic Music,2000s,early 2000s,Worldwide
+,Microsound,microsound,experimental,edm,3,Glitch,1990s,late 1990s,"USA, Europe"
+,Musique Concrete,musiqueconcrete,experimental,classical,5,(none),1940s,late 1940s,France
+,Onkyo,onkyo,experimental,ambient,2,Free Improvisation,1990s,late 1990s,Japan
+,Plunderphonics,plunderphonics,experimental,,4,Sound Collage,1980s,mid-1980s,Canada
+,Sound Art,soundart,experimental,,4,(none),1900s,early 1900s,"Europe, USA"
+,Sound Collage,soundcollage,experimental,edm,4,Musique Concrete,1940s,late 1940s,"Europe, USA"
+,Algerian Folk,algerianfolk,folk,african,3,(none),ancient,pre-modern oral tradition,Algeria
+,Alternative Country,alternativecountry,folk,rock,4,Country,1990s,early 1990s,USA
+,Americana,americana,folk,,4,Folk Music,1990s,early 1990s,USA
+,Andalusian Folk,andalusianfolk,folk,latin,4,(none),ancient,pre-modern oral tradition,"Andalusia, Spain"
+,Appalachian Folk,appalachianfolk,folk,,4,Folk Music,1700s,18th century,USA
+,Bakersfield Sound,bakersfieldsound,folk,rock,4,Country,1950s,mid-1950s,USA
+,Balkan Folk,balkanfolk,folk,,4,Folk Music,ancient,pre-modern oral tradition,Balkans
+,Bhangra,bhangra,folk,pop,4,Punjabi Folk,1940s,1940s,"India, Pakistan"
+,Bhangragga,bhangragga,folk,jamaican,2,Bhangra,1980s,late 1980s,UK
+,Bluegrass,bluegrass,folk,,4,Old-Time Music,1940s,mid-1940s,USA
+,Bluegrass Gospel,bluegrassgospel,folk,,3,Bluegrass,1940s,late 1940s,USA
+,Blues,blues,folk,soulful,5,(none),1860s,late 1800s,USA
+,Blues Revival,bluesrevival,folk,soulful,4,Country Blues,1950s,late 1950s,"USA, UK"
+,Brazilian Folk,brazilianfolk,folk,latin,4,(none),1500s,16th-century colonial syncretism,Brazil
+,Bro Country,brocountry,folk,pop,3,Country Pop,2010s,early 2010s,USA
+,Cajun Music,cajunmusic,folk,,4,(none),1920s,1920s,USA
+,Celtic Music,celticmusic,folk,,5,Folk Music,ancient,Iron Age roots,"Ireland, Scotland, Celtic regions"
+,Chicago Blues,chicagoblues,folk,soulful,4,Delta Blues,1940s,1940s,USA
+,Contemporary Country,contemporarycountry,folk,pop,5,Country,1970s,late 1970s,USA
+,Country,country,folk,pop,5,Old-Time Music,1920s,early 1920s,USA
+,Country Blues,countryblues,folk,,4,Blues,1900s,early 1900s,USA
+,Country Dance,countrydance,folk,classical,4,(none),1500s,16th century,"UK, France"
+,Country Rock,countryrock,folk,rock,4,Country,1960s,late 1960s,USA
+,Countrypolitan,countrypolitan,folk,pop,4,Nashville Sound,1950s,late 1950s,USA
+,Cowboy Music,cowboymusic,folk,,4,Western Music,1800s,late 1800s,USA
+,Dangdut,dangdut,folk,pop,5,Malay Music,1960s,late 1960s,Indonesia
+,Delta Blues,deltablues,folk,,5,Blues,1920s,early 1920s,USA
+,Egyptian Folk,egyptianfolk,folk,african,4,(none),ancient,pre-modern oral tradition,Egypt
+,Electric Blues,electricblues,folk,soulful,4,Blues,1940s,late 1940s,USA
+,Fado,fado,folk,latin,5,Portuguese Folk,1820s,c. 1820,Portugal
+,Flamenco,flamenco,folk,latin,5,Andalusian Folk,1700s,late 1700s,Spain
+,Folk Music,folkmusic,folk,,5,(none),ancient,prehistoric oral tradition,Worldwide
+,Folktronica,folktronica,folk,edm,4,Folk Music,1990s,late 1990s,UK
+,Freak Folk,freakfolk,folk,psy,3,Psychedelic Folk,2000s,early 2000s,USA
+,Gamelan,gamelan,folk,classical,5,(none),ancient,traditional,Indonesia
+,Garifuna Music,garifunamusic,folk,latin,4,(none),1600s,mid-to-late 17th century,"Central America, Caribbean"
+,Ghazal,ghazal,folk,classical,5,(none),600s,7th century,"Middle East, South Asia"
+,Greek Folk,greekfolk,folk,,4,(none),ancient,pre-modern oral tradition,Greece
+,Hambone,hambone,folk,soulful,2,(none),1800s,19th century,USA
+,Hawaiian Music,hawaiianmusic,folk,pop,4,(none),ancient,pre-contact origins (before 1778),"Hawaii, USA"
+,Hill Country Blues,hillcountryblues,folk,soulful,3,Country Blues,1950s,1950s,USA
+,Honky-Tonk,honkytonk,folk,,4,Country,1940s,1940s,USA
+,Humppa,humppa,folk,pop,3,Foxtrot,1930s,1930s,Finland
+,Indie Folk,indiefolk,folk,rock,5,Folk Music,1990s,mid-1990s,"USA, UK"
+,Inuit Throat Singing,inuitthroatsinging,folk,,3,(none),ancient,pre-contact oral tradition,Canada
+,Irish Traditional Music,irishtraditionalmusic,folk,,5,Celtic Music,1600s,17th-century documented tradition,Ireland
+,Keroncong,keroncong,folk,pop,4,Portuguese Folk,1500s,16th century; modern form 1900s,Indonesia
+,Klezmer,klezmer,folk,,4,(none),1800s,late 1800s,Eastern Europe
+,Laïko,laiko,folk,pop,4,Rebetiko,1950s,1950s,Greece
+,Lao Folk,laofolk,folk,,3,(none),ancient,pre-modern oral tradition,Laos
+,Louisiana Creole Music,louisianacreolemusic,folk,latin,3,(none),1700s,18th-century colonial era,USA
+,Luk Thung,lukthung,folk,pop,5,Thai Folk,1930s,late 1930s,Thailand
+,Malay Music,malaymusic,folk,pop,4,(none),ancient,pre-modern oral tradition,"Malaysia, Indonesia"
+,Manele,manele,folk,pop,4,Romanian Folk,1980s,late 1980s,Romania
+,Māori Music,maorimusic,folk,,4,(none),ancient,pre-contact oral tradition,New Zealand
+,Mariachi,mariachi,folk,latin,5,Mexican Folk,1800s,19th century,Mexico
+,Memphis Blues,memphisblues,folk,soulful,4,Country Blues,1910s,1910s,USA
+,Mexican Folk,mexicanfolk,folk,latin,5,(none),1500s,16th-century colonial syncretism,Mexico
+,Min'yō,minyo,folk,,4,(none),ancient,pre-modern oral tradition,Japan
+,Modern Laika,modernlaika,folk,pop,3,Laïko,1960s,1960s,Greece
+,Mor Lam,morlam,folk,pop,4,Lao Folk,1800s,late 18th–19th centuries,"Laos, Thailand"
+,Nashville Sound,nashvillesound,folk,pop,4,Country,1950s,mid-1950s,USA
+,Neotraditional Country,neotraditionalcountry,folk,,5,Country,1980s,early 1980s,USA
+,Newgrass,newgrass,folk,,3,Bluegrass,1970s,early 1970s,USA
+,Nordic Folk,nordicfolk,folk,,4,Folk Music,ancient,pre-modern oral tradition,Nordic countries
+,Old-Time Music,oldtimemusic,folk,,4,Folk Music,1800s,late 1800s,USA
+,Outlaw Country,outlawcountry,folk,rock,4,Country,1970s,early 1970s,USA
+,Pansori,pansori,folk,pop,4,(none),1600s,17th century,Korea
+,Piedmont Blues,piedmontblues,folk,soulful,4,Country Blues,1900s,early 1900s,USA
+,Polka,polka,folk,,4,(none),1830s,c. 1830,Czech lands
+,Portuguese Folk,portuguesefolk,folk,latin,4,(none),ancient,pre-modern oral tradition,Portugal
+,Psychedelic Folk,psychedelicfolk,folk,psy,4,Folk Music,1960s,mid-1960s,"UK, USA"
+,Punjabi Folk,punjabifolk,folk,,4,(none),ancient,pre-modern oral tradition,"India, Pakistan"
+,Qawwali,qawwali,folk,,5,Sufi,1200s,13th century,South Asia
+,Rai,rai,folk,african,4,Algerian Folk,1920s,1920s,Algeria
+,Rebetiko,rebetiko,folk,,4,Greek Folk,1920s,early 1920s,Greece
+,Red Dirt,reddirt,folk,rock,4,Country,1980s,late 1980s,USA
+,Romani Music,romanimusic,folk,,4,Folk Music,1400s,15th-century European emergence,"Europe, West Asia"
+,Romanian Folk,romanianfolk,folk,,4,(none),ancient,pre-modern oral tradition,Romania
+,Scottish Folk,scottishfolk,folk,,4,Celtic Music,ancient,pre-modern oral tradition,Scotland
+,Sertanejo,sertanejo,folk,pop,5,Brazilian Folk,1920s,1920s,Brazil
+,Shaabi,shaabi,folk,african,5,Egyptian Folk,1970s,early 1970s,Egypt
+,Singer-Songwriter,singersongwriter,folk,pop,5,Folk Music,1960s,early 1960s,"USA, UK"
+,Skiffle,skiffle,folk,rock,3,Folk Music,1920s,1920s; UK revival 1950s,"USA, UK"
+,Sufi,sufi,folk,,4,(none),700s,8th century,"Middle East, South Asia"
+,Swamp Blues,swampblues,folk,soulful,3,Electric Blues,1950s,1950s,USA
+,Texas Blues,texasblues,folk,soulful,4,Country Blues,1920s,1920s,USA
+,Texas Country,texascountry,folk,rock,4,Country,1970s,1970s,USA
+,Thai Folk,thaifolk,folk,,4,(none),ancient,pre-modern oral tradition,Thailand
+,Tuvan Throat Singing,tuvanthroatsinging,folk,,3,(none),ancient,pre-modern oral tradition,"Tuva, Russia"
+,Urban Cowboy,urbancowboy,folk,pop,3,Country Pop,1970s,late 1970s,USA
+,West Coast Blues,westcoastblues,folk,soulful,3,Blues,1940s,1940s,USA
+,Western Music,westernmusic,folk,,4,Folk Music,1800s,late 1800s,USA
+,Western Swing,westernswing,folk,jazz,5,Country,1920s,late 1920s,USA
+,Worksong,worksong,folk,soulful,4,(none),ancient,prehistoric communal tradition,Worldwide
+,World Music,worldmusic,folk,pop,4,Folk Music,1980s,early 1980s,Worldwide
+,Worldbeat,worldbeat,folk,pop,3,World Music,1980s,mid-1980s,Worldwide
+,Yoik,yoik,folk,,3,(none),ancient,pre-Christian Sámi tradition,Sápmi
+,Zydeco,zydeco,folk,soulful,4,Louisiana Creole Music,1950s,early 1950s,USA
+,Bouncy Techno,bouncytechno,hardcore,techno,3,Happy Hardcore,1990s,early 1990s,UK
+,Breakbeat Hardcore,breakbeathardcore,hardcore,breakbeat,5,Rave,1990s,early 1990s,UK
+,Crossbreed,crossbreed,hardcore,dnb,2,Hardcore Techno,2000s,early 2000s,Europe
+,Cybergrind,cybergrind,hardcore,metal,2,Grindcore,1990s,mid-1990s,USA
+,Digital Hardcore,digitalhardcore,hardcore,,3,Hardcore Punk,1990s,early 1990s,Germany
+,Extratone,extratone,hardcore,noise,1,Speedcore,1990s,late 1990s,Europe
+,Freeform Hardcore,freeformhardcore,hardcore,trance,3,UK Hardcore,1990s,late 1990s,UK
+,Frenchcore,frenchcore,hardcore,techno,3,Hardcore Techno,1990s,mid-1990s,France
+,Gabber,gabber,hardcore,techno,4,Hardcore Techno,1990s,early 1990s,Netherlands
+,Happy Gabber,happygabber,hardcore,pop,3,Gabber,1990s,mid-1990s,Netherlands
+,Happy Hardcore,happyhardcore,hardcore,pop,4,Hardcore Techno,1990s,early 1990s,UK
+,Hard Dance,harddance,hardcore,trance,4,Hard House,1990s,mid-1990s,"UK, Europe"
+,Hard NRG,hardnrg,hardcore,trance,3,Hi-NRG,1990s,early 1990s,UK
+,Hardcore Techno,hardcoretechno,hardcore,techno,4,New Beat,1980s,late 1980s,"Belgium, Germany, Netherlands"
+,Hardstyle,hardstyle,hardcore,trance,4,Hardcore Techno,1990s,late 1990s,Netherlands
+,Industrial Hardcore,industrialhardcore,hardcore,industrial,3,Hardcore Techno,1990s,mid-1990s,Europe
+,Lento Violento,lentoviolento,hardcore,house,2,Hardstyle,2000s,mid-2000s,Italy
+,Mainstream Hardcore,mainstreamhardcore,hardcore,techno,4,Gabber,2000s,early 2000s,Netherlands
+,Makina,makina,hardcore,trance,4,Hardcore Techno,1990s,early 1990s,Spain
+,Raggatek,raggatek,hardcore,jamaican,2,Ragga Jungle,2000s,mid-2000s,Europe
+,Speedcore,speedcore,hardcore,noise,2,Hardcore Techno,1990s,early 1990s,Europe
+,Splittercore,splittercore,hardcore,noise,1,Speedcore,1990s,late 1990s,Europe
+,Subground,subground,hardcore,house,2,Hardstyle,2010s,early 2010s,Italy
+,Terrorcore,terrorcore,hardcore,industrial,2,Gabber,1990s,early 1990s,Netherlands
+,Tokkiecore,tokkiecore,hardcore,edm,1,Hardcore Techno,2020s,early 2020s,"South Africa, online"
+,Trancecore,trancecore,hardcore,trance,3,Hardcore Techno,1990s,late 1990s,Europe
+,UK Hardcore,ukhardcore,hardcore,pop,4,Happy Hardcore,1990s,late 1990s,UK
+,Abstract Hip Hop,abstracthiphop,hiphop,experimental,3,Alternative Hip Hop,1990s,early 1990s,USA
+,Alternative Hip Hop,alternativehiphop,hiphop,,4,Hiphop,1980s,mid-1980s,USA
+,Beatbox,beatbox,hiphop,,4,Hiphop,1970s,late 1970s,USA
+,Boom Bap,boombap,hiphop,,4,East Coast Hiphop,1980s,mid-1980s,USA
+,Brooklyn Drill,brooklyndrill,hiphop,,4,UK Drill,2010s,late 2010s,USA
+,Chicano Rap,chicanorap,hiphop,latin,4,West Coast Hiphop,1980s,late 1980s,USA
+,Chopped & Screwed,choppedandscrewed,hiphop,experimental,3,Southern Hip Hop,1990s,early 1990s,USA
+,Christian Hip Hop,christianhiphop,hiphop,folk,4,Hiphop,1980s,mid-1980s,USA
+,Cloud Rap (based),cloudrapbased,hiphop,ambient,3,Southern Hip Hop,2000s,late 2000s,USA
+,Comedy Hip Hop,comedyhiphop,hiphop,,3,Hiphop,1980s,mid-1980s,"USA, UK"
+,Conscious Hiphop,conscioushiphop,hiphop,soulful,4,Hiphop,1980s,mid-1980s,USA
+,Country Rap,countryrap,hiphop,folk,4,Hiphop,1980s,early 1980s,USA
+,Crunk,crunk,hiphop,,4,Southern Hip Hop,1990s,late 1990s,USA
+,Dirty South,dirtysouth,hiphop,,4,Southern Hip Hop,1980s,late 1980s,USA
+,Drift Phonk,driftphonk,hiphop,edm,4,Phonk,2010s,late 2010s,"Russia, online"
+,Drill,drill,hiphop,,4,Trap,2010s,early 2010s,USA
+,East Coast Hiphop,eastcoasthiphop,hiphop,,5,Hiphop,1970s,late 1970s,USA
+,Emo Rap,emorap,hiphop,rock,4,Hiphop,2000s,mid-2000s,USA / online
+,Eskibeat,eskibeat,hiphop,breakbeat,2,UK Garage,2000s,early 2000s,UK
+,G-Funk,gfunk,hiphop,soulful,4,West Coast Hiphop,1990s,early 1990s,USA
+,Gangsta Rap,gangstarap,hiphop,,5,Hiphop,1980s,mid-1980s,USA
+,Glitch-hop,glitchhop,hiphop,edm,3,Hiphop,2000s,mid-2000s,USA
+,Golden Age Hip Hop,goldenagehiphop,hiphop,,5,Hiphop,1980s,mid-1980s,USA
+,Grindie,grindie,hiphop,rock,2,UK Grime,2000s,mid-2000s,UK
+,Hard Trap,hardtrap,hiphop,edm,3,Trap,2010s,early 2010s,USA
+,Hardcore Hip Hop,hardcorehiphop,hiphop,hardcore,5,East Coast Hiphop,1980s,mid-1980s,USA
+,Hiphop,hiphop,hiphop,soulful,5,Funk,1970s,early 1970s,USA
+,Hiphy,hiphy,hiphop,soulful,3,West Coast Hiphop,1990s,mid-1990s,USA
+,Horrorcore,horrorcore,hiphop,hardcore,3,Hiphop,1980s,late 1980s,USA
+,Houston Hip Hop,houstonhiphop,hiphop,,4,Southern Hip Hop,1980s,late 1980s,USA
+,Industrial Hip Hop,industrialhiphop,hiphop,industrial,4,Hiphop,1980s,late 1980s,"USA, UK"
+,Instrumental Hip Hop,instrumentalhiphop,hiphop,downtempo,4,Hiphop,1980s,early 1980s,USA
+,Jazz Rap,jazzrap,hiphop,jazz,4,Hiphop,1980s,late 1980s,USA
+,Jerk,jerk,hiphop,edm,2,West Coast Hiphop,2000s,late 2000s,USA
+,Latin Hip Hop,latinhiphop,hiphop,latin,4,Hiphop,1980s,early 1980s,"USA, Latin America"
+,Latin Trap,latintrap,hiphop,latin,4,Trap,2000s,mid-2000s,"Puerto Rico, USA"
+,Lo-Fi Hip Hop,lofihiphop,hiphop,downtempo,4,Hiphop,2000s,late 2000s,Worldwide / online
+,Memphis Rap,memphisrap,hiphop,,4,Southern Hip Hop,1980s,late 1980s,USA
+,Miami Bass,miamibass,hiphop,edm,4,Electro,1980s,mid-1980s,USA
+,Midwest Hip Hop,midwesthiphop,hiphop,,4,Hiphop,1980s,late 1980s,USA
+,Mumble Rap,mumblerap,hiphop,,3,Trap,2010s,mid-2010s,USA
+,Nerdcore,nerdcore,hiphop,,3,Hiphop,2000s,early 2000s,USA
+,Oldschool Hiphop,oldschoolhiphop,hiphop,soulful,4,Hiphop,1970s,late 1970s,USA
+,Phonk,phonk,hiphop,edm,4,Memphis Rap,2010s,early 2010s,"USA, online"
+,Plugg,plugg,hiphop,,3,Trap,2010s,mid-2010s,USA
+,PluggnB,pluggnb,hiphop,soulful,3,Plugg,2010s,late 2010s,"USA, online"
+,Political Hip Hop,politicalhiphop,hiphop,,4,Hiphop,1980s,early 1980s,USA
+,Pop Rap,poprap,hiphop,pop,4,Hiphop,1980s,late 1980s,USA
+,Queer Rap,queerrap,hiphop,,2,Hiphop,1990s,1990s,USA
+,Rage Rap,ragerap,hiphop,edm,3,Trap,2010s,late 2010s,USA
+,Sigilkore,sigilkore,hiphop,edm,2,Plugg,2020s,early 2020s,"Worldwide, online"
+,Snap Music,snapmusic,hiphop,,4,Southern Hip Hop,2000s,early 2000s,USA
+,Southern Hip Hop,southernhiphop,hiphop,,5,Hiphop,1980s,late 1980s,USA
+,Sublow,sublow,hiphop,breakbeat,2,UK Garage,2000s,early 2000s,UK
+,Swing Hop,swinghop,hiphop,jazz,2,Hiphop,1990s,late 1990s,"USA, Europe"
+,Trap,trap,hiphop,edm,5,Southern Hip Hop,1990s,late 1990s,USA
+,Turntablism,turntablism,hiphop,experimental,4,Hiphop,1970s,late 1970s,USA
+,UK Drill,ukdrill,hiphop,,5,Drill,2010s,early 2010s,UK
+,UK Grime,ukgrime,hiphop,breakbeat,4,UK Garage,2000s,early 2000s,UK
+,Vaportrap,vaportrap,hiphop,ambient,2,Trap,2010s,mid-2010s,"Worldwide, online"
+,West Coast Hiphop,westcoasthiphop,hiphop,,5,Hiphop,1980s,early 1980s,USA
+,Wonky,wonky,hiphop,edm,3,IDM,2000s,mid-2000s,"UK, USA"
+,Acid House,acidhouse,house,techno,4,Chicago House,1980s,mid-1980s,USA
+,Afro Tech,afrotech,house,african,3,Afrohouse,2000s,mid-2000s,South Africa
+,Afrohouse,afrohouse,house,african,3,House,2000s,early 2000s,South Africa
+,Ambient House,ambienthouse,house,ambient,3,Acid House,1980s,late 1980s,UK
+,Ballroom House,ballroomhouse,house,soulful,4,Garage,1980s,late 1980s,USA
+,Baltimore House,baltimorehouse,house,breakbeat,2,Chicago House,1980s,late 1980s,USA
+,Bass House,basshouse,house,dubstep,4,House,2010s,early 2010s,"UK, USA"
+,Bassline House,basslinehouse,house,breakbeat,3,UK Garage,2000s,early 2000s,UK
+,Big Room House,bigroomhouse,house,edm,3,Electro House,2010s,early 2010s,Europe
+,Chicago Hard House,chicagohardhouse,house,hardcore,2,Hard House,1990s,early 1990s,USA
+,Chicago House,chicagohouse,house,soulful,5,Disco,1980s,early 1980s,USA
+,Classic House,classichouse,house,soulful,4,Chicago House,1980s,mid-1980s,USA
+,Complextro,complextro,house,edm,2,Electro House,2000s,late 2000s,USA
+,Deep House,deephouse,house,soulful,4,Chicago House,1980s,mid-1980s,USA
+,Detroit House,detroithouse,house,techno,2,Chicago House,1980s,late 1980s,USA
+,Disco House,discohouse,house,soulful,3,House,1980s,late 1980s,"USA, UK"
+,Diva House,divahouse,house,soulful,3,Garage,1990s,early 1990s,"USA, UK"
+,Dutch House,dutchhouse,house,edm,3,Electro House,2000s,mid-2000s,Netherlands
+,Electro House,electrohouse,house,edm,4,House,1990s,late 1990s,Europe
+,Eurohouse,eurohouse,house,pop,3,Eurodance,1990s,early 1990s,Europe
+,Fidget House,fidgethouse,house,breakbeat,2,Electro House,2000s,mid-2000s,UK
+,French House,frenchhouse,house,soulful,4,House,1990s,mid-1990s,France
+,Funky House,funkyhouse,house,soulful,4,House,1990s,mid-1990s,"USA, UK"
+,Future Bounce,futurebounce,house,edm,3,Future House,2010s,mid-2010s,Europe
+,Future House,futurehouse,house,edm,4,Deep House,2010s,2013,Europe
+,Garage,garage,house,soulful,4,Disco,1980s,late 1980s,USA
+,Ghetto House,ghettohouse,house,breakbeat,4,Chicago House,1990s,early 1990s,USA
+,Hard House,hardhouse,house,hardcore,3,House,1990s,early 1990s,UK
+,Hardbass,hardbass,house,hardcore,2,Pumping House,1990s,late 1990s,Russia
+,Hip House,hiphouse,house,hiphop,3,Chicago House,1980s,late 1980s,"USA, UK"
+,House,house,house,,5,Disco,1980s,early 1980s,USA
+,Ibiza House,ibizahouse,house,ambient,3,House,1980s,late 1980s,Spain
+,Italo House,italohouse,house,soulful,3,House,1980s,late 1980s,Italy
+,Jersey Sound,jerseysound,house,breakbeat,4,Baltimore House,2000s,early 2000s,USA
+,Juke / Footwork,jukefootwork,house,breakbeat,3,Ghetto House,1990s,late 1990s,USA
+,Latin House,latinhouse,house,latin,3,House,1980s,late 1980s,USA
+,Melbourne Bounce,melbournebounce,house,edm,3,Electro House,2010s,early 2010s,Australia
+,Microhouse,microhouse,house,techno,3,Minimal Techno,1990s,mid-1990s,Germany
+,Piano House,pianohouse,house,pop,4,House,1980s,late 1980s,"UK, USA"
+,Progressive House,progressivehouse,house,trance,4,House,1990s,early 1990s,UK
+,Pumping House,pumpinghouse,house,hardcore,2,Hard House,1990s,mid-1990s,"Russia, Europe"
+,Scouse House,scousehouse,house,hardcore,3,Hard House,1990s,late 1990s,UK
+,Soulful House,soulfulhouse,house,soulful,4,Deep House,1990s,mid-1990s,USA
+,Speed House,speedhouse,house,hardcore,3,Bass House,2010s,late 2010s,Worldwide
+,Tech House,techhouse,house,techno,4,House,1990s,mid-1990s,UK
+,Tribal House,tribalhouse,house,latin,3,House,1980s,late 1980s,USA
+,Tropical House,tropicalhouse,house,pop,4,Deep House,2010s,2013,Europe
+,UK Funky,ukfunky,house,breakbeat,3,UK Garage,2000s,mid-2000s,UK
+,Vocal House,vocalhouse,house,pop,4,House,1980s,late 1980s,"USA, UK"
+,House Pop,housepop,house,pop,3,House,1990s,early-1990s,USA
+,Coldwave,coldwave,industrial,rock,3,Post-Punk,1970s,late 1970s,"France, Belgium"
+,Darksynth,darksynth,industrial,edm,3,Synthwave,2010s,early 2010s,"Worldwide, online"
+,Darkwave,darkwave,industrial,rock,4,Post-Punk,1970s,late 1970s,"UK, Germany"
+,EBM,ebm,industrial,edm,4,Industrial,1970s,late 1970s,"Belgium, Germany"
+,Electro-Industrial,electroindustrial,industrial,edm,4,Industrial,1980s,early 1980s,"Belgium, Canada, Germany"
+,Futurepop,futurepop,industrial,pop,3,EBM,1990s,late 1990s,Europe
+,Hard Beat,hardbeat,industrial,hardcore,1,EBM,1980s,late 1980s,Belgium
+,Industrial,industrial,industrial,experimental,5,Electronic Music,1970s,mid-1970s,"UK, USA, Germany"
+,Industrial Rock,industrialrock,industrial,rock,4,Industrial,1980s,mid-1980s,"UK, USA"
+,Neofolk,neofolk,industrial,folk,3,Industrial,1980s,mid-1980s,UK
+,New Beat,newbeat,industrial,house,3,EBM,1980s,mid-1980s,Belgium
+,Witch House,witchhouse,industrial,hiphop,3,Chopped & Screwed,2000s,late 2000s,USA
+,Industrial Pop,industrialpop,industrial,pop,2,Industrial,1980s,late-1980s,"USA, UK"
+,Conscious Dancehall,consciousdancehall,jamaican,hiphop,2,Dancehall,1980s,late 1980s,Jamaica
+,Dancehall,dancehall,jamaican,edm,5,Reggae,1970s,late 1970s,Jamaica
+,Digital Dancehall,digitaldancehall,jamaican,edm,4,Dancehall,1980s,mid-1980s,Jamaica
+,Dub,dub,jamaican,experimental,5,Reggae,1960s,late 1960s,Jamaica
+,Dub Poetry,dubpoetry,jamaican,hiphop,4,Dub,1970s,early 1970s,"Jamaica, UK"
+,Hardcore Dancehall,hardcoredancehall,jamaican,hiphop,3,Dancehall,1980s,mid-1980s,Jamaica
+,Jamaican Folk,jamaicanfolk,jamaican,folk,4,(none),1600s,17th-century colonial-era syncretism,Jamaica
+,Lovers Rock,loversrock,jamaican,soulful,3,Reggae,1970s,mid-1970s,UK
+,Mento,mento,jamaican,folk,4,Jamaican Folk,1940s,late 1940s,Jamaica
+,Nyabinghi,nyabinghi,jamaican,folk,3,Rastafari Music,1950s,1950s,Jamaica
+,Ragga,ragga,jamaican,hiphop,4,Dancehall,1980s,mid-1980s,"Jamaica, UK"
+,Rastafari Music,rastafarimusic,jamaican,folk,3,Jamaican Folk,1950s,1950s,Jamaica
+,Reggae,reggae,jamaican,soulful,5,Rocksteady,1960s,late 1960s,Jamaica
+,Reggae Fusion,reggaefusion,jamaican,pop,4,Reggae,1980s,late 1980s,"Jamaica, USA"
+,Rocksteady,rocksteady,jamaican,soulful,4,Ska,1960s,mid-1960s,Jamaica
+,Roots Reggae,rootsreggae,jamaican,soulful,5,Reggae,1960s,late 1960s,Jamaica
+,Ska,ska,jamaican,jazz,5,Mento,1950s,late 1950s,Jamaica
+,Ska Jazz,skajazz,jamaican,jazz,3,Ska,1990s,early 1990s,"USA, Europe"
+,Toasting,toasting,jamaican,hiphop,5,Reggae,1960s,late 1960s,Jamaica
+,Two Tone,twotone,jamaican,rock,5,Ska,1970s,late 1970s,UK
+,Dancehall Pop,dancehallpop,jamaican,pop,4,Dancehall,2000s,early-2000s,"Jamaica, USA, UK, Canada"
+,Acid Jazz,acidjazz,jazz,soulful,4,Jazz-Funk,1980s,mid-1980s,UK
+,Afro-Cuban Jazz,afrocubanjazz,jazz,latin,4,Cubop,1940s,late 1940s,"USA, Cuba"
+,Avant-Garde Jazz,avantgardejazz,jazz,experimental,4,Free Jazz,1950s,late 1950s,USA
+,Bebop,bebop,jazz,,5,Swing,1940s,early 1940s,USA
+,Boogie-Woogie,boogiewoogie,jazz,soulful,4,Blues,1920s,late 1920s,USA
+,Brazilian Jazz,brazilianjazz,jazz,latin,4,Bossa Nova,1960s,early 1960s,"Brazil, USA"
+,Cape Jazz,capejazz,jazz,african,4,Marabi,1950s,late 1950s,South Africa
+,Chicago Jazz,chicagojazz,jazz,,4,New Orleans Jazz,1910s,late 1910s,USA
+,Cool Jazz,cooljazz,jazz,,5,Bebop,1940s,late 1940s,USA
+,Cubop,cubop,jazz,latin,4,Bebop,1940s,mid-1940s,"USA, Cuba"
+,Dixieland Jazz,dixielandjazz,jazz,,5,New Orleans Jazz,1910s,1910s,USA
+,Ethio-Jazz,ethiojazz,jazz,african,4,Jazz,1960s,late 1960s,Ethiopia
+,Foxtrot,foxtrot,jazz,pop,4,Ragtime,1910s,1910s,USA
+,Free Jazz,freejazz,jazz,experimental,5,Jazz,1950s,late 1950s,USA
+,Gypsy Jazz,gypsyjazz,jazz,folk,5,Swing,1930s,early 1930s,France
+,Hard Bop,hardbop,jazz,soulful,5,Bebop,1950s,mid-1950s,USA
+,Jazz,jazz,jazz,soulful,5,Blues,1900s,early 1900s,USA
+,Jazz Fusion,jazzfusion,jazz,rock,5,Jazz,1960s,late 1960s,USA
+,Jazz-Funk,jazzfunk,jazz,soulful,4,Jazz Fusion,1970s,early 1970s,"USA, UK"
+,Kansas City Jazz,kansascityjazz,jazz,soulful,4,Jazz,1920s,late 1920s,USA
+,Latin Jazz,latinjazz,jazz,latin,5,Jazz,1940s,1940s,"USA, Cuba"
+,Modal Jazz,modaljazz,jazz,,5,Bebop,1950s,late 1950s,USA
+,New Orleans Jazz,neworleansjazz,jazz,soulful,5,Ragtime,1900s,early 1900s,USA
+,Nordic Jazz,nordicjazz,jazz,folk,3,Cool Jazz,1960s,1960s,Scandinavia
+,Post-Bop,postbop,jazz,experimental,4,Hard Bop,1960s,early 1960s,USA
+,Ragtime,ragtime,jazz,classical,4,(none),1890s,c. 1895,USA
+,Smooth Jazz,smoothjazz,jazz,soulful,4,Jazz Fusion,1970s,mid-1970s,USA
+,Soul Jazz,souljazz,jazz,soulful,4,Hard Bop,1950s,late 1950s,USA
+,Space Jazz,spacejazz,jazz,experimental,2,Modal Jazz,1950s,late 1950s,USA
+,Spiritual Jazz,spiritualjazz,jazz,soulful,4,Modal Jazz,1960s,mid-1960s,USA
+,Stride,stride,jazz,,3,Ragtime,1920s,early 1920s,USA
+,Swing,swing,jazz,soulful,5,Jazz,1930s,early 1930s,USA
+,Third Stream,thirdstream,jazz,classical,4,Cool Jazz,1950s,late 1950s,USA
+,Vocal Jazz,vocaljazz,jazz,pop,5,Jazz,1920s,1920s,USA
+,Jazz Pop,jazzpop,jazz,pop,3,Vocal Jazz,1960s,early-1960s,USA
+,Axé,axe,latin,african,4,MPB,1980s,mid-1980s,Brazil
+,Bachata,bachata,latin,,5,Bolero,1960s,early 1960s,Dominican Republic
+,Bolero,bolero,latin,,4,(none),1880s,1880s,Cuba
+,Boogaloo,boogaloo,latin,soulful,4,Latin Soul,1960s,mid-1960s,USA
+,Boombahchero,boombahchero,latin,edm,1,Moombahton,2010s,early 2010s,Worldwide
+,Bossa Nova,bossanova,latin,jazz,5,Samba,1950s,late 1950s,Brazil
+,Bouyon (dominica),bouyondominica,latin,folk,3,Jing Ping,1980s,late 1980s,Dominica
+,Brega,brega,latin,pop,4,Traditional Pop,1940s,late 1940s,Brazil
+,Cadence-Lypso,cadencelypso,latin,african,3,Kadans,1970s,early 1970s,Dominica
+,Calypso,calypso,latin,folk,4,(none),1910s,early 1900s,Trinidad and Tobago
+,Carimbó,carimbo,latin,folk,4,Brazilian Folk,1600s,17th century,Brazil
+,Cha-Cha-Cha,chachacha,latin,jazz,5,Mambo,1950s,early 1950s,Cuba
+,Chicha (Peruvian Cumbia),chichaperuviancumbia,latin,rock,4,Cumbia,1960s,late 1960s,Peru
+,Choro,choro,latin,jazz,5,(none),1870s,late 1800s,Brazil
+,Contradanza,contradanza,latin,classical,4,Country Dance,1700s,late 1700s,Cuba
+,Cumbia,cumbia,latin,folk,5,(none),1940s,1940s,Colombia
+,Cumbia Mexicana,cumbiamexicana,latin,,4,Cumbia,1940s,late 1940s,Mexico
+,Cumbia Sonidera,cumbiasonidera,latin,edm,3,Cumbia Mexicana,1990s,1990s,Mexico
+,Cumbia Villera,cumbiavillera,latin,hiphop,4,Cumbia,1990s,late 1990s,Argentina
+,Danzón,danzon,latin,classical,5,Habanera,1870s,late 1870s,Cuba
+,Dembow,dembow,latin,jamaican,4,Dancehall,1990s,early 1990s,Dominican Republic
+,Forró,forro,latin,folk,5,Brazilian Folk,1940s,1940s,Brazil
+,Funk Carioca,funkcarioca,latin,hiphop,4,Miami Bass,1980s,late 1980s,Brazil
+,Guaguancó,guaguanco,latin,african,4,Rumba Cubana,1880s,late 1800s,Cuba
+,Habanera,habanera,latin,classical,4,Contradanza,1800s,mid-1800s,Cuba
+,Haitian Méringue,haitianmeringue,latin,african,4,(none),1800s,19th century,Haiti
+,Jing Ping,jingping,latin,folk,3,(none),1700s,18th-century plantation era,Dominica
+,Jungle Terror,jungleterror,latin,house,2,Electro House,2010s,early 2010s,Netherlands
+,Kadans,kadans,latin,african,3,Haitian Méringue,1950s,late 1950s,"Haiti, French Caribbean"
+,Kompa,kompa,latin,african,5,Haitian Méringue,1950s,mid-1950s,Haiti
+,Lambada,lambada,latin,pop,5,Carimbó,1980s,early 1980s,Brazil
+,Latin,latin,latin,folk,5,(none),1900s,early 1900s,Latin America
+,Mambo,mambo,latin,jazz,5,Son Cubano,1930s,late 1930s,Cuba
+,Merengue,merengue,latin,,5,(none),1850s,mid-1800s,Dominican Republic
+,Milonga (pope!),milongapope,latin,folk,4,Habanera,1870s,c. 1870,"Argentina, Uruguay"
+,Moombahcore,moombahcore,latin,dubstep,2,Moombahton,2010s,early 2010s,USA
+,Moombahsoul,moombahsoul,latin,soulful,1,Moombahton,2010s,early 2010s,USA
+,Moombahton,moombahton,latin,house,3,Reggaeton,2000s,late 2000s,USA
+,MPB,mpb,latin,pop,5,Bossa Nova,1960s,mid-1960s,Brazil
+,Norteño,norteno,latin,folk,4,(none),1910s,1910s,"Mexico, USA"
+,Nueva Trova,nuevatrova,latin,folk,4,Trova,1960s,late 1960s,Cuba
+,Pachanga,pachanga,latin,jazz,3,Mambo,1950s,late 1950s,"Cuba, USA"
+,Pagode,pagode,latin,pop,4,Samba,1970s,late 1970s,Brazil
+,Proibidao,proibidao,latin,hiphop,2,Funk Carioca,1990s,1990s,Brazil
+,Punta,punta,latin,folk,4,Garifuna Music,1600s,late 17th-century Garifuna origins,"Belize, Honduras, Guatemala"
+,Punta Rock,puntarock,latin,rock,4,Punta,1970s,late 1970s,Belize
+,Rapso (soca),rapsosoca,latin,hiphop,3,Calypso,1970s,early 1970s,Trinidad and Tobago
+,Reggaeton,reggaeton,latin,jamaican,5,Dancehall,1990s,early 1990s,"Puerto Rico, Panama"
+,Rio Funk,riofunk,latin,hiphop,2,Funk Carioca,1990s,1990s,Brazil
+,Rumba Cubana,rumbacubana,latin,african,5,(none),1880s,late 1800s,Cuba
+,Salsa,salsa,latin,jazz,5,Son Cubano,1960s,mid-1960s,"USA, Caribbean"
+,Samba,samba,latin,african,5,(none),1910s,1910s,Brazil
+,Samba Rock,sambarock,latin,rock,4,Samba,1960s,late 1960s,Brazil
+,Soca,soca,latin,folk,4,Calypso,1970s,early 1970s,Trinidad and Tobago
+,Son Cubano,soncubano,latin,,5,(none),1890s,late 1800s,Cuba
+,Tango,tango,latin,,4,(none),1880s,1880s,"Argentina, Uruguay"
+,Tecnocumbia,tecnocumbia,latin,edm,4,Cumbia,1980s,late 1980s,"Mexico, Peru"
+,Timba,timba,latin,jazz,4,Salsa,1980s,late 1980s,Cuba
+,Tropicália,tropicalia,latin,rock,5,MPB,1960s,late 1960s,Brazil
+,Trova,trova,latin,folk,4,(none),1800s,late 1800s,Cuba
+,Vallenato,vallenato,latin,folk,4,(none),1930s,1930s,Colombia
+,Zouk,zouk,latin,pop,5,Kadans,1980s,early 1980s,"Guadeloupe, Martinique"
+,Alternative Metal,alternativemetal,metal,rock,4,Heavy Metal,1980s,mid-1980s,USA
+,Atmospheric Black Metal,atmosphericblackmetal,metal,ambient,4,Black Metal,1990s,mid-1990s,Europe
+,Atmospheric Sludge Metal,atmosphericsludgemetal,metal,ambient,3,Sludge Metal,1990s,late 1990s,USA
+,Avant-Garge Metal,avantgargemetal,metal,experimental,3,Heavy Metal,1980s,mid-1980s,"Europe, USA"
+,Black Metal,blackmetal,metal,,5,Heavy Metal,1980s,early 1980s,"UK, Norway"
+,Blackened Crust,blackenedcrust,metal,hardcore,3,Crustpunk,1990s,early 1990s,"Europe, USA"
+,Blackened Death Metal,blackeneddeathmetal,metal,,4,Death Metal,1980s,late 1980s,Europe
+,Blackened Thrash Metal,blackenedthrashmetal,metal,,3,Thrash Metal,1980s,mid-1980s,"Europe, USA"
+,Blackgaze,blackgaze,metal,rock,4,Black Metal,2000s,mid-2000s,France
+,Brutal Death Metal,brutaldeathmetal,metal,,4,Death Metal,1990s,early 1990s,USA
+,Celtic Metal,celticmetal,metal,folk,3,Folk Metal,1990s,early 1990s,Ireland
+,Christian Metal,christianmetal,metal,folk,4,Heavy Metal,1970s,late 1970s,USA
+,Crabcore,crabcore,metal,hardcore,1,Metalcore,2000s,late 2000s,USA
+,Crossover Thrash,crossoverthrash,metal,rock,4,Thrash Metal,1980s,mid-1980s,USA
+,Death 'n' Roll,deathnroll,metal,rock,3,Death Metal,1990s,early 1990s,Sweden
+,Death Metal,deathmetal,metal,,5,Thrash Metal,1980s,mid-1980s,USA
+,Death-Doom,deathdoom,metal,,4,Death Metal,1980s,late 1980s,"UK, USA"
+,Deathcore,deathcore,metal,hardcore,4,Metalcore,2000s,early 2000s,USA
+,Deathgrind,deathgrind,metal,hardcore,3,Death Metal,1980s,late 1980s,"USA, UK"
+,Depressive Black Metal,depressiveblackmetal,metal,ambient,3,Black Metal,1990s,mid-1990s,Scandinavia
+,Djent,djent,metal,rock,4,Progressive Metal,2000s,mid-2000s,"Europe, USA"
+,Doom Metal,doommetal,metal,,5,Heavy Metal,1970s,early 1970s,UK
+,Drone,drone,metal,ambient,3,Doom Metal,1990s,early 1990s,USA
+,Epic Doom Metal,epicdoommetal,metal,,3,Doom Metal,1980s,mid-1980s,"USA, Sweden"
+,Folk Metal,folkmetal,metal,folk,4,Heavy Metal,1990s,early 1990s,Europe
+,Funeral Doom,funeraldoom,metal,ambient,3,Doom Metal,1990s,early 1990s,Finland
+,Glam Metal,glammetal,metal,rock,4,Heavy Metal,1970s,late 1970s,USA
+,Goregrind,goregrind,metal,hardcore,3,Grindcore,1980s,late 1980s,UK
+,Goth Metal,gothmetal,metal,rock,3,Doom Metal,1990s,early 1990s,Europe
+,Grindcore,grindcore,metal,hardcore,4,Hardcore Punk,1980s,mid-1980s,UK
+,Groove Metal,groovemetal,metal,,4,Thrash Metal,1980s,late 1980s,USA
+,Heavy Metal,heavymetal,metal,rock,5,Hard Rock,1960s,late 1960s,"UK, USA"
+,Industrial Metal,industrialmetal,metal,industrial,4,Heavy Metal,1980s,late 1980s,"Europe, USA"
+,Mathcore,mathcore,metal,hardcore,4,Metalcore,1990s,early 1990s,USA
+,Melodic Black Metal,melodicblackmetal,metal,,3,Black Metal,1990s,early 1990s,Scandinavia
+,Melodic Death,melodicdeath,metal,,4,Death Metal,1990s,early 1990s,Sweden
+,Melodic Metalcore,melodicmetalcore,metal,hardcore,4,Metalcore,1990s,late 1990s,USA
+,Metalcore,metalcore,metal,hardcore,5,Hardcore Punk,1980s,late 1980s,USA
+,Neoclassical Metal,neoclassicalmetal,metal,classical,4,Heavy Metal,1970s,late 1970s,"USA, Europe"
+,Neue Deutsche Härte,neuedeutscheharte,metal,industrial,3,Industrial Metal,1990s,early 1990s,Germany
+,Nintendocore,nintendocore,metal,chiptune,2,Metalcore,2000s,early 2000s,USA
+,Nu Metal,numetal,metal,hiphop,5,Alternative Metal,1990s,mid-1990s,USA
+,NWOAHM,nwoahm,metal,,2,Heavy Metal,2000s,early 2000s,USA
+,NWOBHM,nwobhm,metal,,4,Heavy Metal,1970s,late 1970s,UK
+,Pagan Metal,paganmetal,metal,folk,3,Folk Metal,1990s,early 1990s,Europe
+,Pornogrind,pornogrind,metal,hardcore,2,Grindcore,1990s,early 1990s,"Germany, USA"
+,Post-Black Metal,postblackmetal,metal,rock,3,Black Metal,2000s,early 2000s,Europe
+,Post-Metal,postmetal,metal,rock,4,Sludge Metal,1990s,mid-1990s,USA
+,Power Metal,powermetal,metal,classical,4,Heavy Metal,1970s,late 1970s,"UK, Germany"
+,Progressive Death Metal,progressivedeathmetal,metal,rock,4,Death Metal,1980s,late 1980s,"USA, Europe"
+,Progressive Metal,progressivemetal,metal,rock,5,Heavy Metal,1980s,mid-1980s,"UK, USA"
+,Rap Metal,rapmetal,metal,hiphop,4,Heavy Metal,1980s,mid-1980s,USA
+,Sludge Metal,sludgemetal,metal,hardcore,4,Doom Metal,1980s,late 1980s,USA
+,Speed Metal,speedmetal,metal,,4,Heavy Metal,1970s,late 1970s,"UK, USA"
+,Stoner Doom,stonerdoom,metal,rock,3,Doom Metal,1990s,early 1990s,USA
+,Stoner Metal,stonermetal,metal,rock,4,Doom Metal,1990s,early 1990s,USA
+,Symphonic Black Metal,symphonicblackmetal,metal,classical,4,Black Metal,1990s,early 1990s,Norway
+,Symphonic Death Metal,symphonicdeathmetal,metal,classical,3,Death Metal,1990s,mid-1990s,Europe
+,Symphonic Metal,symphonicmetal,metal,classical,4,Heavy Metal,1990s,early 1990s,Europe
+,Tech Death,techdeath,metal,rock,4,Death Metal,1980s,late 1980s,USA
+,Technical Thrash Metal,technicalthrashmetal,metal,rock,3,Thrash Metal,1980s,mid-1980s,"USA, Europe"
+,Thall,thall,metal,rock,2,Djent,2010s,early 2010s,Sweden
+,Thrash Metal,thrashmetal,metal,hardcore,5,Heavy Metal,1980s,early 1980s,"USA, Germany"
+,Traditional Doom Metal,traditionaldoommetal,metal,,4,Doom Metal,1980s,early 1980s,"UK, USA"
+,Trance Metal,trancemetal,metal,trance,2,Power Metal,2000s,early 2000s,Europe
+,Trap Metal,trapmetal,metal,hiphop,4,Trap,2010s,early 2010s,"USA, UK"
+,Unblack Metal,unblackmetal,metal,folk,2,Black Metal,1990s,early 1990s,Norway
+,Viking Metal,vikingmetal,metal,folk,4,Black Metal,1980s,late 1980s,Scandinavia
+,War Metal,warmetal,metal,,3,Blackened Death Metal,1980s,late 1980s,Canada
+,Pop Metal,popmetal,metal,pop,4,Heavy Metal,1970s,late-1970s,"USA, UK"
+,Japanoise,japanoise,noise,experimental,3,Noise,1970s,late 1970s,Japan
+,Noise,noise,noise,experimental,4,Futurism,1910s,early 1910s,Italy
+,Power Noise,powernoise,noise,industrial,3,Industrial,1990s,early 1990s,Germany
+,Adult Contemporary,adultcontemporary,pop,soulful,5,Pop,1960s,mid-1960s,USA
+,Art Pop,artpop,pop,rock,4,Pop,1960s,mid-1960s,"UK, USA"
+,Baroque Pop,baroquepop,pop,classical,4,Pop,1960s,mid-1960s,"UK, USA"
+,Bedroom Pop,bedroompop,pop,rock,4,Indie Pop,2000s,late 2000s,Worldwide / online
+,Brill Building,brillbuilding,pop,soulful,4,Traditional Pop,1950s,late 1950s,USA
+,Bubblegum Pop,bubblegumpop,pop,rock,4,Pop,1960s,late 1960s,"USA, UK"
+,Cantopop,cantopop,pop,,5,Pop,1970s,early 1970s,Hong Kong
+,Chamber Pop,chamberpop,pop,classical,4,Baroque Pop,1990s,mid-1990s,"UK, USA"
+,Chanson,chanson,pop,folk,5,(none),1900s,early 1900s,France
+,Chillwave,chillwave,pop,ambient,4,Dream Pop,2000s,late 2000s,USA
+,City Pop,citypop,pop,soulful,5,Pop,1970s,mid-1970s,Japan
+,Country Pop,countrypop,pop,folk,5,Country,1960s,late 1960s,USA
+,Dance-Pop,dancepop,pop,edm,5,Pop,1980s,early 1980s,"USA, UK"
+,Disco Pop,discopop,pop,soulful,5,Disco,1970s,mid-1970s,"USA, UK"
+,Dream Pop,dreampop,pop,rock,5,Neo-Psychedelia,1980s,mid-1980s,UK
+,Easy Listening,easylistening,pop,ambient,4,Traditional Pop,1940s,late 1940s,"USA, Europe"
+,Electropop,electropop,pop,edm,5,Synthpop,1980s,early 1980s,UK
+,Emo Pop,emopop,pop,rock,4,Emo,1990s,mid-1990s,USA
+,Enka,enka,pop,folk,4,Kayōkyoku,1950s,late 1950s,Japan
+,Eurobeat,eurobeat,pop,edm,4,Italo Disco,1980s,mid-1980s,"Italy, Japan"
+,Eurodance,eurodance,pop,edm,5,Eurodisco,1980s,late 1980s,Europe
+,Freestyle Music,freestylemusic,pop,edm,4,Electro,1980s,early 1980s,USA
+,Hands Up,handsup,pop,trance,4,Eurodance,1990s,late 1990s,Germany
+,Hyperpop,hyperpop,pop,edm,4,Electropop,2010s,mid-2010s,"UK, online"
+,Indie Dance,indiedance,pop,edm,4,Indie Pop,1980s,late 1980s,UK
+,Indie Pop,indiepop,pop,rock,5,Post-Punk,1980s,early 1980s,UK
+,J-Pop,jpop,pop,,5,Pop,1990s,early 1990s,Japan
+,Jangle Pop,janglepop,pop,rock,4,Pop Rock,1980s,early 1980s,"USA, UK"
+,K-Pop,kpop,pop,,5,Pop,1990s,early 1990s,South Korea
+,Kayōkyoku,kayokyoku,pop,,4,Traditional Pop,1920s,mid-1920s,Japan
+,Latin Pop,latinpop,pop,latin,4,Pop,1950s,mid-1950s,"Latin America, USA"
+,Mandopop,mandopop,pop,,5,Traditional Pop,1920s,late 1920s,China
+,Musical Theatre,musicaltheatre,pop,,5,Operetta,1800s,late 1800s,"USA, UK"
+,New Romantic,newromantic,pop,rock,4,New Wave,1970s,late 1970s,UK
+,Nightcore,nightcore,pop,edm,3,Eurodance,2000s,early 2000s,"Norway, online"
+,Noise Pop,noisepop,pop,noise,4,Indie Rock,1980s,mid-1980s,"UK, USA"
+,Pop,pop,pop,,5,Traditional Pop,1950s,mid-1950s,"USA, UK"
+,Pop Soul,popsoul,pop,soulful,5,Soul,1960s,early 1960s,USA
+,Power Pop,powerpop,pop,rock,4,Pop Rock,1970s,early 1970s,"USA, UK"
+,Psychedelic Pop,psychedelicpop,pop,psy,4,Psychedelic Rock,1960s,mid-1960s,"UK, USA"
+,Romo,romo,pop,rock,1,New Romantic,1990s,mid-1990s,UK
+,Schlager,schlager,pop,folk,5,Traditional Pop,1950s,early 1950s,Central and Northern Europe
+,Sophisti-pop,sophistipop,pop,soulful,4,Pop,1980s,mid-1980s,UK
+,Sunshine Pop,sunshinepop,pop,rock,4,Pop Rock,1960s,mid-1960s,USA
+,Swamp Pop,swamppop,pop,soulful,3,Rhythm And Blues,1950s,late 1950s,USA
+,Synthpop,synthpop,pop,edm,5,New Wave,1970s,late 1970s,"UK, Japan"
+,Teen Pop,teenpop,pop,,4,Pop,1980s,late 1980s,"USA, UK"
+,Tin Pan Alley,tinpanalley,pop,,5,(none),1880s,late 1880s,USA
+,Traditional Pop,traditionalpop,pop,,5,(none),1920s,early 1920s,"USA, UK"
+,Trot,trot,pop,folk,5,Traditional Pop,1920s,mid-1920s,Korea
+,Twee Pop,tweepop,pop,rock,3,Indie Pop,1980s,mid-1980s,UK
+,Yé-Yé,yeye,pop,rock,4,Pop,1960s,early 1960s,"France, Southern Europe"
+,Dark Pop,darkpop,pop,,4,Pop,2010s,mid-2010s,Worldwide
+,Alternative Pop,alternativepop,pop,rock,4,Pop,1980s,late-1980s,UK
+,Ambient Pop,ambientpop,pop,ambient,3,Indie Pop,1990s,early-1990s,"USA, UK"
+,Avant-Pop,avantpop,pop,experimental,3,Pop,1960s,mid-1960s,"USA, UK"
+,Contemporary Christian Music,contemporarychristianmusic,pop,soulful,5,Gospel,1960s,late-1960s,USA
+,Cowboy Pop,cowboypop,pop,folk,2,Country Pop,1980s,early-1980s,USA
+,Experimental Pop,experimentalpop,pop,experimental,4,Pop,1960s,early-1960s,"USA, UK"
+,Folk Pop,folkpop,pop,folk,4,Folk Music,1960s,mid-1960s,USA
+,Hypnagogic Pop,hypnagogicpop,pop,psy,3,Neo-Psychedelia,2000s,late-2000s,USA
+,Operatic Pop,operaticpop,pop,classical,4,Tin Pan Alley,1900s,early-1900s,USA
+,Orchestral Pop,orchestralpop,pop,classical,4,Pop,1960s,early-1960s,"USA, UK"
+,Progressive Pop,progressivepop,pop,rock,3,Pop,1960s,mid-1960s,"USA, UK"
+,Space Age Pop,spaceagepop,pop,ambient,3,Easy Listening,1950s,mid-1950s,"USA, Mexico"
+,Wonky Pop,wonkypop,pop,rock,1,Synthpop,2000s,mid-2000s,UK
+,Buttrock Goa,buttrockgoa,psy,rock,1,Goa Trance,1990s,late 1990s,Europe
+,Classic Goa,classicgoa,psy,trance,4,Psychedelic Trance,1990s,early 1990s,"India, Europe"
+,Darkpsy,darkpsy,psy,hardcore,3,Psychedelic Trance,1990s,late 1990s,Worldwide
+,Forest Psytrance,forestpsytrance,psy,ambient,3,Darkpsy,2000s,early 2000s,Europe
+,Full-on Psy,fullonpsy,psy,trance,3,Psychedelic Trance,1990s,late 1990s,Israel
+,Goa Trance,goatrance,psy,trance,5,Trance,1980s,late 1980s,"India, Europe"
+,Hi-Tech Psytrance,hitechpsytrance,psy,hardcore,3,Darkpsy,2000s,mid-2000s,Worldwide
+,Nitzhonot,nitzhonot,psy,trance,2,Psychedelic Trance,1990s,mid-1990s,Israel
+,Progressive Psy,progressivepsy,psy,trance,3,Psychedelic Trance,1990s,late 1990s,"Germany, Sweden"
+,Psy-Chill,psychill,psy,ambient,3,Psychedelic Trance,1990s,late 1990s,Worldwide
+,Psybient,psybient,psy,ambient,3,Ambient,1990s,mid-1990s,Worldwide
+,Psychedelic Trance,psychedelictrance,psy,trance,5,Goa Trance,1990s,early 1990s,"India, Europe"
+,Psydub,psydub,psy,jamaican,3,Dub,1990s,late 1990s,Worldwide
+,Psytekk,psytekk,psy,techno,2,Psychedelic Trance,2000s,early 2000s,Germany
+,Spugedelic,spugedelic,psy,experimental,1,Psychedelic Trance,2000s,early 2000s,Finland
+,Suomisaundi,suomisaundi,psy,experimental,3,Psychedelic Trance,1990s,mid-1990s,Finland
+,Acid Rock,acidrock,rock,psy,3,Psychedelic Rock,1960s,mid-1960s,USA
+,Afro-Rock,afrorock,rock,african,4,Rock,1960s,late 1960s,Africa
+,Alternative Dance,alternativedance,rock,edm,4,Alternative Rock,1980s,mid-1980s,UK
+,Alternative Rock,alternativerock,rock,,5,Post-Punk,1970s,late 1970s,"USA, UK"
+,Anarcho-Punk,anarchopunk,rock,hardcore,4,Punk,1970s,late 1970s,UK
+,Arena Rock,arenarock,rock,pop,5,Hard Rock,1970s,mid-1970s,"USA, UK"
+,Art Rock,artrock,rock,classical,4,Pop Rock,1960s,mid-1960s,"UK, USA"
+,Beatdown Hardcore,beatdownhardcore,rock,metal,3,Hardcore Punk,1990s,early 1990s,USA
+,Blues Rock,bluesrock,rock,soulful,5,Blues,1960s,early 1960s,"UK, USA"
+,Boogie Rock,boogierock,rock,soulful,4,Blues Rock,1960s,late 1960s,"USA, UK"
+,British Blues,britishblues,rock,soulful,4,Blues,1950s,late 1950s,UK
+,British Invasion,britishinvasion,rock,pop,5,Merseybeat,1960s,early 1960s,"UK, USA"
+,Britpop,britpop,rock,pop,5,Indie Rock,1990s,early 1990s,UK
+,C86,c86,rock,pop,2,Indie Pop,1980s,mid-1980s,UK
+,Canterbury Scene,canterburyscene,rock,jazz,4,Progressive Rock,1960s,late 1960s,UK
+,Celtic Punk,celticpunk,rock,folk,4,Folk Punk,1980s,early 1980s,"UK, USA"
+,Choral Rock,choralrock,rock,classical,2,Pop Rock,1960s,late 1960s,"UK, USA"
+,Christian Rock,christianrock,rock,folk,4,Rock,1960s,late 1960s,USA
+,College Rock,collegerock,rock,pop,4,Alternative Rock,1980s,early 1980s,USA
+,Cow Punk,cowpunk,rock,folk,3,Punk,1980s,early 1980s,USA
+,Crunkcore,crunkcore,rock,hiphop,2,Crunk,2000s,mid-2000s,USA
+,Crustpunk,crustpunk,rock,metal,4,Hardcore Punk,1980s,mid-1980s,UK
+,D-Beat,dbeat,rock,hardcore,4,Hardcore Punk,1980s,early 1980s,"UK, Sweden"
+,Dance-Punk,dancepunk,rock,edm,4,Post-Punk,1970s,late 1970s,"USA, UK"
+,Dance-Rock,dancerock,rock,edm,4,Rock,1970s,late 1970s,"USA, UK"
+,Desert Rock,desertrock,rock,metal,3,Stoner Metal,1990s,early 1990s,USA
+,Easycore,easycore,rock,hardcore,3,Pop Punk,2000s,early 2000s,USA
+,Eggpunk,eggpunk,rock,hardcore,2,Punk,2010s,mid-2010s,"USA, online"
+,Emo,emo,rock,hardcore,4,Hardcore Punk,1980s,mid-1980s,USA
+,Emo Revival,emorevival,rock,,3,Emo,2000s,late 2000s,USA
+,Experimental Rock,experimentalrock,rock,experimental,4,Rock & Roll,1960s,mid-1960s,"UK, USA"
+,Folk Punk,folkpunk,rock,folk,4,Punk,1980s,early 1980s,"UK, USA"
+,Folk Rock,folkrock,rock,folk,5,Folk Music,1960s,mid-1960s,"USA, UK"
+,Funk Rock,funkrock,rock,soulful,4,Rock,1960s,late 1960s,USA
+,Garage Punk,garagepunk,rock,hardcore,3,Garage Rock,1980s,early 1980s,USA
+,Garage Rock,garagerock,rock,hardcore,5,Rock & Roll,1960s,early 1960s,"USA, Canada"
+,Garage Rock Revival,garagerockrevival,rock,hardcore,4,Garage Rock,1990s,late 1990s,"USA, UK"
+,Glam Rock,glamrock,rock,pop,5,Rock & Roll,1970s,early 1970s,UK
+,Gothic Rock,gothicrock,rock,industrial,5,Post-Punk,1970s,late 1970s,UK
+,Grebo,grebo,rock,,2,Alternative Rock,1980s,mid-1980s,UK
+,Grunge,grunge,rock,metal,5,Alternative Rock,1980s,mid-1980s,USA
+,Hard Rock,hardrock,rock,metal,5,Blues Rock,1960s,mid-1960s,"UK, USA"
+,Hardcore Punk,hardcorepunk,rock,hardcore,5,Punk,1970s,late 1970s,"USA, UK"
+,Heartland Rock,heartlandrock,rock,folk,4,Rock,1970s,mid-1970s,USA
+,Horror Punk,horrorpunk,rock,hardcore,3,Punk,1970s,late 1970s,USA
+,Indie Rock,indierock,rock,pop,5,Alternative Rock,1980s,mid-1980s,"USA, UK"
+,Krautrock,krautrock,rock,experimental,4,Experimental Rock,1960s,late 1960s,Germany
+,Latin Rock,latinrock,rock,latin,4,Rock & Roll,1950s,late 1950s,"USA, Latin America"
+,Lo-Fi Rock,lofirock,rock,experimental,4,Indie Rock,1980s,mid-1980s,USA
+,Madchester,madchester,rock,edm,4,Alternative Dance,1980s,late 1980s,UK
+,Math Rock,mathrock,rock,,4,Progressive Rock,1980s,late 1980s,"USA, Japan"
+,Melodic Hardcore,melodichardcore,rock,hardcore,4,Hardcore Punk,1980s,early 1980s,USA
+,Merseybeat,merseybeat,rock,pop,5,Rock & Roll,1950s,late 1950s,UK
+,Neo-Prog,neoprog,rock,,4,Progressive Rock,1980s,early 1980s,UK
+,Neo-Psychedelia,neopsychedelia,rock,psy,4,Psychedelic Rock,1970s,late 1970s,"UK, USA"
+,Neoalter,neoalter,rock,,1,Alternative Rock,2000s,early 2000s,Worldwide
+,New Wave,newwave,rock,pop,5,Punk,1970s,late 1970s,"UK, USA"
+,Noise Rock,noiserock,rock,noise,4,Punk,1970s,late 1970s,USA
+,Nu Gaze,nugaze,rock,ambient,2,Shoegaze,2000s,mid-2000s,"UK, USA"
+,Oi!,oi,rock,hardcore,3,Punk,1970s,late 1970s,UK
+,Paisley Underground,paisleyunderground,rock,psy,3,Neo-Psychedelia,1980s,early 1980s,USA
+,Pop Punk,poppunk,rock,pop,5,Punk,1970s,late 1970s,"USA, UK"
+,Pop Rock,poprock,rock,pop,5,Rock & Roll,1960s,mid-1960s,"UK, USA"
+,Post-Grunge,postgrunge,rock,pop,5,Grunge,1990s,mid-1990s,USA
+,Post-Hardcore,posthardcore,rock,hardcore,4,Hardcore Punk,1980s,early 1980s,USA
+,Post-Punk,postpunk,rock,hardcore,5,Punk,1970s,late 1970s,"UK, USA"
+,Post-Punk Revival,postpunkrevival,rock,pop,4,Post-Punk,1990s,late 1990s,"USA, UK"
+,Post-Rock,postrock,rock,experimental,4,Alternative Rock,1980s,late 1980s,"UK, Canada"
+,Power Ballad,powerballad,rock,pop,4,Hard Rock,1970s,early 1970s,"UK, USA"
+,Powerviolence,powerviolence,rock,hardcore,3,Hardcore Punk,1980s,late 1980s,USA
+,Progg,progg,rock,,2,Progressive Rock,1960s,late 1960s,Sweden
+,Progressive Rock,progressiverock,rock,classical,5,Psychedelic Rock,1960s,late 1960s,UK
+,Proto-Punk,protopunk,rock,hardcore,4,Garage Rock,1960s,mid-1960s,USA
+,Psychedelic Rock,psychedelicrock,rock,experimental,5,Rock & Roll,1960s,mid-1960s,"USA, UK"
+,Psychobilly,psychobilly,rock,hardcore,3,Rockabilly,1970s,late 1970s,"USA, UK"
+,Pub Rock,pubrock,rock,folk,4,Rock,1970s,early 1970s,UK
+,Punk,punk,rock,hardcore,5,Garage Rock,1970s,mid-1970s,"USA, UK"
+,Punk Blues,punkblues,rock,soulful,3,Punk,1980s,late 1980s,USA
+,Queercore,queercore,rock,hardcore,3,Hardcore Punk,1980s,mid-1980s,"Canada, USA"
+,Raga Rock,ragarock,rock,folk,3,Psychedelic Rock,1960s,mid-1960s,"UK, USA"
+,Rap Rock,raprock,rock,hiphop,5,Rock,1980s,mid-1980s,USA
+,Riot Grrrl,riotgrrrl,rock,hardcore,4,Punk,1990s,early 1990s,USA
+,Rock,rock,rock,,5,Rock & Roll,1950s,mid-1950s,"USA, UK"
+,Rock & Roll,rockandroll,rock,soulful,5,Rhythm And Blues,1950s,early 1950s,USA
+,Rock in Opposition,rockinopposition,rock,experimental,3,Progressive Rock,1970s,late 1970s,Europe
+,Rockabilly,rockabilly,rock,folk,5,Rock & Roll,1950s,early 1950s,USA
+,Roots Rock,rootsrock,rock,folk,4,Folk Rock,1960s,mid-1960s,USA
+,Sadcore,sadcore,rock,ambient,3,Alternative Rock,1980s,late 1980s,USA
+,Screamo,screamo,rock,hardcore,4,Emo,1990s,early 1990s,USA
+,Shoegaze,shoegaze,rock,ambient,5,Neo-Psychedelia,1980s,late 1980s,"UK, Ireland"
+,Ska Punk,skapunk,rock,jamaican,4,Punk,1970s,late 1970s,"UK, USA"
+,Skate Punk,skatepunk,rock,hardcore,4,Hardcore Punk,1980s,mid-1980s,USA
+,Slowcore,slowcore,rock,ambient,4,Alternative Rock,1980s,late 1980s,USA
+,Soft Rock,softrock,rock,pop,4,Pop Rock,1960s,late 1960s,"USA, UK"
+,Southern Rock,southernrock,rock,folk,4,Blues Rock,1970s,early 1970s,USA
+,Space Rock,spacerock,rock,psy,4,Psychedelic Rock,1960s,late 1960s,UK
+,Street Punk,streetpunk,rock,hardcore,4,Punk,1980s,early 1980s,UK
+,Surf Rock,surfrock,rock,pop,4,Rock & Roll,1950s,late 1950s,USA
+,Symphonic Rock,symphonicrock,rock,classical,4,Progressive Rock,1960s,late 1960s,"UK, Europe"
+,Visual Kei,visualkei,rock,pop,4,Glam Rock,1980s,mid-1980s,Japan
+,Yacht Rock,yachtrock,rock,soulful,5,Soft Rock,1970s,mid-1970s,USA
+,Zamrock,zamrock,rock,african,4,Afro-Rock,1970s,early 1970s,Zambia
+,Zeuhl,zeuhl,rock,,2,Progressive Rock,1960s,late 1960s,France
+,Zolo,zolo,rock,experimental,2,New Wave,1980s,early 1980s,"USA, UK"
+,Afro-Funk,afrofunk,soulful,african,4,Funk,1960s,late 1960s,West Africa
+,Blue Eyed Soul,blueeyedsoul,soulful,pop,3,Soul,1960s,mid-1960s,"USA, UK"
+,Boogie,boogie,soulful,edm,4,Post-Disco,1970s,late 1970s,USA
+,Contemporary R&B,contemporaryrandb,soulful,pop,5,Rhythm And Blues,1980s,early 1980s,USA
+,Country Soul,countrysoul,soulful,folk,4,Soul,1960s,late 1960s,USA
+,Disco,disco,soulful,pop,5,Soul,1970s,early 1970s,USA
+,Doo-Wop,doowop,soulful,pop,4,Rhythm And Blues,1940s,late 1940s,USA
+,Electro Funk,electrofunk,soulful,edm,4,Funk,1970s,late 1970s,USA
+,Eurodisco,eurodisco,soulful,pop,4,Disco,1970s,mid-1970s,Europe
+,Funk,funk,soulful,jazz,5,Soul,1960s,mid-1960s,USA
+,Go-Go (Washington DC),gogowashingtondc,soulful,,4,Funk,1970s,mid-1970s,USA
+,Gospel,gospel,soulful,folk,5,Spirituals,1700s,18th century,USA
+,Gospel Blues,gospelblues,soulful,folk,3,Blues,1920s,1920s,USA
+,Hi-NRG,hinrg,soulful,edm,4,Disco,1970s,late 1970s,"USA, UK"
+,Italo Disco,italodisco,soulful,edm,5,Disco,1970s,late 1970s,Italy
+,Jump Blues,jumpblues,soulful,,4,Boogie-Woogie,1940s,early 1940s,USA
+,Latin Funk,latinfunk,soulful,latin,3,Funk,1960s,late 1960s,"USA, Latin America"
+,Latin Soul,latinsoul,soulful,latin,4,Soul,1960s,mid-1960s,USA
+,Motown,motown,soulful,pop,5,Soul,1950s,late 1950s,USA
+,Neosoul,neosoul,soulful,pop,4,Soul,1980s,late 1980s,USA
+,New Jack Swing,newjackswing,soulful,hiphop,4,Contemporary R&B,1980s,mid-1980s,USA
+,Nu-Disco,nudisco,soulful,house,4,Disco,1990s,mid-1990s,UK
+,Pbr&b,pbrandb,soulful,pop,4,Contemporary R&B,2000s,late 2000s,USA
+,Post-Disco,postdisco,soulful,edm,4,Disco,1970s,late 1970s,USA
+,Quiet Storm,quietstorm,soulful,pop,4,Soul,1970s,mid-1970s,USA
+,Rare Groove,raregroove,soulful,jazz,3,Funk,1970s,late 1970s,UK
+,Rhythm And Blues,rhythmandblues,soulful,,5,Blues,1940s,early 1940s,USA
+,RnB (modern),rnbmodern,soulful,pop,5,Rhythm And Blues,1980s,mid-1980s,USA
+,Snap&B,snapandb,soulful,hiphop,1,Contemporary R&B,2000s,mid-2000s,USA
+,Soul,soul,soulful,folk,5,Rhythm And Blues,1950s,late 1950s,USA
+,Soul Blues,soulblues,soulful,,4,Soul,1960s,1960s,USA
+,Space Disco,spacedisco,soulful,edm,2,Disco,1970s,mid-1970s,Europe
+,Spirituals,spirituals,soulful,folk,5,(none),1700s,18th century,USA
+,Synth-Funk,synthfunk,soulful,edm,4,Funk,1970s,late 1970s,USA
+,Trap Soul,trapsoul,soulful,hiphop,5,Trap,2010s,early 2010s,USA
+,Beach Music,beachmusic,soulful,pop,3,Rhythm And Blues,1950s,mid-1950s,USA
+,Smooth Soul,smoothsoul,soulful,pop,4,Soul,1970s,early-1970s,USA
+,Acid Techno,acidtechno,techno,house,4,Acid House,1980s,late 1980s,"UK, USA"
+,Ambient Techno,ambienttechno,techno,ambient,3,Techno,1990s,early 1990s,UK
+,Bleep Techno,bleeptechno,techno,breakbeat,2,Techno,1980s,late 1980s,UK
+,Classic Techno,classictechno,techno,edm,4,Detroit Techno,1980s,early 1980s,USA
+,Deep Techno,deeptechno,techno,ambient,3,Techno,1990s,early 1990s,"USA, Europe"
+,Detroit Techno,detroittechno,techno,edm,5,Electro,1980s,early 1980s,USA
+,Dubtechno,dubtechno,techno,jamaican,4,Techno,1990s,early 1990s,Germany
+,Experimental Techno,experimentaltechno,techno,experimental,2,Techno,1980s,late 1980s,Europe
+,Free Tekno,freetekno,techno,hardcore,3,Techno,1990s,early 1990s,Europe
+,Ghetto Tech,ghettotech,techno,hiphop,3,Detroit Techno,1990s,mid-1990s,USA
+,Gloomcore,gloomcore,techno,ambient,1,Dubtechno,2000s,early 2000s,Europe
+,Hard Techno,hardtechno,techno,hardcore,3,Techno,1990s,mid-1990s,Germany
+,Hypnotic Techno,hypnotictechno,techno,ambient,3,Minimal Techno,1990s,mid-1990s,Europe
+,Industrial Techno,industrialtechno,techno,industrial,3,Techno,1990s,early 1990s,"Germany, UK"
+,Melodic Techno,melodictechno,techno,trance,4,Techno,2010s,early 2010s,Europe
+,Minimal Techno,minimaltechno,techno,ambient,4,Detroit Techno,1990s,early 1990s,"USA, Germany"
+,Nortec,nortec,techno,latin,3,Techno,1990s,late 1990s,Mexico
+,Schranz,schranz,techno,hardcore,3,Hard Techno,1990s,late 1990s,Germany
+,Swedish Techno,swedishtechno,techno,,2,Techno,1990s,mid-1990s,Sweden
+,Techdub,techdub,techno,jamaican,2,Dubtechno,1990s,late 1990s,Europe
+,Techno,techno,techno,,5,Electro,1980s,mid-1980s,USA
+,Tribal Techno,tribaltechno,techno,latin,3,Techno,1990s,early 1990s,"USA, Europe"
+,Acid Trance,acidtrance,trance,house,3,Acid House,1980s,late 1980s,"Belgium, Germany"
+,Ambient Trance,ambienttrance,trance,ambient,3,Trance,1990s,early 1990s,Germany
+,Deep Trance,deeptrance,trance,ambient,2,Trance,1990s,mid-1990s,Europe
+,Dream Trance,dreamtrance,trance,ambient,3,Trance,1990s,mid-1990s,Italy
+,Dutch Trance,dutchtrance,trance,edm,4,Trance,1990s,late 1990s,Netherlands
+,Eurotrance,eurotrance,trance,pop,3,Trance,1990s,mid-1990s,Europe
+,Hard Trance,hardtrance,trance,hardcore,4,Trance,1990s,early 1990s,Germany
+,Progressive Trance,progressivetrance,trance,house,4,Trance,1990s,mid-1990s,"Germany, UK"
+,Tech Trance,techtrance,trance,techno,3,Trance,1990s,late 1990s,"Germany, UK"
+,Trance,trance,trance,,5,Techno,1980s,late 1980s,Western Europe
+,Uplifting Trance,upliftingtrance,trance,pop,5,Trance,1990s,mid-1990s,Europe
+,Vocal Trance,vocaltrance,trance,pop,5,Trance,1990s,mid-1990s,Europe
