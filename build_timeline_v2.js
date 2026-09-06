@@ -262,7 +262,7 @@ const newPage = `<diagram id="LhVVGY1v8OEgOIba_3En" name="Genres timeline v2">${
 const pageRe = /<diagram\b[^>]*name="Genres timeline v2"[^>]*>[\s\S]*?<\/diagram>/;
 if (!pageRe.test(inputXml)) throw new Error('Genres timeline v2 page not found');
 const outputXml = inputXml.replace(pageRe, newPage);
-fs.writeFileSync('genres-timeline-v3.drawio', outputXml, 'utf8');
+fs.writeFileSync('genres-timeline-v4.drawio', outputXml, 'utf8');
 
 function segmentHitsRect(a, b, r) {
   const eps = 2;
@@ -304,5 +304,5 @@ const stats = {
   droneParent: nameMap.get('drone')?.parent,
   symphonicMetalParent: nameMap.get('symphonic metal')?.parent,
 };
-fs.writeFileSync('timeline-v2-stats.json', JSON.stringify(stats, null, 2), 'utf8');
+fs.writeFileSync('timeline-v2-stats-v4.json', JSON.stringify(stats, null, 2), 'utf8');
 console.log(JSON.stringify(stats, null, 2));

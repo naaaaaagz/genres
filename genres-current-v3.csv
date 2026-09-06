@@ -896,3 +896,16 @@ Nr.,Name,Nametech,Area,Area misc.,Importance,Parent,Decade,Year,Country?
 ,Trance,trance,trance,,5,Techno,1980s,late 1980s,Western Europe
 ,Uplifting Trance,upliftingtrance,trance,pop,5,Trance,1990s,mid-1990s,Europe
 ,Vocal Trance,vocaltrance,trance,pop,5,Trance,1990s,mid-1990s,Europe
+,Indietronica,indietronica,rock,edm,4,Indie Rock,1990s,early 1990s,"United States, UK"
+,Global Bass,globalbass,edm,folk,3,Electronic Dance Music,2000s,late 2000s,Worldwide
+,EDM Trap,edmtrap,edm,hiphop,4,Trap,2010s,early 2010s,United States
+,Chill Trap,chilltrap,edm,hiphop,3,EDM Trap,2010s,early 2010s,United States
+,Experimental Hip Hop,experimentalhiphop,hiphop,experimental,4,Hiphop,1980s,mid-1980s,United States
+,Extreme Metal,extrememetal,metal,,4,Heavy Metal,1980s,early 1980s,"UK, Europe, United States"
+,Neotrance,neotrance,trance,techno,2,Trance,2000s,early 2000s,"Germany, Sweden, Denmark"
+,Turbo-Folk,turbofolk,folk,pop,4,Balkan Folk,1980s,mid-1980s,Yugoslavia
+,Children's Music,childrensmusic,folk,pop,5,Folk Music,1700s,18th-century print tradition,Worldwide
+,Comedy Music,comedymusic,pop,,4,(none),ancient,first-century roots,"Ancient Greece, Ancient Rome"
+,Novelty Song,noveltysong,pop,experimental,3,Comedy Music,1910s,early 1910s,United States
+,Comedy Rock,comedyrock,rock,pop,3,Rock,1950s,early 1950s,"United States, UK"
+,Future Soul,futuresoul,soulful,edm,2,Neosoul,2010s,early 2010s,United Kingdom
