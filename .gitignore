@@ -23,3 +23,7 @@ notes/
 .DS_Store
 Thumbs.db
 
+# Generated previews and review artifacts
+index2.html
+Claude outputs/
+qa-*.png
