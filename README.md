@@ -1,6 +1,6 @@
 # Music Genres Timeline
 
-A dependency-free interactive visualization of 922 music genres, arranged by era and fixed genre-area sectors.
+A dependency-free interactive visualization of 730 music genres, arranged by era and fixed genre-area sectors with nested secondary-area contours.
 
 Open `index.html` directly, or serve the repository root with any static web server. The published page has no runtime dependencies.
 

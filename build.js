@@ -7,18 +7,20 @@ const root = __dirname;
 const shell = fs.readFileSync(path.join(root, "src/shell.html"), "utf8").trimEnd();
 const code = fs.readFileSync(path.join(root, "src/layout.js"), "utf8").trimEnd();
 
-/* Rows come from the GENRES sheet (columns B,F,G,H,J,D) via genres-data.json.
+/* Rows come from the GENRES sheet (columns B,C,G,H,J,L,E,F) via genres-data.json.
    Verified identical to the live sheet before this build. */
 const snapshot = JSON.parse(fs.readFileSync(path.join(root, "genres-data.json"), "utf8"));
 const rows = snapshot.values.slice(1)
   .filter(r => (r[1] || "").trim())
   .map(r => [
     r[1].trim(),                              // B Name
-    Math.max(1, Math.min(5, parseInt(r[5], 10) || 1)), // F Importance
-    (r[6] || "(none)").trim(),                // G Parent
-    (r[7] || "").trim(),                      // H Decade
-    (r[9] || "").trim(),                      // J Country
-    (r[3] || "other").trim(),                 // D Area
+    (r[2] || "").trim(),                      // C Nametech (stable ID)
+    Math.max(1, Math.min(5, parseInt(r[6], 10) || 1)), // G Importance
+    (r[7] || "(none)").trim(),                // H Parent (Nametech)
+    (r[9] || "").trim(),                      // J Decade
+    (r[11] || "").trim(),                     // L Country
+    (r[4] || "other").trim(),                 // E Area
+    (r[5] || "").trim(),                      // F Secondary Area
   ]);
 
 const out = [
