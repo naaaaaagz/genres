@@ -1,4 +1,44 @@
-# GENRES project — handoff to GPT / Codex (2026-09-11)
+# GENRES project — earlier handoff (superseded 2026-09-12)
+
+> Current continuation status is in `C:\gpt\genres\CLAUDE_HANDOFF.md`. Read that file first; its latest build and verification facts supersede the stopped-state notes below.
+
+## Immediate status — read this first
+
+Work was stopped at the user's request. Do not treat the current working tree as finished or verified, and do not commit or publish it without a new explicit request.
+
+Current Git base: `5b82769` (`Publish compact fixed-sector genres timeline`). Nine tracked files have local modifications: `GPT_HANDOFF.md`, `README.md`, `build.js`, `genres-data.json`, `index.html`, `measure.js`, `smoke.js`, `src/layout.js`, and `src/shell.html`. Preserve all of them; no unrelated files were intentionally changed.
+
+The live first `GENRES` tab was read at `GENRES!A1:L806` and saved into `genres-data.json`. It contains 730 genres. The new schema and implementation are described below. The major change is that `Parent` in column H now references the technical ID in column C (`Nametech`), not the display name in column B.
+
+Implemented locally but not finally delivered:
+
+- `build.js` reads the new B/C/G/H/J/L/E/F schema and emits `[Name, Nametech, Importance, Parent, Decade, Country, Area, Secondary Area]`.
+- Parent links resolve through `Nametech`.
+- One main contour is generated per Area and one nested contour per non-empty Secondary Area. Secondary contours are SVG-masked inside their main contour with an approximately 18px inset.
+- Cards are grouped by Secondary Area within their fixed main-Area sector and get a small deterministic radial nudge to reduce the artificial circumference effect.
+- Routing gained a local-detour fallback. A later source-only experiment extended `freePort` search from 14 to 30 grid steps.
+- `measure.js` reports main/secondary contour and fallback-route counts and can use installed Chrome through `CHROME_PATH`.
+- `smoke.js` was only partly adapted to the new dataset and is not currently a trustworthy interaction test.
+
+Exact interruption point:
+
+- `src/layout.js` currently has `freePort(... k<=30 ...)`.
+- Generated `index.html` still has `freePort(... k<=14 ...)`. Therefore source and deployable output do **not** match. Rebuild once before testing.
+- The last generated-page measurement, made before the 14→30 source edit, found 730 cards, 652 edges, 21 main contours, 12 secondary contours, 21 inset masks, zero card overlaps, no console warnings/errors, and 3 fallback routing failures.
+- Those three unresolved routes were all in Rock: Post-Punk → Alternative Rock, Neo-Psychedelia → Paisley Underground, and New Wave → Zolo.
+- Before the final source-only edit, `index.html` SHA-256 was `76186446C5FC56C69DDF82668161CC91F6DCD8A15157F1B20DC9C68A9FF967EB`. It is not a completion checksum because the source has since changed.
+- The latest `smoke.js` run was invalid: its synthetic hover/zoom events did not wait for the page's animation-frame handlers, so zero highlights and an unchanged zoom were test defects, not confirmed UI regressions.
+
+Minimum safe continuation for Sol:
+
+1. Read this file and inspect `git diff` without discarding changes.
+2. Run `node build.js` once so `index.html` matches the source.
+3. Run one rendered measurement. If `routeFailures` is zero and overlaps remain zero, do not keep tuning routing.
+4. Repair `smoke.js` only enough to use real Playwright hover/wheel input and wait for two animation frames; run it once.
+5. Perform one representative visual check, especially the dense Rock region, nested secondary blobs, connector/card contact, and fork readability.
+6. Report results concisely. Do not commit, push, or publish unless the user explicitly asks in the new task.
+
+Known source-data anomalies must be preserved rather than guessed: Psychedelic Trance references missing parent ID `goatrance`, and Purple Sound has a blank decade and is placed in derived `undated`.
 
 This is the canonical state-of-truth for continuing the project. It replaces the now-removed `HANDOFF.md` and `CLAUDE_HANDOFF.md`.
 
@@ -10,7 +50,7 @@ A dependency-free, static, single-file interactive music-genre timeline (`index.
 
 ## The one rule that must never be broken
 
-Each of the 27 genre "Areas" (Rock, Heavy Metal, Folk Music, Hip Hop, etc.) owns a **fixed angular sector — a fixed compass direction from the circle's center — for the entire diagram, at every ring/decade**. An area's colored region always grows straight outward in the same direction; it never rotates, drifts, or occupies a different angle at a different radius.
+Each of the current 21 genre "Areas" (Rock, Heavy Metal, Folk Music, Hip Hop, etc.) owns a **fixed angular sector — a fixed compass direction from the circle's center — for the entire diagram, at every ring/decade**. An area's colored region always grows straight outward in the same direction; it never rotates, drifts, or occupies a different angle at a different radius.
 
 This was violated once, by an earlier rewrite that re-allocated each ring's angles only among the areas present in that specific ring (to reduce empty space). That produced better density numbers but made the colored areas spiral instead of running in a straight line outward — visually "random chaos." It was scrapped entirely and reverted. **Do not attempt any layout approach that computes angular sectors per-ring or per-decade. Sectors are computed once, globally, from total per-area demand across the whole diagram, and never recomputed per ring.** If you want to reduce empty space or improve density, there are other levers (ring thickness, starting radius, sector gap size, per-category track counts within a ring) — all used successfully today without touching sector angles. See "What changed today" below for exactly which levers were pulled.
 
@@ -30,16 +70,18 @@ Source spreadsheet: https://docs.google.com/spreadsheets/d/1QJrYbr_UMWM3W19gT39y
 |---|---|---|
 | A | Nr. | not rendered |
 | B | Name | card label, unique lookup key |
-| C | Nametech | not rendered |
-| D | Area | angular sector, color, area contour |
-| E | Area misc. | not rendered |
-| F | Importance | card size multiplier, 1–5 |
-| G | Parent | primary lineage edge; `(none)` = root |
-| H | Decade | ring; `ancient`, `medieval`, `early modern`, then 1900s–2020s |
-| I | Year | not rendered |
-| J | Country | flag/region icon, or Worldwide/Online symbol |
+| C | Nametech | stable genre ID and parent lookup key |
+| D | HIDE | currently unused |
+| E | Area | fixed angular sector, color, main area contour |
+| F | Secondary Area | nested contour inside its main Area |
+| G | Importance | card size multiplier, 1–5 |
+| H | Parent | primary lineage edge using the parent's `Nametech`; `(none)` = root |
+| I | External Parent | currently unused |
+| J | Decade | ring; `ancient`, `medieval`, `early modern`, then 1900s–2020s |
+| K | Year | not rendered |
+| L | Country | flag/region icon, or Worldwide/Online symbol |
 
-As of today: 922 genres, 833 primary-parent edges, 27 Areas, 16 era/ring labels. `index.html` embeds a compact `rows` array in this exact order: `[Name, Importance, Parent, Decade, Country, Area]`. There's also a local snapshot `genres-data.json`, verified identical to both the live sheet and the embedded rows as of this session — no refresh needed unless the sheet has changed since 2026-09-11.
+As of 2026-09-12: 730 genres, 652 resolved primary-parent edges, 21 main Areas, 12 Secondary Areas, and 17 era/ring labels including one derived `undated` ring. `index.html` embeds rows as `[Name, Nametech, Importance, Parent, Decade, Country, Area, Secondary Area]`. Parent resolution uses `Nametech`, not display names. The source currently has one unresolved parent (`goatrance` for Psychedelic Trance) and one blank decade (Purple Sound); these are preserved rather than guessed.
 
 A column K "Custom" exists in the sheet with `x` on 54 genres (Ska, Dub, Reggae, Ambient, IDM, Trap, K-Pop, Hyperpop, …). It is **not used anywhere in the site** and its intended meaning was never confirmed with the user — ask before wiring it into anything.
 
@@ -65,7 +107,7 @@ A column K "Custom" exists in the sheet with `x` on 54 genres (Ska, Dub, Reggae,
 8. **Region flag icons added and fixed.** `flagAssets()` now recognizes `Europe`, `Africa`/`West Africa`, and `South Asia` as tokens and maps them to three new local icons — `assets/flags/eu.svg` (12-star circle on blue), `africa.svg` (continent silhouette, red/gold gradient backdrop), `asia.svg` (Indian-subcontinent silhouette, orange/teal gradient backdrop). These are simple straight-edge polygon icons, deliberately not smooth/organic shapes — at the actual render size (20×15px) organic blob contours were unreadable ("looked like a potato"); straight-edged silhouettes read correctly at that size. **Latin America, Middle East, Caribbean, and Scandinavia tokens are still unhandled** (1, 2, 2, and 4 rows respectively) — intentionally out of scope, not forgotten.
 9. **Reverted: an experimental "wobble" filter on area outlines.** Earlier today, an SVG `feTurbulence`/`feDisplacementMap` filter was added to area contour outlines to break up a dead-straight edge in the Heavy Metal/Rock sector boundary. The user didn't like the resulting jagged look and asked for smooth edges again, so this was fully removed — not hidden, the filter definition and its CSS application are both gone. **Do not re-add this specific technique.** If a straight-sector-boundary complaint comes up again, a better fix would be to actually vary the contour sample points that generate the area outline path, not a post-render displacement filter.
 
-## Verified state as of today
+## Historical verified baseline from 2026-09-11 (superseded by the stopped work above)
 
 - Final local Chrome re-verification during publication preparation: 922 cards, 833 edges, 27 area contours, 0 card overlaps, and `routeFailures: 0`.
 - The rendered world is 13,565px square. The measured inner void radius was 301px, 4.5% of the occupied radius (font rendering can cause small environment-dependent geometry differences).

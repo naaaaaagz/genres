@@ -6,7 +6,7 @@ const file = process.argv[2];
 const shot = process.argv[3];
 
 (async () => {
-  const browser = await chromium.launch();
+  const browser = await chromium.launch(process.env.CHROME_PATH ? { executablePath: process.env.CHROME_PATH } : {});
   const page = await browser.newPage({ viewport: { width: 1600, height: 1000 } });
   const errors = [];
   page.on("console", m => { if (m.type() === "error" || m.type() === "warning") errors.push(m.type() + ": " + m.text()); });
@@ -97,6 +97,10 @@ const shot = process.argv[3];
       nodes: nodes.length,
       edges: root.querySelectorAll(".edge").length,
       routeFailures: root.dataset.routeFailures,
+      areaContours: root.querySelectorAll(".area-lobe").length,
+      secondaryContours: root.querySelectorAll(".secondary-lobe").length,
+      insetMasks: root.querySelectorAll(".areas mask").length,
+      fallbackEdges: [...root.querySelectorAll(".edge[data-fallback]")].map(p => p.dataset.parent + ">" + p.dataset.child),
       innerVoidRadius: Math.round(innerVoid),
       voidShareOfRadius: +(innerVoid / maxR * 100).toFixed(1),
       inkDensityPct: +(ink / disc * 100).toFixed(2),
