@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#2f3033">
+<title>Genre Map</title>
+<style>
+:root{
+  --bg:#2f3033;
+  --bg-deep:#26272a;
+  --ink:#ececee;
+  --ink-dim:#9a9b9f;
+  --ink-faint:#6c6d72;
+  --brick-line:rgba(255,255,255,.60);
+  --brick-fill:#292a2d;
+  --accent:#8fb6ff;
+  --premium:#f2c94c;
+  --hdr-h:112px;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0;height:100%;overflow:hidden;background:var(--bg);color:var(--ink);
+  font-family:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  -webkit-font-smoothing:antialiased;overscroll-behavior:none}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
+
+/* ---------- header ---------- */
+#topbar{position:fixed;top:0;left:0;right:0;z-index:40;background:var(--bg);
+  padding:calc(env(safe-area-inset-top,0px) + 8px) 0 0;
+  box-shadow:0 10px 18px -12px rgba(0,0,0,.8)}
+#brand{font-size:12px;letter-spacing:.34em;color:var(--ink-faint);text-align:center;font-weight:600;
+  padding-bottom:6px}
+#areabar{display:flex;align-items:center;justify-content:space-between;padding:0 10px}
+.chev{width:44px;height:34px;font-size:24px;line-height:1;color:var(--ink-dim);
+  display:flex;align-items:center;justify-content:center;border-radius:8px;transition:color .15s,transform .15s}
+.chev:active{color:#fff;transform:scale(.88)}
+#areaName{flex:1;text-align:center;font-size:15px;font-weight:700;letter-spacing:.2em;
+  text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  transition:opacity .18s}
+#areaName.swapping{opacity:0}
+#areaCount{font-size:10px;letter-spacing:.14em;color:var(--ink-faint);font-weight:500}
+
+/* ---------- drilldown ---------- */
+#drill{display:flex;align-items:flex-end;gap:10px;padding:8px 16px 10px}
+.dlabel{font-size:11px;letter-spacing:.06em;color:var(--ink);font-weight:600;padding-bottom:1px;flex:none}
+#dlevels{flex:1;display:flex;align-items:flex-end;justify-content:space-between;position:relative}
+.dstep{position:relative;display:flex;flex-direction:column;align-items:center;gap:3px;
+  padding:0 2px;flex:none;z-index:1}
+.dstep .dnum{font-size:12px;font-weight:700;color:var(--ink);line-height:1;transition:color .15s,opacity .15s;opacity:.55}
+.dstep.premium .dnum{color:var(--premium)}
+.dstep.on .dnum{opacity:1}
+.dstep .dblip{width:9px;height:9px;border-radius:50%;border:1.5px solid var(--ink);
+  background:var(--bg);transition:background .15s,transform .15s,border-color .15s}
+.dstep.premium .dblip{border-color:var(--premium)}
+.dstep.on .dblip{background:var(--ink);transform:scale(1.15)}
+.dstep.premium.on .dblip{background:var(--premium)}
+.dstep .dlock{position:absolute;top:-9px;right:-3px;width:8px;height:9px;opacity:.9}
+#dlevels .drail{position:absolute;left:8px;right:8px;bottom:4px;height:0;
+  border-top:1px dashed rgba(255,255,255,.34);z-index:0}
+.dhit{position:absolute;inset:-12px -10px -14px;}
+
+/* ---------- stage ---------- */
+#scroller{position:absolute;top:var(--hdr-h);left:0;right:0;bottom:0;overflow-y:auto;overflow-x:hidden;
+  -webkit-overflow-scrolling:touch;overscroll-behavior:contain;touch-action:pan-y}
+#pan{position:relative;transition:transform .22s cubic-bezier(.3,.7,.3,1),opacity .18s}
+#stage{position:relative;transform-origin:50% 0;transition:transform .3s cubic-bezier(.25,.8,.3,1)}
+#edges{position:absolute;top:0;left:0;overflow:visible;pointer-events:none}
+
+.band{position:absolute;left:0;right:0;pointer-events:none;transition:opacity .22s}
+.band .bline{position:absolute;left:8px;right:8px;top:0;height:0;
+  border-top:2px dashed rgba(255,255,255,.17)}
+.band .blabel{position:absolute;right:10px;top:6px;font-size:15px;font-weight:800;
+  color:rgba(255,255,255,.17);letter-spacing:.03em}
+
+.brick{position:absolute;display:flex;align-items:center;justify-content:center;text-align:center;
+  border:1.5px solid var(--brick-line);background:var(--brick-fill);color:var(--ink);
+  font-size:10.5px;line-height:1.12;font-weight:600;letter-spacing:.005em;
+  padding:2px 4px;border-radius:2px;overflow:hidden;
+  transition:opacity .22s,border-color .22s,box-shadow .22s,color .22s}
+.brick.ghost{border-color:rgba(255,255,255,.085);background:rgba(255,255,255,.018);
+  border-width:1px;border-radius:1px;pointer-events:none}
+.brick.ext{border-radius:999px;border-style:dashed;border-color:rgba(255,255,255,.30);
+  background:#2b2c2f;color:rgba(236,236,238,.62);font-weight:500;font-size:9.5px}
+.brick.ext .xarea{display:block;font-size:7.5px;letter-spacing:.1em;text-transform:uppercase;
+  color:rgba(255,255,255,.32);margin-top:1px}
+
+/* focus mode */
+#stage.focus .brick{opacity:.18}
+#stage.focus .brick.rel{opacity:1}
+#stage.focus .brick.sel{opacity:1;border-color:var(--accent);color:#fff;
+  box-shadow:0 0 0 1px var(--accent),0 0 16px -2px var(--accent)}
+#stage.focus .band{opacity:.35}
+#stage.focus #edges .e{opacity:.07}
+#stage.focus #edges .e.rel{opacity:1;stroke:var(--accent)}
+#edges .e{transition:opacity .22s,stroke .22s}
+
+/* ---------- fades ---------- */
+.fade{position:absolute;left:0;right:0;height:64px;pointer-events:none;z-index:20;transition:opacity .25s}
+#fadeTop{top:var(--hdr-h);background:linear-gradient(to bottom,var(--bg) 6%,rgba(47,48,51,0) 100%);opacity:0}
+#fadeBottom{bottom:0;height:88px;background:linear-gradient(to top,var(--bg) 10%,rgba(47,48,51,0) 100%)}
+
+/* ---------- scroll hint ---------- */
+#scrollHint{position:absolute;left:0;right:0;bottom:calc(env(safe-area-inset-bottom,0px) + 22px);
+  z-index:25;display:flex;flex-direction:column;align-items:center;gap:6px;
+  pointer-events:none;opacity:0;transition:opacity .5s}
+#scrollHint.show{opacity:1;animation:bob 1.5s ease-in-out infinite}
+#scrollHint .htext{font-size:11px;letter-spacing:.09em;color:var(--ink-dim);text-transform:lowercase;
+  background:rgba(47,48,51,.92);padding:4px 12px;border-radius:999px}
+#scrollHint svg{display:block}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(7px)}}
+
+/* ---------- tooltip ---------- */
+#tip{position:absolute;z-index:45;padding:6px 11px;border-radius:14px;font-size:11px;font-weight:600;
+  letter-spacing:.02em;background:#f0f0f2;color:#1d1e20;white-space:nowrap;
+  transform:translate(-50%,-100%) scale(.9);opacity:0;pointer-events:none;
+  transition:opacity .16s,transform .16s;box-shadow:0 6px 20px -6px rgba(0,0,0,.7)}
+#tip.show{opacity:1;transform:translate(-50%,-100%) scale(1);pointer-events:auto}
+#tip.premium{background:var(--premium);color:#22200f}
+#tip::after{content:"";position:absolute;left:50%;bottom:-4px;margin-left:-4px;
+  border:4px solid transparent;border-top-color:#f0f0f2;border-bottom:0}
+#tip.premium::after{border-top-color:var(--premium)}
+
+/* ---------- info sheet ---------- */
+#scrim{position:fixed;inset:0;z-index:60;background:rgba(20,21,23,.62);backdrop-filter:blur(3px);
+  -webkit-backdrop-filter:blur(3px);opacity:0;pointer-events:none;transition:opacity .22s}
+#scrim.show{opacity:1;pointer-events:auto}
+#sheet{position:absolute;left:50%;top:50%;transform:translate(-50%,-46%) scale(.96);
+  width:min(330px,calc(100vw - 40px));background:rgba(44,45,49,.95);
+  border:1px solid rgba(255,255,255,.14);border-radius:14px;padding:20px 20px 18px;
+  opacity:0;transition:opacity .22s,transform .22s;
+  box-shadow:0 26px 60px -20px rgba(0,0,0,.85)}
+#scrim.show #sheet{opacity:1;transform:translate(-50%,-50%) scale(1)}
+#sheet h2{margin:0 0 10px;font-size:19px;font-weight:700;letter-spacing:.01em;line-height:1.2}
+#sheet .meta{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+#sheet .chip{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:600;
+  letter-spacing:.06em;text-transform:uppercase;color:var(--ink-dim);
+  border:1px solid rgba(255,255,255,.14);border-radius:999px;padding:4px 9px}
+#sheet .chip img{width:17px;height:12px;object-fit:cover;border-radius:1px;display:block}
+#sheet p{margin:0;font-size:13px;line-height:1.55;color:#c3c4c8;font-weight:400}
+#sheetClose{position:absolute;top:8px;right:8px;width:36px;height:36px;display:flex;
+  align-items:center;justify-content:center;font-size:20px;color:var(--ink-dim);border-radius:50%}
+#sheetClose:active{color:#fff}
+
+/* ---------- loading ---------- */
+#loading{position:fixed;inset:0;z-index:90;background:var(--bg);display:flex;
+  align-items:center;justify-content:center;flex-direction:column;gap:14px;
+  transition:opacity .4s}
+#loading.done{opacity:0;pointer-events:none}
+#loading .ring{width:26px;height:26px;border:2px solid rgba(255,255,255,.18);
+  border-top-color:var(--ink);border-radius:50%;animation:spin .8s linear infinite}
+#loading .msg{font-size:11px;letter-spacing:.24em;color:var(--ink-faint);text-transform:uppercase}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+
+<header id="topbar">
+  <div id="brand">GENRE MAP</div>
+  <div id="areabar">
+    <button class="chev" id="prevArea" aria-label="Previous area">&#8249;</button>
+    <div id="areaName">&nbsp;</div>
+    <button class="chev" id="nextArea" aria-label="Next area">&#8250;</button>
+  </div>
+  <div id="drill">
+    <span class="dlabel">drilldown</span>
+    <div id="dlevels"><div class="drail"></div></div>
+  </div>
+</header>
+
+<div id="scroller">
+  <div id="pan">
+    <div id="stage"><svg id="edges" xmlns="http://www.w3.org/2000/svg"></svg></div>
+  </div>
+</div>
+
+<div class="fade" id="fadeTop"></div>
+<div class="fade" id="fadeBottom"></div>
+
+<div id="scrollHint">
+  <span class="htext">scroll down for the past</span>
+  <svg width="30" height="15" viewBox="0 0 30 15" fill="none">
+    <path d="M2 2 L15 13 L28 2" stroke="#9a9b9f" stroke-width="2.4"
+          stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>
+</div>
+
+<div id="tip"></div>
+
+<div id="scrim">
+  <div id="sheet">
+    <button id="sheetClose" aria-label="Close">&times;</button>
+    <h2 id="sheetName"></h2>
+    <div class="meta" id="sheetMeta"></div>
+    <p id="sheetDesc"></p>
+  </div>
+</div>
+
+<div id="loading"><div class="ring"></div><div class="msg">mapping genres</div></div>

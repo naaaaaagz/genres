@@ -1,201 +1,29 @@
 <!doctype html>
-<html lang="en">
-<head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
-<meta name="theme-color" content="#2f3033">
-<title>Genre Map</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <style>
-:root{
-  --bg:#2f3033;
-  --bg-deep:#26272a;
-  --ink:#ececee;
-  --ink-dim:#9a9b9f;
-  --ink-faint:#6c6d72;
-  --brick-line:rgba(255,255,255,.60);
-  --brick-fill:#292a2d;
-  --accent:#8fb6ff;
-  --premium:#f2c94c;
-  --hdr-h:112px;
-}
-*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;padding:0;height:100%;overflow:hidden;background:var(--bg);color:var(--ink);
-  font-family:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
-  -webkit-font-smoothing:antialiased;overscroll-behavior:none}
-button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
-
-/* ---------- header ---------- */
-#topbar{position:fixed;top:0;left:0;right:0;z-index:40;background:var(--bg);
-  padding:calc(env(safe-area-inset-top,0px) + 8px) 0 0;
-  box-shadow:0 10px 18px -12px rgba(0,0,0,.8)}
-#brand{font-size:12px;letter-spacing:.34em;color:var(--ink-faint);text-align:center;font-weight:600;
-  padding-bottom:6px}
-#areabar{display:flex;align-items:center;justify-content:space-between;padding:0 10px}
-.chev{width:44px;height:34px;font-size:24px;line-height:1;color:var(--ink-dim);
-  display:flex;align-items:center;justify-content:center;border-radius:8px;transition:color .15s,transform .15s}
-.chev:active{color:#fff;transform:scale(.88)}
-#areaName{flex:1;text-align:center;font-size:15px;font-weight:700;letter-spacing:.2em;
-  text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-  transition:opacity .18s}
-#areaName.swapping{opacity:0}
-#areaCount{font-size:10px;letter-spacing:.14em;color:var(--ink-faint);font-weight:500}
-
-/* ---------- drilldown ---------- */
-#drill{display:flex;align-items:flex-end;gap:10px;padding:8px 16px 10px}
-.dlabel{font-size:11px;letter-spacing:.06em;color:var(--ink);font-weight:600;padding-bottom:1px;flex:none}
-#dlevels{flex:1;display:flex;align-items:flex-end;justify-content:space-between;position:relative}
-.dstep{position:relative;display:flex;flex-direction:column;align-items:center;gap:3px;
-  padding:0 2px;flex:none;z-index:1}
-.dstep .dnum{font-size:12px;font-weight:700;color:var(--ink);line-height:1;transition:color .15s,opacity .15s;opacity:.55}
-.dstep.premium .dnum{color:var(--premium)}
-.dstep.on .dnum{opacity:1}
-.dstep .dblip{width:9px;height:9px;border-radius:50%;border:1.5px solid var(--ink);
-  background:var(--bg);transition:background .15s,transform .15s,border-color .15s}
-.dstep.premium .dblip{border-color:var(--premium)}
-.dstep.on .dblip{background:var(--ink);transform:scale(1.15)}
-.dstep.premium.on .dblip{background:var(--premium)}
-.dstep .dlock{position:absolute;top:-9px;right:-3px;width:8px;height:9px;opacity:.9}
-#dlevels .drail{position:absolute;left:8px;right:8px;bottom:4px;height:0;
-  border-top:1px dashed rgba(255,255,255,.34);z-index:0}
-.dhit{position:absolute;inset:-12px -10px -14px;}
-
-/* ---------- stage ---------- */
-#scroller{position:absolute;top:var(--hdr-h);left:0;right:0;bottom:0;overflow-y:auto;overflow-x:hidden;
-  -webkit-overflow-scrolling:touch;overscroll-behavior:contain;touch-action:pan-y}
-#pan{position:relative;transition:transform .22s cubic-bezier(.3,.7,.3,1),opacity .18s}
-#stage{position:relative;transform-origin:50% 0;transition:transform .3s cubic-bezier(.25,.8,.3,1)}
-#edges{position:absolute;top:0;left:0;overflow:visible;pointer-events:none}
-
-.band{position:absolute;left:0;right:0;pointer-events:none;transition:opacity .22s}
-.band .bline{position:absolute;left:8px;right:8px;top:0;height:0;
-  border-top:2px dashed rgba(255,255,255,.17)}
-.band .blabel{position:absolute;right:10px;top:6px;font-size:15px;font-weight:800;
-  color:rgba(255,255,255,.17);letter-spacing:.03em}
-
-.brick{position:absolute;display:flex;align-items:center;justify-content:center;text-align:center;
-  border:1.5px solid var(--brick-line);background:var(--brick-fill);color:var(--ink);
-  font-size:10.5px;line-height:1.12;font-weight:600;letter-spacing:.005em;
-  padding:2px 4px;border-radius:2px;overflow:hidden;
-  transition:opacity .22s,border-color .22s,box-shadow .22s,color .22s}
-.brick.ghost{border-color:rgba(255,255,255,.085);background:rgba(255,255,255,.018);
-  border-width:1px;border-radius:1px;pointer-events:none}
-.brick.ext{border-radius:999px;border-style:dashed;border-color:rgba(255,255,255,.30);
-  background:#2b2c2f;color:rgba(236,236,238,.62);font-weight:500;font-size:9.5px}
-.brick.ext .xarea{display:block;font-size:7.5px;letter-spacing:.1em;text-transform:uppercase;
-  color:rgba(255,255,255,.32);margin-top:1px}
-
-/* focus mode */
-#stage.focus .brick{opacity:.18}
-#stage.focus .brick.rel{opacity:1}
-#stage.focus .brick.sel{opacity:1;border-color:var(--accent);color:#fff;
-  box-shadow:0 0 0 1px var(--accent),0 0 16px -2px var(--accent)}
-#stage.focus .band{opacity:.35}
-#stage.focus #edges .e{opacity:.07}
-#stage.focus #edges .e.rel{opacity:1;stroke:var(--accent)}
-#edges .e{transition:opacity .22s,stroke .22s}
-
-/* ---------- fades ---------- */
-.fade{position:absolute;left:0;right:0;height:64px;pointer-events:none;z-index:20;transition:opacity .25s}
-#fadeTop{top:var(--hdr-h);background:linear-gradient(to bottom,var(--bg) 6%,rgba(47,48,51,0) 100%);opacity:0}
-#fadeBottom{bottom:0;height:88px;background:linear-gradient(to top,var(--bg) 10%,rgba(47,48,51,0) 100%)}
-
-/* ---------- scroll hint ---------- */
-#scrollHint{position:absolute;left:0;right:0;bottom:calc(env(safe-area-inset-bottom,0px) + 22px);
-  z-index:25;display:flex;flex-direction:column;align-items:center;gap:6px;
-  pointer-events:none;opacity:0;transition:opacity .5s}
-#scrollHint.show{opacity:1;animation:bob 1.5s ease-in-out infinite}
-#scrollHint .htext{font-size:11px;letter-spacing:.09em;color:var(--ink-dim);text-transform:lowercase;
-  background:rgba(47,48,51,.92);padding:4px 12px;border-radius:999px}
-#scrollHint svg{display:block}
-@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(7px)}}
-
-/* ---------- tooltip ---------- */
-#tip{position:absolute;z-index:45;padding:6px 11px;border-radius:14px;font-size:11px;font-weight:600;
-  letter-spacing:.02em;background:#f0f0f2;color:#1d1e20;white-space:nowrap;
-  transform:translate(-50%,-100%) scale(.9);opacity:0;pointer-events:none;
-  transition:opacity .16s,transform .16s;box-shadow:0 6px 20px -6px rgba(0,0,0,.7)}
-#tip.show{opacity:1;transform:translate(-50%,-100%) scale(1);pointer-events:auto}
-#tip.premium{background:var(--premium);color:#22200f}
-#tip::after{content:"";position:absolute;left:50%;bottom:-4px;margin-left:-4px;
-  border:4px solid transparent;border-top-color:#f0f0f2;border-bottom:0}
-#tip.premium::after{border-top-color:var(--premium)}
-
-/* ---------- info sheet ---------- */
-#scrim{position:fixed;inset:0;z-index:60;background:rgba(20,21,23,.62);backdrop-filter:blur(3px);
-  -webkit-backdrop-filter:blur(3px);opacity:0;pointer-events:none;transition:opacity .22s}
-#scrim.show{opacity:1;pointer-events:auto}
-#sheet{position:absolute;left:50%;top:50%;transform:translate(-50%,-46%) scale(.96);
-  width:min(330px,calc(100vw - 40px));background:rgba(44,45,49,.95);
-  border:1px solid rgba(255,255,255,.14);border-radius:14px;padding:20px 20px 18px;
-  opacity:0;transition:opacity .22s,transform .22s;
-  box-shadow:0 26px 60px -20px rgba(0,0,0,.85)}
-#scrim.show #sheet{opacity:1;transform:translate(-50%,-50%) scale(1)}
-#sheet h2{margin:0 0 10px;font-size:19px;font-weight:700;letter-spacing:.01em;line-height:1.2}
-#sheet .meta{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px}
-#sheet .chip{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:600;
-  letter-spacing:.06em;text-transform:uppercase;color:var(--ink-dim);
-  border:1px solid rgba(255,255,255,.14);border-radius:999px;padding:4px 9px}
-#sheet .chip img{width:17px;height:12px;object-fit:cover;border-radius:1px;display:block}
-#sheet p{margin:0;font-size:13px;line-height:1.55;color:#c3c4c8;font-weight:400}
-#sheetClose{position:absolute;top:8px;right:8px;width:36px;height:36px;display:flex;
-  align-items:center;justify-content:center;font-size:20px;color:var(--ink-dim);border-radius:50%}
-#sheetClose:active{color:#fff}
-
-/* ---------- loading ---------- */
-#loading{position:fixed;inset:0;z-index:90;background:var(--bg);display:flex;
-  align-items:center;justify-content:center;flex-direction:column;gap:14px;
-  transition:opacity .4s}
-#loading.done{opacity:0;pointer-events:none}
-#loading .ring{width:26px;height:26px;border:2px solid rgba(255,255,255,.18);
-  border-top-color:var(--ink);border-radius:50%;animation:spin .8s linear infinite}
-#loading .msg{font-size:11px;letter-spacing:.24em;color:var(--ink-faint);text-transform:uppercase}
-@keyframes spin{to{transform:rotate(360deg)}}
+:root{color-scheme:dark}*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#171a20;color:#eef1f5;font-family:system-ui,-apple-system,"Segoe UI",sans-serif}#viewport{position:fixed;inset:0;overflow:hidden;touch-action:none;cursor:grab;background:radial-gradient(circle at center,#20242b 0,#171a20 72%);user-select:none}#viewport.panning{cursor:grabbing}#timeline{position:absolute;left:0;top:0;transform-origin:0 0;isolation:isolate}#timeline.interacting{will-change:transform}.rings,.areas,.edges{position:absolute;inset:0;overflow:visible;pointer-events:none}.rings{z-index:0}.ring{fill:none;stroke:#737b88;stroke-width:1.15;stroke-dasharray:8 10;opacity:.52}.area-lobe,.secondary-lobe{stroke-linecap:round;stroke-linejoin:round}.area-lobe{opacity:.14}.secondary-lobe{opacity:.22}.decade{position:absolute;padding:4px 8px;border-radius:12px;background:#20242cf0;color:#d8dde5;font-size:14px;font-weight:750;letter-spacing:.045em;white-space:nowrap;z-index:3;transform:translate(-50%,-50%)}
+.area-label,.secondary-label{position:absolute;transform:translate(-50%,-50%);pointer-events:none;white-space:nowrap;border:1px solid;border-radius:9px}
+.area-label{z-index:1.5;font-weight:800;letter-spacing:.03em;padding:4px 12px}
+.secondary-label{z-index:1.4;font-weight:650;letter-spacing:.02em;padding:2px 8px;font-size:12.5px}.node{position:absolute;display:flex;align-items:center;gap:8px;border:1px solid;border-radius:7px;color:#f7f9fc;box-shadow:0 2px 6px rgba(0,0,0,.42);line-height:1.12;white-space:nowrap;z-index:2;transition:opacity .12s,filter .12s,box-shadow .12s}.name{font-weight:680}.flags{display:flex;align-items:center;gap:4px;margin-left:auto;padding-left:2px}.flag{display:block;width:20px;height:15px;object-fit:cover;border-radius:1px;box-shadow:0 0 0 1px rgba(255,255,255,.18);pointer-events:none;-webkit-user-drag:none}.flag.symbol{object-fit:contain;box-shadow:none;filter:invert(1);opacity:.9}.areas{z-index:.5}.edges{z-index:1}.edge{fill:none;stroke:#a0a9b7;stroke-width:1.25;stroke-linecap:round;stroke-linejoin:round;opacity:.62;transition:opacity .12s,stroke-width .12s}#timeline.chain-hover .node{opacity:.18;filter:saturate(.45)}#timeline.chain-hover .edge{opacity:.07}#timeline.chain-hover .node.chain-highlight{opacity:1;filter:none;z-index:4;box-shadow:0 0 0 2px rgba(255,255,255,.72),0 3px 10px rgba(0,0,0,.6)}#timeline.chain-hover .edge.chain-highlight{opacity:1;stroke:#f3f6fa;stroke-width:2.5}#viewport{opacity:0;transition:opacity .35s ease}#viewport.ready{opacity:1}#loading{position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;background:#171a20;color:#9aa3b0;font-size:14px;letter-spacing:.03em;transition:opacity .5s ease}#loading.hide{opacity:0;pointer-events:none}.spinner{width:58px;height:58px;overflow:visible}.spinner .ring{fill:none;stroke-linecap:round;transform-box:fill-box;transform-origin:center}.spinner .ring-a{stroke:#8ab4ff;stroke-width:2.25;stroke-dasharray:96 66;opacity:.92;animation:spin-cw 2.6s linear infinite}.spinner .ring-b{stroke:#6f8fd6;stroke-width:2.25;stroke-dasharray:64 48;opacity:.72;animation:spin-ccw 3.4s linear infinite}.spinner .ring-c{stroke:#4d6fa3;stroke-width:2.25;stroke-dasharray:34 30;opacity:.6;animation:spin-cw 1.85s linear infinite}@keyframes spin-cw{to{transform:rotate(360deg)}}@keyframes spin-ccw{to{transform:rotate(-360deg)}}.loading-text{min-height:1.2em;transition:opacity .16s ease}.loading-text.swap{opacity:0}
 </style>
-</head>
-<body>
-
-<header id="topbar">
-  <div id="brand">GENRE MAP</div>
-  <div id="areabar">
-    <button class="chev" id="prevArea" aria-label="Previous area">&#8249;</button>
-    <div id="areaName">&nbsp;</div>
-    <button class="chev" id="nextArea" aria-label="Next area">&#8250;</button>
-  </div>
-  <div id="drill">
-    <span class="dlabel">drilldown</span>
-    <div id="dlevels"><div class="drail"></div></div>
-  </div>
-</header>
-
-<div id="scroller">
-  <div id="pan">
-    <div id="stage"><svg id="edges" xmlns="http://www.w3.org/2000/svg"></svg></div>
-  </div>
+<div id="loading">
+<svg class="spinner" viewBox="0 0 64 64" aria-hidden="true">
+<circle class="ring ring-a" cx="32" cy="32" r="27"/>
+<circle class="ring ring-b" cx="32" cy="32" r="20"/>
+<circle class="ring ring-c" cx="32" cy="32" r="13"/>
+</svg>
+<div class="loading-text" id="loading-text">Loading assets..</div>
 </div>
-
-<div class="fade" id="fadeTop"></div>
-<div class="fade" id="fadeBottom"></div>
-
-<div id="scrollHint">
-  <span class="htext">scroll down for the past</span>
-  <svg width="30" height="15" viewBox="0 0 30 15" fill="none">
-    <path d="M2 2 L15 13 L28 2" stroke="#9a9b9f" stroke-width="2.4"
-          stroke-linecap="round" stroke-linejoin="round"/>
-  </svg>
-</div>
-
-<div id="tip"></div>
-
-<div id="scrim">
-  <div id="sheet">
-    <button id="sheetClose" aria-label="Close">&times;</button>
-    <h2 id="sheetName"></h2>
-    <div class="meta" id="sheetMeta"></div>
-    <p id="sheetDesc"></p>
-  </div>
-</div>
-
-<div id="loading"><div class="ring"></div><div class="msg">mapping genres</div></div>
+<script>(function(){
+var messages=["Loading assets..","Reticulating splines..","Imagining dragons..","Humming along..","Totally nerding out..","Warding off critics..","Consulting with Bowie.."];
+function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),t=a[i];a[i]=a[j];a[j]=t}return a}
+var queue=shuffle(messages),qi=0,el=document.getElementById("loading-text");
+function refill(){var next=shuffle(messages);if(queue.length&&next[0]===queue[queue.length-1])next.push(next.shift());queue=next;qi=0}
+function step(){if(qi>=queue.length)refill();el.classList.add("swap");setTimeout(function(){el.textContent=queue[qi++];el.classList.remove("swap")},160);setTimeout(step,1500+Math.random()*500)}
+el.textContent=queue[qi++];setTimeout(step,1500+Math.random()*500);
+})();</script>
+<div id="viewport"><main id="timeline" aria-label="Music genres by decade"></main></div>
 <script>
 const rows=[["Oldschool Breakbeat","oldschoolbreakbeat",5,"oldschoolhiphop","1980s","USA, UK","breakbeat","breaks","","",false,true],["Acid Breakbeat","acidbreakbeat",2,"oldschoolbreakbeat","1980s","UK","breakbeat","breaks","acidhouse","",false,false],["Florida Breakbeat","floridabreakbeat",3,"oldschoolbreakbeat","1980s","USA","breakbeat","breaks","electro","miamibass",false,false],["Electro","electro",5,"electrofunk","1980s","USA","breakbeat","breaks","","",false,true],["Miami Bass","miamibass",4,"electro","1980s","USA","breakbeat","breaks","","",false,false],["Funk Carioca","funkcarioca",4,"miamibass","1980s","Brazil","breakbeat","breaks","","",false,false],["UK Garage","ukgarage",5,"garage","1990s","UK","breakbeat","breaks","jungle","",false,true],["2-Step Garage","2stepgarage",4,"ukgarage","1990s","UK","breakbeat","breaks","","",false,false],["Big Beat","bigbeat",4,"oldschoolbreakbeat","1990s","UK","breakbeat","breaks","acidhouse","oldschoolhiphop",false,false],["Chemical Breakbeat","chemicalbreakbeat",1,"acidbreakbeat","1990s","UK","breakbeat","breaks","bigbeat","",false,false],["Newschool Breakbeat","newschoolbreakbeat",2,"oldschoolbreakbeat","1990s","UK","breakbeat","breaks","","",false,false],["Progressive Breakbeat","progressivebreakbeat",2,"oldschoolbreakbeat","1990s","Europe","breakbeat","breaks","progressivehouse","",false,false],["Speed Garage","speedgarage",4,"ukgarage","1990s","UK","breakbeat","breaks","","",false,false],["Breakstep","breakstep",2,"2stepgarage","2000s","UK","breakbeat","breaks","","",false,false],["Future Garage","futuregarage",3,"ukgarage","2000s","UK","breakbeat","breaks","","",false,false],["UK Bass","ukbass",4,"2stepgarage","2000s","UK","breakbeat","breaks","classicdubstep","ukgrime",false,false],["Neurohop","neurohop",2,"neurofunk","2010s","USA, Europe","breakbeat","dnb","","",false,false],["Artcore","artcore",2,"oldschooldrumandbass","1990s","Japan","breakbeat","dnb","","",false,false],["Atmospheric D&B","atmosphericdandb",3,"oldschooldrumandbass","1990s","UK","breakbeat","dnb","","",false,false],["Breakcore","breakcore",3,"jungle","1990s","Europe","breakbeat","dnb","digitalhardcore","gabber",false,false],["Darkcore Jungle","darkcorejungle",3,"jungle","1990s","UK","breakbeat","dnb","breakbeathardcore","",false,false],["Darkstep","darkstep",2,"techstep","1990s","UK","breakbeat","dnb","","",false,false],["Oldschool Drum & Bass","oldschooldrumandbass",5,"jungle","1990s","UK","breakbeat","dnb","","",false,false],["Hardstep","hardstep",2,"jungle","1990s","UK","breakbeat","dnb","","",false,false],["Intelligent Drum & Bass","intelligentdrumandbass",4,"oldschooldrumandbass","1990s","UK","breakbeat","dnb","","",false,false],["Jazzstep","jazzstep",2,"oldschooldrumandbass","1990s","UK","breakbeat","dnb","","",false,false],["Jump-up","jumpup",3,"oldschooldrumandbass","1990s","UK","breakbeat","dnb","raggajungle","",false,false],["Jungle","jungle",5,"oldschoolbreakbeat","1990s","UK","breakbeat","dnb","breakbeathardcore","dancehall",false,false],["Jungle Jazz","junglejazz",1,"jazzstep","1990s","UK","breakbeat","dnb","","",false,false],["Liquid Funk","liquidfunk",3,"oldschooldrumandbass","1990s","UK","breakbeat","dnb","jazzfunk","",false,false],["Neurofunk","neurofunk",3,"oldschooldrumandbass","1990s","UK","breakbeat","dnb","","",false,false],["Ragga Jungle","raggajungle",3,"jungle","1990s","UK","breakbeat","dnb","raggamuffin","",false,false],["Sambass","sambass",2,"oldschooldrumandbass","1990s","Brazil","breakbeat","dnb","samba","",false,false],["Techstep","techstep",3,"hardstep","1990s","UK","breakbeat","dnb","detroittechno","",false,false],["Clownstep","clownstep",1,"jumpup","2000s","UK","breakbeat","dnb","","",false,false],["Dancefloor Drum & Bass","dancefloordrumandbass",4,"oldschooldrumandbass","2000s","UK","breakbeat","dnb","","",false,false],["Drumfunk","drumfunk",2,"jungle","2000s","UK","breakbeat","dnb","","",false,false],["Drumstep","drumstep",2,"jumpup","2000s","UK, USA","breakbeat","dnb","","",false,false],["Halftime Drum & Bass","halftimedrumandbass",3,"jumpup","2000s","USA, UK","breakbeat","dnb","","",false,false],["Minimal Drum & Bass","minimaldrumandbass",3,"neurofunk","2000s","UK","breakbeat","dnb","minimaltechno","",false,false],["Raggacore","raggacore",2,"raggajungle","2000s","Europe","breakbeat","dnb","","",false,false],["Skullstep","skullstep",1,"darkstep","2000s","Europe","breakbeat","dnb","","",false,false],["Trancestep","trancestep",1,"oldschooldrumandbass","2000s","Europe","breakbeat","dnb","classictrance","",false,false],["Technoid","technoid",2,"neurofunk","2000s","UK","breakbeat","dnb","","",false,false],["Acid Jazz","acidjazz",4,"downtempo","1980s","UK","jazz","","jazzfunk","funk",false,true],["Downtempo","downtempo",4,"alternativehiphop","1980s","UK","breakbeat","downtempo","","",false,true],["Ambient Breaks","ambientbreaks",2,"downtempo","1990s","UK","breakbeat","downtempo","ambient","",false,false],["Illbient","illbient",2,"ambientbreaks","1990s","USA","breakbeat","downtempo","dub","",false,false],["Nu Jazz","nujazz",3,"acidjazz","1990s","Europe","jazz","","deephouse","jazzfunk",false,false],["Trip Hop","triphop",4,"ambientbreaks","1990s","UK","breakbeat","downtempo","dub","oldschoolhiphop",false,false],["Brostep","brostep",3,"classicdubstep","2000s","USA","breakbeat","dubstep","","",false,false],["Classic Dubstep","classicdubstep",4,"2stepgarage","2000s","UK","breakbeat","dubstep","dub","jungle",false,false],["Industrial Dubstep","industrialdubstep",2,"classicdubstep","2000s","Worldwide","breakbeat","dubstep","industrial","",false,false],["Post-Dubstep","postdubstep",3,"classicdubstep","2000s","UK","breakbeat","dubstep","","",false,false],["Tearout","tearout",2,"brostep","2010s","Canada, USA","breakbeat","dubstep","","",false,false],["Dubstazz","dubstazz",1,"classicdubstep","2000s","Worldwide","breakbeat","dubstep","","",false,false],["Purple Sound","purplesound",2,"classicdubstep","2000s","UK","breakbeat","dubstep","","",false,false],["Deathstep","deathstep",2,"brostep","2010s","Europe","breakbeat","dubstep","","",false,false],["Chillstep","chillstep",2,"classicdubstep","2010s","Worldwide","breakbeat","dubstep","","",false,false],["Riddim","riddim",3,"brostep","2010s","USA, UK","breakbeat","dubstep","","",false,false],["Gagaku","gagaku",4,"(none)","medieval","Japan","classical","asian","","",true,false],["Hindustani Classical","hindustaniclassical",5,"(none)","medieval","India, Pakistan, Bangladesh","classical","asian","","",true,false],["Carnatic Music","carnaticmusic",5,"(none)","medieval","India","classical","asian","","",true,false],["Neoclassicism","neoclassicism",4,"modernism","1920s","Europe","classical","european","classical","baroque",false,false],["Serialism","serialism",4,"modernism","1920s","Austria, Germany","classical","european","romantic","",false,false],["Aleatoric Music","aleatoricmusic",3,"serialism","1950s","Europe, USA","classical","european","","",false,false],["Minimal Music","minimalmusic",5,"modernism","1960s","USA","classical","european","hindustaniclassical","gamelan",false,false],["Contemporary Symphonic","contemporarysymphonic",2,"classical","1970s","Worldwide","classical","european","","",false,false],["Spectral Music","spectralmusic",3,"modernism","1970s","France","classical","european","impressionism","",false,false],["Ballet Music","balletmusic",5,"baroque","early modern","France, Italy","classical","european","","",false,false],["Baroque","baroque",5,"renaissance","early modern","Europe","classical","european","","",false,false],["Cantata","cantata",4,"oratorio","early modern","Italy, Germany","classical","european","opera","",false,false],["Concerto","concerto",5,"classical","early modern","Italy","classical","european","","",false,false],["Opera","opera",5,"renaissance","early modern","Italy","classical","european","","",false,false],["Oratorio","oratorio",4,"opera","early modern","Italy","classical","european","","",false,false],["Classical","classical",5,"baroque","early modern","Europe","classical","european","","",false,false],["Operetta","operetta",4,"cantata","early modern","France, Austria","classical","european","opera","",false,false],["Romantic","romantic",5,"classical","early modern","Europe","classical","european","","",false,false],["Impressionism","impressionism",4,"romantic","early modern","France","classical","european","gamelan","",false,false],["Modernism","modernism",5,"romantic","early modern","Europe","classical","european","","",false,false],["Motet","motet",4,"arsnova","medieval","Europe","classical","european","gregorian","",false,false],["Renaissance","renaissance",5,"arsnova","medieval","Europe","classical","european","","",false,false],["Madrigal","madrigal",4,"renaissance","medieval","Italy","classical","european","","",false,false],["March","march",5,"(none)","medieval","Europe","classical","european","","",true,false],["Ars Nova","arsnova",5,"(none)","medieval","Europe","classical","european","","",true,false],["Gregorian","gregorian",4,"(none)","medieval","Europe","classical","european","","",true,false],["Post-Minimalism","postminimalism",3,"minimalmusic","1970s","Worldwide","classical","european","","",false,false],["Parlour Music","parlourmusic",3,"opera","early modern","Europe, USA","classical","european","","",false,false],["Drone Music","dronemusic",4,"minimalmusic","1960s","USA","experimental","ambient","","",false,true],["Ambient","ambient",5,"dronemusic","1970s","UK","experimental","ambient","","",false,false],["Dark Ambient","darkambient",3,"ambient","1970s","UK","experimental","ambient","industrial","",false,false],["Space Ambient","spaceambient",3,"ambient","1970s","Europe","experimental","ambient","","",false,false],["Ethereal","ethereal",2,"newage","1980s","UK","experimental","ambient","gothicrock","dreampop",false,false],["Lowercase","lowercase",1,"ambient","2000s","USA","experimental","ambient","","",false,false],["Vaporwave","vaporwave",5,"plunderphonics","2010s","Worldwide","experimental","ambient","chillwave","smoothjazz",false,false],["Mallsoft","mallsoft",1,"vaporwave","2010s","Worldwide","experimental","ambient","","",false,false],["Oceangrunge","oceangrunge",1,"seapunk","2010s","Worldwide","experimental","ambient","","",false,true],["New Age","newage",4,"ambient","1970s","Worldwide","experimental","ambient","","",false,false],["Ambient Dub","ambientdub",4,"ambient","1980s","UK","experimental","ambient","dub","",false,false],["Microsound","microsound",3,"glitch","1990s","USA, Europe","experimental","idm","","",false,false],["Drill & Bass","drillandbass",3,"glitch","1990s","UK","experimental","idm","jungle","",false,false],["Glitch","glitch",3,"noise","1990s","Germany, USA","experimental","idm","","",false,false],["IDM","idm",4,"glitch","1990s","UK","experimental","idm","detroittechno","ambient",false,false],["Deconstructed Club","deconstructedclub",3,"idm","2010s","Worldwide","experimental","idm","","",false,false],["Noise","noise",4,"futurism","1910s","Italy","experimental","noise","","",false,false],["Danger Music","dangermusic",2,"eai","1960s","Japan, USA","experimental","noise","","",false,false],["Japanoise","japanoise",2,"noise","1970s","Japan","experimental","noise","","",false,false],["Onkyo","onkyo",1,"eai","1990s","Japan","experimental","noise","","",false,false],["Power Noise","powernoise",3,"noise","1990s","Germany","experimental","noise","industrial","",false,false],["Mashup","mashup",4,"plunderphonics","2000s","Europe, USA","experimental","sampling","","",false,false],["Plunderphonics","plunderphonics",4,"(none)","1980s","Canada","experimental","sampling","","",true,false],["HexD","hexd",1,"plunderphonics","2010s","Worldwide","experimental","sampling","","",false,false],["Slurmcore","slurmcore",1,"plunderphonics","2010s","Worldwide","experimental","sampling","","",false,false],["Futurism","futurism",4,"(none)","1910s","Italy","experimental","","","",true,false],["EAI","eai",2,"noise","1960s","Europe, USA","experimental","","freejazz","",false,false],["Musique Concrete","musiqueconcrete",5,"modernism","1940s","France","experimental","","","",false,true],["Dungeon Synth","dungeonsynth",3,"darkambient","1990s","Norway","experimental","ambient","blackmetal","",false,false],["Wéré Music","weremusic",3,"(none)","1900s","Nigeria","folk","african","","",true,false],["Highlife","highlife",4,"(none)","1920s","Ghana","folk","african","","",true,false],["Jùjú","juju",4,"palmwinemusic","1920s","Nigeria","folk","african","","",false,false],["Marabi","marabi",5,"(none)","1920s","South Africa","folk","african","","",true,false],["Mbube (+ isicathamiya)","mbubeisicathamiya",4,"zulumusic","1920s","South Africa","folk","african","","",false,false],["Palm-Wine Music","palmwinemusic",4,"highlife","1920s","West Africa","folk","african","","",false,false],["Sakara","sakara",3,"(none)","1920s","Nigeria","folk","african","","",true,false],["Apala","apala",4,"(none)","1930s","Nigeria","folk","african","","",true,false],["Congolese Rumba","congoleserumba",5,"soncubano","1940s","DR Congo, Republic of the Congo","folk","african","","",false,true],["Semba","semba",4,"(none)","1940s","Angola","folk","african","","",true,false],["Kwela","kwela",4,"marabi","1950s","South Africa","folk","african","","",false,false],["Afrobeat","afrobeat",4,"highlife","1960s","Nigeria, Ghana","folk","african","funk","jazzfunk",false,false],["Fuji","fuji",4,"weremusic","1960s","Nigeria","folk","african","","",false,false],["Chimurenga","chimurenga",5,"shonamusic","1970s","Zimbabwe","folk","african","","",false,false],["Mbalax","mbalax",4,"(none)","1970s","Senegal, Gambia","folk","african","","",true,false],["Shangaan Electro","shangaanelectro",3,"tsongadisco","2000s","South Africa","folk","african","","",false,true],["Bubu (sierra leone)","bubusierraleone",2,"(none)","ancient","Sierra Leone","folk","african","","",true,false],["Shona Music","shonamusic",4,"(none)","ancient","Zimbabwe","folk","african","","",true,false],["Tuareg Music","tuaregmusic",4,"(none)","ancient","Africa","folk","african","","",true,false],["Zulu Music","zulumusic",4,"(none)","ancient","South Africa","folk","african","","",true,false],["Gnawa","gnawa",5,"(none)","early modern","Morocco","folk","african","","",true,false],["Sega","sega",4,"(none)","early modern","Mauritius, Réunion","folk","african","","",true,false],["Taarab","taarab",5,"(none)","early modern","Tanzania, Kenya","folk","african","","",true,false],["Rai","rai",4,"algerianfolk","1920s","Algeria","folk","african","","",false,false],["Shaabi","shaabi",5,"egyptianfolk","1970s","Egypt","folk","african","","",false,false],["Algerian Folk","algerianfolk",3,"(none)","ancient","Algeria","folk","african","","",true,false],["Egyptian Folk","egyptianfolk",4,"(none)","ancient","Egypt","folk","african","","",true,false],["Country Blues","countryblues",4,"blues","1900s","USA","folk","american","","",false,false],["Memphis Blues","memphisblues",4,"countryblues","1910s","USA","folk","american","","",false,false],["Cajun Music","cajunmusic",4,"(none)","1920s","USA","folk","american","","",true,false],["Country","country",5,"oldtimemusic","1920s","USA","folk","american","blues","",false,false],["Delta Blues","deltablues",5,"blues","1920s","USA","folk","american","","",false,false],["Skiffle","skiffle",3,"country","1920s","USA, UK","folk","american","","",false,false],["Texas Blues","texasblues",4,"countryblues","1920s","USA","folk","american","","",false,false],["Western Swing","westernswing",5,"country","1930s","USA","folk","american","swing","",false,false],["Bluegrass","bluegrass",4,"oldtimemusic","1940s","USA","folk","american","blues","",false,false],["Bluegrass Gospel","bluegrassgospel",3,"bluegrass","1940s","USA","folk","american","","",false,false],["Chicago Blues","chicagoblues",4,"deltablues","1940s","USA","folk","american","","",false,false],["Electric Blues","electricblues",4,"blues","1940s","USA","folk","american","","",false,false],["Honky-Tonk","honkytonk",4,"country","1940s","USA","folk","american","","",false,false],["West Coast Blues","westcoastblues",3,"blues","1940s","USA","folk","american","","",false,false],["Bakersfield Sound","bakersfieldsound",4,"country","1950s","USA","folk","american","","",false,false],["Blues Revival","bluesrevival",4,"countryblues","1950s","USA, UK","folk","american","","",false,false],["Countrypolitan","countrypolitan",4,"nashvillesound","1960s","USA","folk","american","traditionalpop","",false,false],["Hill Country Blues","hillcountryblues",3,"countryblues","1950s","USA","folk","american","","",false,false],["Nashville Sound","nashvillesound",4,"country","1950s","USA","folk","american","traditionalpop","",false,false],["Swamp Blues","swampblues",3,"electricblues","1950s","USA","folk","american","","",false,false],["Zydeco","zydeco",4,"louisianacreolemusic","1950s","USA","folk","american","rhythmandblues","cajunmusic",false,false],["Country Rock","countryrock",4,"country","1960s","USA","folk","american","rockandroll","",false,false],["Contemporary Country","contemporarycountry",5,"country","1970s","USA","folk","american","","",false,false],["Newgrass","newgrass",3,"bluegrass","1970s","USA","folk","american","","",false,false],["Outlaw Country","outlawcountry",4,"country","1970s","USA","folk","american","","",false,false],["Texas Country","texascountry",4,"country","1970s","USA","folk","american","","",false,false],["Urban Cowboy","urbancowboy",3,"countrypop","1970s","USA","folk","american","","",false,true],["Neotraditional Country","neotraditionalcountry",5,"country","1980s","USA","folk","american","","",false,false],["Indie Folk","indiefolk",5,"alternativecountry","1990s","USA, UK","folk","american","","",false,false],["Alternative Country","alternativecountry",4,"country","1990s","USA","folk","american","punkrock","",false,false],["Freak Folk","freakfolk",3,"psychedelicfolk","2000s","USA","folk","american","appalachianfolk","",false,false],["Bro Country","brocountry",3,"countrypop","2010s","USA","folk","american","countryrap","",false,true],["Hawaiian Music","hawaiianmusic",4,"(none)","ancient","USA","folk","oceanian","","",true,false],["Inuit Throat Singing","inuitthroatsinging",3,"(none)","ancient","Canada","folk","american","","",true,false],["Appalachian Folk","appalachianfolk",4,"(none)","early modern","USA","folk","american","","",true,false],["Louisiana Creole Music","louisianacreolemusic",3,"(none)","early modern","USA","folk","american","","",true,false],["Hambone","hambone",2,"(none)","early modern","USA","folk","american","","",true,false],["Old-Time Music","oldtimemusic",4,"(none)","early modern","USA","folk","american","","",true,false],["Blues","blues",5,"(none)","early modern","USA","folk","american","","",true,false],["Boogie-Woogie","boogiewoogie",4,"blues","early modern","USA","folk","american","","",false,false],["Piedmont Blues","piedmontblues",4,"countryblues","1900s","USA","folk","american","","",false,false],["Red Dirt","reddirt",4,"country","1970s","USA","folk","american","","",false,false],["Luk Thung","lukthung",5,"thaifolk","1930s","Thailand","folk","asian","","",false,false],["Bhangra","bhangra",4,"punjabifolk","1940s","India, Pakistan","folk","asian","","",false,false],["Dangdut","dangdut",5,"(none)","1960s","Indonesia","folk","asian","","",true,false],["Gamelan","gamelan",5,"(none)","ancient","Indonesia","folk","asian","","",true,false],["Min'yō","minyo",4,"(none)","ancient","Japan","folk","asian","","",true,false],["Tuvan Throat Singing","tuvanthroatsinging",3,"(none)","ancient","Russia, Mongolia","folk","asian","","",true,false],["Mor Lam","morlam",4,"laofolk","early modern","Laos, Thailand","folk","asian","","",false,false],["Pansori","pansori",4,"(none)","early modern","Korea","folk","asian","","",true,false],["Qawwali","qawwali",5,"sufi","medieval","India","folk","asian","hindustaniclassical","",false,false],["Sufi","sufi",4,"(none)","medieval","Middle East, South Asia","folk","asian","","",true,false],["Lao Folk","laofolk",3,"(none)","ancient","Laos","folk","asian","","",true,false],["Punjabi Folk","punjabifolk",4,"(none)","ancient","India, Pakistan","folk","asian","","",true,false],["Thai Folk","thaifolk",4,"(none)","ancient","Thailand","folk","asian","","",true,false],["Keroncong","keroncong",4,"portuguesefolk","early modern","Indonesia","folk","asian","","",false,false],["Rebetiko","rebetiko",4,"greekfolk","1920s","Greece","folk","european","","",false,false],["Humppa","humppa",3,"polka","1930s","Finland","folk","european","","",false,false],["Laïko","laiko",4,"rebetiko","1950s","Greece","folk","european","","",false,false],["Psychedelic Folk","psychedelicfolk",4,"bluesrevival","1960s","UK, USA","folk","european","psychedelicrock","",false,false],["Modern Laika","modernlaika",3,"laiko","1960s","Greece","folk","european","","",false,false],["Manele","manele",4,"romanianfolk","1980s","Romania","folk","european","romanimusic","",false,false],["Bhangragga","bhangragga",2,"bhangra","1980s","UK","folk","european","raggamuffin","",false,false],["Turbo-Folk","turbofolk",4,"balkanfolk","1980s","Serbia","folk","european","","",false,false],["Folktronica","folktronica",4,"indietronica","1990s","UK","folk","european","idm","",false,true],["Balkan Folk","balkanfolk",4,"(none)","ancient","Europe","folk","european","","",true,false],["Celtic Music","celticmusic",5,"(none)","ancient","Ireland, Scotland","folk","european","","",true,false],["Greek Folk","greekfolk",4,"(none)","ancient","Greece","folk","european","","",true,false],["Portuguese Folk","portuguesefolk",4,"(none)","ancient","Portugal","folk","european","","",true,false],["Romanian Folk","romanianfolk",4,"(none)","ancient","Romania","folk","european","","",true,false],["Andalusian Folk","andalusianfolk",4,"(none)","ancient","Spain","folk","european","","",true,false],["Yoik","yoik",3,"(none)","ancient","Europe","folk","european","","",true,false],["Fado","fado",5,"portuguesefolk","early modern","Portugal","folk","european","","",false,false],["Irish Traditional Music","irishtraditionalmusic",5,"celticmusic","early modern","Ireland","folk","european","","",false,false],["Flamenco","flamenco",5,"andalusianfolk","early modern","Spain","folk","european","","",false,false],["Klezmer","klezmer",4,"(none)","early modern","Europe","folk","european","","",true,false],["Polka","polka",4,"(none)","early modern","Czechia","folk","european","","",true,false],["Romani Music","romanimusic",4,"balkanfolk","medieval","Europe","folk","european","","",false,false],["Malay Music","malaymusic",4,"(none)","ancient","Malaysia, Indonesia","folk","asian","","",true,false],["Nordic Folk","nordicfolk",4,"(none)","ancient","Europe","folk","european","","",true,false],["Scottish Folk","scottishfolk",4,"celticmusic","ancient","Scotland","folk","european","","",false,false],["Sertanejo","sertanejo",5,"brazilianfolk","1920s","Brazil","folk","latin","","",false,false],["Mariachi","mariachi",5,"mexicanfolk","early modern","Mexico","folk","latin","","",false,false],["Garifuna Music","garifunamusic",4,"(none)","early modern","Caribbean","folk","latin","","",true,false],["Mexican Folk","mexicanfolk",5,"(none)","early modern","Mexico","folk","latin","","",true,false],["Brazilian Folk","brazilianfolk",4,"(none)","early modern","Brazil","folk","latin","","",true,false],["Māori Music","maorimusic",3,"(none)","ancient","New Zealand","folk","oceanian","","",true,false],["Aboriginal Music","aboriginalmusic",4,"(none)","ancient","Australia","folk","oceanian","","",true,false],["Hardcore Techno","hardcoretechno",4,"newbeat","1980s","Belgium, Germany, Netherlands","hardcore","","","",false,true],["Bouncy Techno","bouncytechno",3,"happyhardcore","1990s","UK","hardcore","","","",false,false],["Breakbeat Hardcore","breakbeathardcore",5,"hardcoretechno","1990s","UK","hardcore","","acidhouse","oldschoolbreakbeat",false,false],["Digital Hardcore","digitalhardcore",3,"hardcoretechno","1990s","Germany","hardcore","","industrial","hardcorepunk",false,false],["Extratone","extratone",1,"splittercore","1990s","Europe","hardcore","","","",false,false],["Freeform Hardcore","freeformhardcore",3,"ukhardcore","1990s","UK","hardcore","","","",false,false],["Frenchcore","frenchcore",3,"hardcoretechno","1990s","France","hardcore","","","",false,false],["Gabber","gabber",4,"hardcoretechno","1990s","Netherlands","hardcore","","","",false,false],["Happy Gabber","happygabber",3,"gabber","1990s","Netherlands","hardcore","","happyhardcore","",false,false],["Happy Hardcore","happyhardcore",4,"hardcoretechno","1990s","UK","hardcore","","","",false,false],["Hardstyle","hardstyle",4,"hardcoretechno","1990s","Netherlands","hardcore","","","",false,false],["Industrial Hardcore","industrialhardcore",3,"hardcoretechno","1990s","Europe","hardcore","","industrial","",false,false],["Makina","makina",4,"hardcoretechno","1990s","Spain","hardcore","","","",false,false],["Speedcore","speedcore",2,"hardcoretechno","1990s","Europe","hardcore","","","",false,false],["Splittercore","splittercore",1,"speedcore","1990s","Europe","hardcore","","","",false,false],["Terrorcore","terrorcore",2,"gabber","1990s","Netherlands","hardcore","","","",false,false],["Trancecore","trancecore",3,"hardcoretechno","1990s","Europe","hardcore","","classictrance","",false,false],["UK Hardcore","ukhardcore",4,"happyhardcore","1990s","UK","hardcore","","breakbeathardcore","",false,false],["Crossbreed","crossbreed",2,"hardcoretechno","2000s","Europe","hardcore","","","",false,false],["Lento Violento","lentoviolento",2,"hardstyle","2000s","Italy","hardcore","","","",false,false],["Mainstream Hardcore","mainstreamhardcore",4,"gabber","2000s","Netherlands","hardcore","","hardstyle","",false,false],["Raggatek","raggatek",2,"hardcoretechno","2000s","Europe","hardcore","","","",false,false],["Hard NRG","hardnrg",3,"hardhouse","1990s","UK","hardcore","","hardtrance","",false,true],["Eskibeat","eskibeat",2,"ukgrime","2000s","UK","hiphop","ukgrime","","",false,false],["Grindie","grindie",2,"ukgrime","2000s","UK","hiphop","ukgrime","","",false,false],["Sublow","sublow",2,"ukgrime","2000s","UK","hiphop","ukgrime","","",false,false],["UK Grime","ukgrime",4,"ukgarage","2000s","UK","hiphop","ukgrime","dancehall","jungle",false,true],["Gengetone","gengetone",4,"genge","2010s","Kenya","hiphop","","","",false,true],["Beatbox","beatbox",4,"oldschoolhiphop","1970s","USA","hiphop","","","",false,false],["East Coast Hiphop","eastcoasthiphop",5,"oldschoolhiphop","1970s","USA","hiphop","","","",false,false],["Oldschool Hiphop","oldschoolhiphop",4,"funk","1970s","USA","hiphop","","disco","dub",false,true],["Turntablism","turntablism",4,"oldschoolhiphop","1970s","USA","hiphop","","","",false,false],["Country Rap","countryrap",4,"southernhiphop","1980s","USA","hiphop","","country","",false,false],["Alternative Hiphop","alternativehiphop",4,"eastcoasthiphop","1980s","USA","hiphop","","","",false,false],["Boom Bap","boombap",4,"eastcoasthiphop","1980s","USA","hiphop","","","",false,false],["Chicano Rap","chicanorap",4,"westcoasthiphop","1980s","USA","hiphop","","","",false,false],["Conscious Hiphop","conscioushiphop",4,"eastcoasthiphop","1980s","USA","hiphop","","","",false,false],["Dirty South","dirtysouth",4,"eastcoasthiphop","1980s","USA","hiphop","","miamibass","",false,false],["Experimental Hiphop","experimentalhiphop",4,"alternativehiphop","1980s","USA","hiphop","","","",false,false],["Gangsta Rap","gangstarap",5,"eastcoasthiphop","1980s","USA","hiphop","","","",false,false],["Hardcore Hiphop","hardcorehiphop",5,"eastcoasthiphop","1980s","USA","hiphop","","","",false,false],["Horrorcore","horrorcore",3,"hardcorehiphop","1980s","USA","hiphop","","gangstarap","",false,false],["Houston Hiphop","houstonhiphop",4,"southernhiphop","1980s","USA","hiphop","","","",false,false],["Industrial Hiphop","industrialhiphop",4,"hardcorehiphop","1980s","USA, UK","hiphop","","industrial","",false,false],["Jazz Rap","jazzrap",4,"eastcoasthiphop","1980s","USA","hiphop","","","",false,false],["Memphis Rap","memphisrap",4,"southernhiphop","1980s","USA","hiphop","","","",false,false],["Midwest Hiphop","midwesthiphop",4,"eastcoasthiphop","1980s","USA","hiphop","","","",false,false],["Pop Rap","poprap",4,"eastcoasthiphop","1980s","USA","hiphop","","pop","",false,false],["Southern Hiphop","southernhiphop",5,"eastcoasthiphop","1980s","USA","hiphop","","miamibass","",false,false],["West Coast Hiphop","westcoasthiphop",5,"eastcoasthiphop","1980s","USA","hiphop","","funk","",false,false],["Chopped & Screwed","choppedandscrewed",3,"southernhiphop","1990s","USA","hiphop","","","",false,false],["Crunk","crunk",4,"southernhiphop","1990s","USA","hiphop","","","",false,false],["G-Funk","gfunk",4,"westcoasthiphop","1990s","USA","hiphop","","funk","",false,false],["Hiphy","hiphy",3,"westcoasthiphop","2000s","USA","hiphop","","","",false,false],["Trap","trap",5,"southernhiphop","1990s","USA","hiphop","","","",false,false],["Jerk","jerk",1,"hiphy","2000s","USA","hiphop","","","",false,false],["Cloud Rap","cloudrap",3,"southernhiphop","2010s","USA","hiphop","","","",false,false],["Emo Rap","emorap",4,"cloudrap","2010s","USA","hiphop","","emo","trap",false,false],["Glitch-hop","glitchhop",3,"idm","2000s","USA","hiphop","","","",false,true],["Lo-Fi Hiphop","lofihiphop",4,"boombap","2000s","Worldwide","hiphop","","jazzrap","",false,false],["Nerdcore","nerdcore",3,"alternativehiphop","2000s","USA","hiphop","","","",false,false],["Snap Music","snapmusic",2,"crunk","2000s","USA","hiphop","","","",false,false],["Wonky","wonky",3,"alternativehiphop","2000s","UK, USA","hiphop","","","",false,false],["Future Bass","futurebass",4,"trap","2010s","UK, USA","hiphop","","","",false,false],["Aquacrunk","aquacrunk",1,"wonky","2000s","Scotland","hiphop","","","",false,false],["Drift Phonk","driftphonk",2,"phonk","2010s","Russia","hiphop","","","",false,false],["Drill","drill",4,"trap","2010s","USA","hiphop","","","",false,false],["Hard Trap","hardtrap",3,"trap","2010s","USA","hiphop","","","",false,false],["Mumble Rap","mumblerap",4,"trap","2010s","USA","hiphop","","","",false,false],["Phonk","phonk",4,"memphisrap","2010s","USA","hiphop","","choppedandscrewed","",false,false],["Plugg","plugg",3,"trap","2010s","USA","hiphop","","cloudrap","",false,false],["PluggnB","pluggnb",2,"plugg","2010s","USA","hiphop","","pbrandb","",false,false],["Rage","ragerap",3,"trap","2010s","USA","hiphop","","","",false,false],["Slowed & Reverb","slowedandreverb",1,"choppedandscrewed","2010s","Worldwide","hiphop","","","",false,false],["UK Drill","ukdrill",2,"drill","2010s","UK","hiphop","","","",false,false],["Vaportrap","vaportrap",2,"trap","2010s","Worldwide","hiphop","","vaporwave","",false,false],["Chill Trap","chilltrap",3,"trap","2010s","USA","hiphop","","","",false,false],["Kawaii Bass","kawaiibass",2,"futurebass","2010s","Japan","hiphop","","jpop","",false,false],["Sigilkore","sigilkore",2,"memphisrap","2020s","Worldwide","hiphop","","","",false,false],["Brooklyn Drill","brooklyndrill",4,"ukdrill","2010s","USA","hiphop","","","",false,false],["Kuduro","kuduro",3,"semba","1980s","Angola","house","african","soca","",false,true],["Kwaito","kwaito",4,"deephouse","1990s","South Africa","house","african","","",false,false],["Rough Kuduro","roughkuduro",1,"kuduro","2000s","Angola, Portugal","house","african","","",false,false],["Gqom","gqom",3,"kwaito","2010s","South Africa","house","african","","",false,false],["Street Pop","streetpop",3,"gqom","2010s","Nigeria","house","african","","",false,false],["Seapunk","seapunk",2,"chicagohouse","2010s","Worldwide","house","","witchhouse","",false,false],["Balearic Beat","balearicbeat",4,"deephouse","1980s","Spain","house","","","",false,false],["Acid House","acidhouse",4,"chicagohouse","1980s","USA","house","","","",false,false],["Ambient House","ambienthouse",3,"deephouse","1980s","UK","house","","ambient","acidhouse",false,false],["Baltimore House","baltimorehouse",2,"chicagohouse","1980s","USA","house","","miamibass","",false,false],["Chicago House","chicagohouse",5,"disco","1980s","USA","house","","postdisco","electrofunk",false,true],["Deep House","deephouse",4,"chicagohouse","1980s","USA","house","","","",false,false],["Detroit House","detroithouse",2,"chicagohouse","1980s","USA","house","","detroittechno","",false,false],["Disco House","discohouse",3,"deephouse","1980s","USA, UK","house","","disco","",false,false],["Garage","garage",4,"chicagohouse","1980s","USA","house","","disco","gospel",false,false],["Hip House","hiphouse",3,"chicagohouse","1980s","USA, UK","house","","oldschoolhiphop","",false,false],["Italo House","italohouse",3,"discohouse","1980s","Italy","house","","italodisco","",false,false],["Latin House","latinhouse",3,"deephouse","1980s","USA","house","","salsa","",false,false],["Tribal House","tribalhouse",3,"chicagohouse","1980s","USA","house","","","",false,false],["Electroswing","electroswing",4,"funkyhouse","1990s","Europe","house","","swing","",false,false],["Chicago Hard House","chicagohardhouse",2,"hardhouse","1990s","USA","house","","","",false,false],["Diva House","divahouse",3,"garage","1990s","USA, UK","house","","","",false,false],["Electro House","electrohouse",4,"hardhouse","1990s","Europe","house","","electro","",false,false],["Eurohouse","eurohouse",3,"eurodance","1990s","Europe","house","","","",false,true],["French House","frenchhouse",4,"discohouse","1990s","France","house","","","",false,false],["Funky House","funkyhouse",4,"chicagohouse","1990s","USA, UK","house","","","",false,false],["Ghetto House","ghettohouse",4,"chicagohouse","1990s","USA","house","","miamibass","",false,false],["Hard House","hardhouse",3,"techhouse","1990s","UK","house","","","",false,false],["Hardbass","hardbass",2,"pumpinghouse","1990s","Russia","house","","","",false,false],["House Pop","housepop",3,"divahouse","1990s","USA","house","","","",false,false],["Juke / Footwork","jukefootwork",3,"ghettohouse","1990s","USA","house","","","",false,false],["Microhouse","microhouse",3,"techhouse","1990s","Germany","house","","minimaltechno","",false,false],["Progressive House","progressivehouse",4,"acidhouse","1990s","UK","house","","","",false,false],["Pumping House","pumpinghouse",2,"hardhouse","1990s","Russia, Europe","house","","","",false,false],["Tech House","techhouse",4,"chicagohouse","1990s","UK","house","","detroittechno","",false,false],["Budots","budots",3,"dutchhouse","2000s","Philippines","house","","","",false,false],["Afro Tech","afrotech",3,"afrohouse","2000s","South Africa","house","","","",false,false],["Afrohouse","afrohouse",3,"deephouse","2000s","South Africa","house","","","",false,false],["Bassline House","basslinehouse",3,"ukgarage","2000s","UK","house","","","",false,true],["Complextro","complextro",2,"electrohouse","2000s","USA","house","","","",false,false],["Dutch House","dutchhouse",3,"electrohouse","2000s","Netherlands","house","","","",false,false],["Fidget House","fidgethouse",2,"electrohouse","2000s","UK","house","","","",false,false],["Jersey Sound","jerseysound",4,"baltimorehouse","2000s","USA","house","","","",false,false],["UK Funky","ukfunky",3,"funkyhouse","2000s","UK","house","","","",false,false],["Speed House","speedhouse",3,"hardhouse","2010s","Worldwide","house","","","",false,false],["Amapiano","amapiano",4,"deephouse","2010s","South Africa","house","","kwaito","jazzfunk",false,false],["Private School Piano","privateschoolpiano",1,"amapiano","2010s","South Africa","house","","","",false,false],["Big Room House","bigroomhouse",3,"electrohouse","2010s","Europe","house","","","",false,false],["Future Bounce","futurebounce",3,"futurehouse","2010s","Europe","house","","","",false,false],["Future House","futurehouse",4,"deephouse","2010s","Europe","house","","ukgarage","",false,false],["Melbourne Bounce","melbournebounce",3,"electrohouse","2010s","Australia","house","","","",false,false],["Tropical House","tropicalhouse",4,"deephouse","2010s","Europe","house","","","",false,false],["Scouse House","scousehouse",2,"hardhouse","1990s","UK","house","","","",false,false],["Coldwave","coldwave",3,"darkwave","1970s","France, Belgium","industrial","","postpunk","",false,false],["Darkwave","darkwave",4,"newwave","1970s","UK, Germany","industrial","","postpunk","gothicrock",false,true],["EBM","ebm",4,"industrial","1980s","Belgium, Germany","industrial","","synthpop","",false,false],["Industrial","industrial",5,"noise","1970s","UK, USA, Germany","industrial","","krautrock","punkrock",false,true],["Electro-Industrial","electroindustrial",4,"industrial","1980s","Belgium, Canada, Germany","industrial","","","",false,false],["Hard Beat","hardbeat",1,"ebm","1980s","Belgium","industrial","","","",false,false],["Industrial Rock","industrialrock",4,"industrial","1980s","UK, USA","industrial","","","",false,false],["Neofolk","neofolk",3,"darkwave","1980s","UK","industrial","","","",false,false],["New Beat","newbeat",3,"ebm","1980s","Belgium","industrial","","acidhouse","",false,false],["Futurepop","futurepop",3,"ebm","1990s","Europe","industrial","","synthpop","",false,false],["Witch House","witchhouse",3,"industrial","2000s","USA","industrial","","choppedandscrewed","",false,false],["Midtempo","midtempo",3,"newbeat","2010s","Worldwide","industrial","","","",false,false],["Free Jazz","freejazz",5,"avantgardejazz","1950s","USA","jazz","","","",false,false],["Afro-Cuban Jazz","afrocubanjazz",4,"soncubano","1940s","USA, Cuba","jazz","","bebop","",false,true],["New Orleans Jazz","neworleansjazz",5,"ragtime","1900s","USA","jazz","","blues","",false,false],["Chicago Jazz","chicagojazz",4,"neworleansjazz","1910s","USA","jazz","","","",false,false],["Kansas City Jazz","kansascityjazz",4,"neworleansjazz","1920s","USA","jazz","","","",false,false],["Stride","stride",3,"ragtime","1920s","USA","jazz","","","",false,false],["Gypsy Jazz","gypsyjazz",5,"swing","1930s","France","jazz","","romanimusic","",false,false],["Swing","swing",5,"chicagojazz","1930s","USA","jazz","","","",false,false],["Bebop","bebop",5,"swing","1940s","USA","jazz","","","",false,false],["Cool Jazz","cooljazz",5,"bebop","1940s","USA","jazz","","","",false,false],["Cubop","cubop",4,"bebop","1940s","USA, Cuba","jazz","","soncubano","",false,false],["Avant-Garde Jazz","avantgardejazz",4,"hardbop","1950s","USA","jazz","","","",false,false],["Cape Jazz","capejazz",4,"marabi","1950s","South Africa","jazz","","bebop","",false,true],["Hard Bop","hardbop",5,"bebop","1950s","USA","jazz","","gospel","rhythmandblues",false,false],["Third Stream","thirdstream",4,"cooljazz","1950s","USA","jazz","","classical","",false,false],["Brazilian Jazz","brazilianjazz",4,"bossanova","1960s","Brazil, USA","jazz","","cooljazz","",false,true],["Ethio-Jazz","ethiojazz",4,"bebop","1960s","Ethiopia","jazz","","soul","",false,false],["Jazz Fusion","jazzfusion",5,"bebop","1960s","USA","jazz","","funk","psychedelicrock",false,false],["Nordic Jazz","nordicjazz",3,"cooljazz","1960s","Scandinavia","jazz","","nordicfolk","",false,false],["Post-Bop","postbop",4,"hardbop","1960s","USA","jazz","","freejazz","",false,false],["Jazz-Funk","jazzfunk",4,"jazzfusion","1970s","USA, UK","jazz","","funk","",false,false],["Smooth Jazz","smoothjazz",4,"jazzfusion","1970s","USA","jazz","","jazzfunk","quietstorm",false,false],["Ragtime","ragtime",4,"(none)","early modern","USA","jazz","","","",true,false],["Kompa","kompa",5,"haitianmeringue","1950s","Haiti","latin","","","",false,false],["Cadence-Lypso","cadencelypso",3,"kadans","1970s","Dominica","latin","","calypso","",false,false],["Axé","axe",4,"musicapopularbrasileira","1980s","Brazil","latin","","reggae","",false,false],["Nueva Trova","nuevatrova",4,"trova","1960s","Cuba","latin","","","",false,false],["Rapso (soca)","rapsosoca",3,"calypso","1970s","Trinidad and Tobago","latin","","soca","",false,false],["Música Popular Brasileira","musicapopularbrasileira",5,"bossanova","1960s","Brazil","latin","","samba","",false,false],["Pagode","pagode",4,"samba","1970s","Brazil","latin","","","",false,false],["Calypso","calypso",4,"(none)","1910s","Trinidad and Tobago","latin","","","",true,false],["Norteño","norteno",4,"(none)","1910s","Mexico, USA","latin","","","",true,false],["Samba","samba",5,"(none)","1910s","Brazil","latin","","","",true,false],["Mambo","mambo",5,"soncubano","1930s","Cuba","latin","","","",false,false],["Vallenato","vallenato",4,"(none)","1930s","Colombia","latin","","","",true,false],["Brega","brega",4,"traditionalpop","1940s","Brazil","latin","","bolero","",false,true],["Cumbia","cumbia",5,"(none)","1940s","Colombia","latin","","","",true,false],["Cumbia Mexicana","cumbiamexicana",4,"cumbia","1940s","Mexico","latin","","","",false,false],["Forró","forro",5,"brazilianfolk","1940s","Brazil","latin","","","",false,true],["Bossa Nova","bossanova",5,"samba","1950s","Brazil","latin","","cooljazz","",false,false],["Cha-Cha-Cha","chachacha",5,"mambo","1950s","Cuba","latin","","danzon","",false,false],["Kadans","kadans",3,"haitianmeringue","1950s","Haiti","latin","","soncubano","",false,false],["Pachanga","pachanga",3,"mambo","1950s","Cuba, USA","latin","","","",false,false],["Tropicália","tropicalia",5,"bossanova","1960s","Brazil","latin","","psychedelicrock","",false,false],["Bachata","bachata",5,"bolero","1960s","Dominican Republic","latin","","merengue","",false,false],["Chicha","chicha",4,"cumbia","1960s","Peru","latin","","psychedelicrock","",false,false],["Salsa","salsa",5,"soncubano","1960s","USA","latin","","mambo","guaguanco",false,false],["Samba Rock","sambarock",4,"samba","1960s","Brazil, Cuba, Puerto Rico","latin","","funk","",false,false],["Punta Rock","puntarock",4,"punta","1970s","Belize","latin","","","",false,false],["Soca","soca",4,"calypso","1970s","Trinidad and Tobago","latin","","soul","",false,false],["Bouyon","bouyon",3,"jingping","1980s","Dominica","latin","","soca","",false,false],["Tecnocumbia","tecnocumbia",4,"cumbia","1980s","Mexico, Peru","latin","","","",false,false],["Timba","timba",4,"salsa","1980s","Cuba","latin","","funk","",false,false],["Zouk","zouk",5,"kadans","1980s","Guadeloupe, Martinique","latin","","cadencelypso","",false,false],["Proibidao","proibidao",2,"funkcarioca","1990s","Brazil","latin","","","",false,true],["Reggaeton","reggaeton",5,"dancehall","1990s","Puerto Rico, Panama","latin","","","",false,true],["Rio Funk","riofunk",2,"funkcarioca","1990s","Brazil","latin","","","",false,true],["Moombahton","moombahton",3,"reggaeton","2000s","USA","latin","","dutchhouse","",false,false],["Boombahchero","boombahchero",1,"moombahton","2010s","Worldwide","latin","","","",false,false],["Jungle Terror","jungleterror",2,"reggaeton","2010s","Netherlands","latin","","moombahton","",false,false],["Moombahcore","moombahcore",2,"moombahton","2010s","USA","latin","","brostep","",false,false],["Moombahsoul","moombahsoul",1,"moombahton","2010s","USA","latin","","neosoul","",false,false],["Carimbó","carimbo",4,"brazilianfolk","early modern","Brazil","latin","","","",false,true],["Punta","punta",4,"garifunamusic","early modern","Belize, Honduras, Guatemala","latin","","","",false,true],["Contradanza","contradanza",4,"(none)","early modern","Cuba","latin","","","",true,false],["Jing Ping","jingping",3,"(none)","early modern","Dominica","latin","","","",true,false],["Habanera","habanera",4,"contradanza","early modern","Cuba","latin","","","",false,false],["Haitian Méringue","haitianmeringue",4,"(none)","early modern","Haiti","latin","","","",true,false],["Trova","trova",4,"(none)","early modern","Cuba","latin","","","",true,false],["Merengue","merengue",5,"(none)","early modern","Dominican Republic","latin","","","",true,false],["Choro","choro",5,"(none)","early modern","Brazil","latin","","","",true,false],["Danzón","danzon",5,"habanera","early modern","Cuba","latin","","contradanza","",false,false],["Milonga (pope!)","milongapope",4,"habanera","early modern","Argentina, Uruguay","latin","","","",false,false],["Bolero","bolero",4,"(none)","early modern","Cuba","latin","","","",true,false],["Guaguancó","guaguanco",4,"rumbacubana","early modern","Cuba","latin","","","",false,false],["Rumba Cubana","rumbacubana",5,"(none)","early modern","Cuba","latin","","","",true,false],["Tango","tango",4,"(none)","early modern","Argentina, Uruguay","latin","","","",true,false],["Son Cubano","soncubano",5,"(none)","early modern","Cuba","latin","","","",true,false],["Black Metal","blackmetal",4,"thrashmetal","1980s","UK, Norway","metal","black","speedmetal","hardcorepunk",false,false],["Viking Metal","vikingmetal",2,"blackmetal","1980s","Europe","metal","black","folkmetal","",false,false],["Symphonic Black Metal","symphonicblackmetal",2,"blackmetal","1990s","Norway, UK","metal","black","symphonicmetal","",false,false],["Unblack Metal","unblackmetal",2,"blackmetal","1990s","Norway, Australia","metal","black","christianmetal","",false,false],["Blackgaze","blackgaze",4,"blackmetal","2000s","France","metal","black","shoegaze","",false,false],["Post-Black Metal","postblackmetal",3,"blackmetal","2000s","Europe","metal","black","postrock","",false,false],["Melodic Black Metal","melodicblackmetal",3,"blackmetal","1990s","Scandinavia","metal","black","melodicdeath","",false,false],["Death Metal","deathmetal",4,"thrashmetal","1980s","USA","metal","death","hardcorepunk","",false,false],["Death Doom","deathdoom",2,"deathmetal","1980s","UK, USA","metal","death","doommetal","",false,false],["Tech Death","techdeath",3,"deathmetal","1980s","USA","metal","death","progressivemetal","",false,false],["War Metal","warmetal",1,"blackeneddeathmetal","1980s","Canada, Brazil, Finland","metal","death","blackmetal","",false,false],["Blackened Death Metal","blackeneddeathmetal",2,"deathmetal","1980s","Europe","metal","death","blackmetal","",false,false],["Brutal Death Metal","brutaldeathmetal",3,"deathmetal","1990s","USA","metal","death","","",false,false],["Death 'n' Roll","deathnroll",1,"deathmetal","1990s","Sweden, Finland, UK","metal","death","","",false,false],["Melodic Death","melodicdeath",3,"deathmetal","1990s","Sweden","metal","death","heavymetal","",false,false],["Progressive Death Metal","progressivedeathmetal",4,"deathmetal","1980s","USA, Europe","metal","death","progressivemetal","",false,false],["Symphonic Death Metal","symphonicdeathmetal",2,"deathmetal","1990s","Europe","metal","death","symphonicmetal","",false,false],["Heavy Metal","heavymetal",5,"hardrock","1960s","UK, USA","metal","","","",false,true],["Christian Metal","christianmetal",3,"heavymetal","1970s","USA, Sweden","metal","","","",false,false],["Doom Metal","doommetal",3,"heavymetal","1970s","UK, USA","metal","","","",false,false],["Glam Metal","glammetal",4,"heavymetal","1980s","USA","metal","","glamrock","",false,false],["Neoclassical Metal","neoclassicalmetal",3,"heavymetal","1980s","USA, Europe","metal","","baroque","",false,false],["Speed Metal","speedmetal",4,"heavymetal","1970s","UK, USA","metal","","punkrock","",false,false],["Power Metal","powermetal",4,"heavymetal","1980s","UK, USA","metal","","speedmetal","",false,false],["Alternative Metal","alternativemetal",3,"heavymetal","1980s","USA","metal","","alternativerock","",false,false],["Avant-Garde Metal","avantgardemetal",2,"heavymetal","1980s","Europe, USA","metal","","","",false,false],["Blackened Thrash Metal","blackenedthrashmetal",2,"thrashmetal","1980s","Europe, USA","metal","","blackmetal","",false,false],["Crossover Thrash","crossoverthrash",2,"thrashmetal","1980s","USA","metal","","hardcorepunk","",false,false],["Deathgrind","deathgrind",2,"grindcore","1980s","USA, UK","metal","","deathmetal","",false,false],["Funk Metal","funkmetal",2,"alternativemetal","1980s","USA","metal","","funkrock","",false,false],["Goregrind","goregrind",2,"grindcore","1980s","UK","metal","","deathmetal","",false,false],["Grindcore","grindcore",4,"thrashmetal","1980s","UK","metal","","crustpunk","hardcorepunk",false,false],["Groove Metal","groovemetal",4,"thrashmetal","1990s","USA","metal","","sludgemetal","",false,false],["Industrial Metal","industrialmetal",4,"heavymetal","1980s","Europe, USA","metal","","industrial","",false,false],["Metalcore","metalcore",4,"thrashmetal","1980s","USA","metal","","hardcorepunk","",false,false],["Progressive Metal","progressivemetal",3,"heavymetal","1980s","UK, USA","metal","","progressiverock","",false,false],["Rap Metal","rapmetal",4,"alternativemetal","1980s","USA","metal","","","",false,false],["Sludge Metal","sludgemetal",4,"doommetal","1980s","USA","metal","","hardcorepunk","",false,false],["Technical Thrash Metal","technicalthrashmetal",2,"thrashmetal","1980s","USA, Europe","metal","","","",false,false],["Thrash Metal","thrashmetal",5,"heavymetal","1980s","USA, Germany","metal","","speedmetal","hardcorepunk",false,false],["Cybergrind","cybergrind",2,"grindcore","1990s","USA","metal","","digitalhardcore","",false,false],["Celtic Metal","celticmetal",2,"folkmetal","1990s","Ireland","metal","","celticmusic","",false,false],["Drone Metal","dronemetal",2,"doommetal","1990s","USA","metal","","dronemusic","",false,false],["Folk Metal","folkmetal",4,"heavymetal","1990s","Europe","metal","","","",false,false],["Funeral Doom","funeraldoom",3,"deathdoom","1990s","Finland","metal","","","",false,false],["Gothic Metal","gothicmetal",3,"deathdoom","1990s","UK","metal","","gothicrock","",false,false],["Mathcore","mathcore",3,"metalcore","1990s","USA","metal","","mathrock","",false,false],["Neue Deutsche Härte","neuedeutscheharte",3,"industrialmetal","1990s","Germany","metal","","","",false,false],["Nu Metal","numetal",5,"alternativemetal","1990s","USA","metal","","rapmetal","grunge",false,false],["Pagan Metal","paganmetal",1,"folkmetal","1990s","Europe","metal","","","",false,false],["Pornogrind","pornogrind",2,"grindcore","1990s","Germany, USA","metal","","","",false,false],["Post-Metal","postmetal",4,"sludgemetal","1990s","USA","metal","","postrock","",false,false],["Symphonic Metal","symphonicmetal",3,"heavymetal","1990s","Europe","metal","","","",false,false],["Deathcore","deathcore",3,"metalcore","2000s","USA","metal","","deathmetal","",false,false],["Djent","djent",4,"progressivemetal","2000s","Europe, USA","metal","","","",false,false],["Nintendocore","nintendocore",2,"metalcore","2000s","USA","metal","","chiptune","",false,false],["Thall","thall",1,"djent","2010s","Sweden","metal","","","",false,false],["Trap Metal","trapmetal",4,"numetal","2010s","USA, UK","metal","","trap","",false,false],["Stoner Doom","stonerdoom",3,"doommetal","1990s","USA","metal","","stonerrock","",false,false],["Tishoumaren","tishoumaren",4,"tuaregmusic","1980s","Mali, Niger","pop","african","","",false,true],["Tsonga Disco","tsongadisco",3,"disco","1980s","South Africa","pop","african","","",false,true],["Bongo Flava","bongoflava",5,"dancehall","1990s","Tanzania","pop","african","taarab","",false,true],["Genge","genge",4,"dancehall","1990s","Kenya","pop","african","","",false,true],["Hiplife","hiplife",4,"highlife","1990s","Ghana","pop","african","eastcoasthiphop","",false,true],["Zouglou","zouglou",4,"dancehall","1990s","Ivory Coast","pop","african","","",false,true],["Makossa","makossa",4,"(none)","1950s","Cameroon","pop","african","","",true,false],["Afropop","afropop",4,"highlife","1960s","Africa","pop","african","","",false,true],["Soukous","soukous",4,"congoleserumba","1960s","DR Congo","pop","african","","",false,true],["Afrobeats","afrobeats",5,"hiplife","2000s","Nigeria, Ghana","pop","african","afrobeat","dancehall",false,false],["Coupé-Décalé","coupedecale",4,"zouglou","2000s","Ivory Coast, France","pop","african","","",false,false],["Mahraganat","mahraganat",4,"shaabi","2000s","Egypt","pop","african","","",false,true],["Singeli","singeli",4,"taarab","2000s","Tanzania","pop","african","","",false,true],["Afroswing","afroswing",3,"afrobeats","2010s","UK","pop","african","ukgrime","dancehall",false,false],["Azonto","azonto",3,"hiplife","2010s","Ghana","pop","african","","",false,false],["Black Midi","blackmidi",1,"midimusic","2010s","Japan","pop","chiptune","","",false,false],["Chiptune","chiptune",5,"(none)","1980s","Japan, Europe","pop","chiptune","","",true,false],["MIDI Music","midimusic",4,"chiptune","1980s","Worldwide","pop","chiptune","","",false,false],["Bitpop","bitpop",2,"chiptune","1990s","Worldwide","pop","chiptune","","",false,false],["Doskpop","doskpop",1,"chiptune","2000s","Sweden","pop","chiptune","","",false,false],["Picopop","picopop",2,"chiptune","2000s","Japan","pop","chiptune","","",false,false],["Skweee","skweee",2,"bitpop","2000s","Finland, Sweden","pop","chiptune","electrofunk","",false,false],["Chanson","chanson",5,"cabaret","1900s","France","pop","","","",false,false],["Kayōkyoku","kayokyoku",4,"(none)","1920s","Japan","pop","","","",true,false],["Mandopop","mandopop",5,"(none)","1920s","China","pop","","","",true,false],["Traditional Pop","traditionalpop",5,"(none)","1920s","USA, UK","pop","","","",true,false],["Trot","trot",5,"(none)","1920s","Korea","pop","","","",true,false],["Easy Listening","easylistening",4,"traditionalpop","1940s","USA, Europe","pop","","","",false,false],["Brill Building","brillbuilding",4,"traditionalpop","1950s","USA","pop","","","",false,false],["Enka","enka",4,"kayokyoku","1950s","Japan","pop","","","",false,false],["Pop","pop",5,"traditionalpop","1950s","USA, UK","pop","","rockandroll","",false,false],["Schlager","schlager",3,"pop","1950s","Germany, Austria","pop","","","",false,false],["Space Age Pop","spaceagepop",3,"easylistening","1950s","USA, Mexico","pop","","","",false,false],["Swamp Pop","swamppop",3,"rhythmandblues","1950s","USA","pop","","country","",false,true],["Folk Pop","folkpop",4,"brillbuilding","1960s","USA","pop","","folkrock","",false,false],["Art Pop","artpop",4,"pop","1960s","UK, USA","pop","","","",false,false],["Avant-Pop","avantpop",3,"pop","1960s","USA, UK","pop","","","",false,false],["Baroque Pop","baroquepop",4,"artpop","1960s","UK, USA","pop","","baroque","",false,false],["Bubblegum Pop","bubblegumpop",4,"pop","1960s","USA, UK","pop","","","",false,false],["Contemporary Christian Music","contemporarychristianmusic",5,"gospel","1960s","USA","pop","","poprock","",false,true],["Country Pop","countrypop",5,"country","1960s","USA","pop","","pop","",false,true],["Yé-Yé","yeye",4,"pop","1960s","France","pop","","beatmusic","",false,false],["Cantopop","cantopop",5,"pop","1970s","Hong Kong","pop","","","",false,false],["City Pop","citypop",5,"pop","1970s","Japan","pop","","jazzfusion","funk",false,false],["Power Pop","powerpop",4,"pop","1970s","USA, UK","pop","","","",false,false],["Synthpop","synthpop",5,"newwave","1970s","UK, Japan","pop","","disco","",false,true],["Alternative Pop","alternativepop",4,"pop","1980s","UK","pop","","","",false,false],["Dance-Pop","dancepop",5,"pop","1980s","USA, UK","pop","","disco","",false,false],["Dream Pop","dreampop",5,"neopsychedelia","1980s","UK","pop","","shoegaze","",false,true],["Electropop","electropop",5,"synthpop","1980s","UK","pop","","","",false,false],["Eurobeat","eurobeat",4,"italodisco","1980s","Italy, Japan","pop","","hinrg","",false,true],["Eurodance","eurodance",5,"eurodisco","1990s","Europe","pop","","hiphouse","",false,true],["Indie Dance","indiedance",4,"indiepop","1980s","UK","pop","","","",false,false],["Indie Pop","indiepop",5,"postpunk","1980s","UK","pop","","","",false,true],["Jangle Pop","janglepop",4,"poprock","1980s","USA, UK","pop","","folkrock","",false,true],["Noise Pop","noisepop",4,"indierock","1980s","UK, USA","pop","","","",false,true],["Sophisti-pop","sophistipop",4,"pop","1980s","UK","pop","","","",false,false],["Electroclash","electroclash",4,"newwave","1990s","USA, Europe","pop","","electro","synthpop",false,true],["Chamber Pop","chamberpop",4,"baroquepop","1990s","UK, USA","pop","","","",false,false],["J-Pop","jpop",5,"pop","1990s","Japan","pop","","","",false,false],["K-Pop","kpop",5,"pop","1990s","South Korea","pop","","dancepop","contemporaryrandb",false,false],["Outrun","outrun",1,"synthwave","2000s","Worldwide","pop","","","",false,false],["Synthwave","synthwave",4,"synthpop","2000s","Worldwide","pop","","italodisco","",false,false],["Bedroom Pop","bedroompop",3,"indiepop","2000s","Worldwide","pop","","","",false,false],["Chillwave","chillwave",4,"dreampop","2000s","USA","pop","","hypnagogicpop","",false,false],["Hypnagogic Pop","hypnagogicpop",3,"neopsychedelia","2000s","USA","pop","","","",false,true],["Nightcore","nightcore",3,"eurodance","2000s","Worldwide","pop","","happyhardcore","",false,false],["Darksynth","darksynth",3,"synthwave","2010s","Worldwide","pop","","","",false,false],["Hyperpop","hyperpop",4,"electropop","2010s","UK","pop","","nightcore","trap",false,false],["Cabaret","cabaret",4,"(none)","early modern","France","pop","","","",true,false],["Adult Contemporary","adultcontemporary",5,"easylistening","1960s","USA","pop","","softrock","",false,false],["Disco Pop","discopop",4,"disco","1970s","USA, UK","pop","","","",false,true],["Teen Pop","teenpop",4,"bubblegumpop","1980s","USA, UK","pop","","dancepop","",false,false],["Twee Pop","tweepop",3,"indiepop","1980s","UK","pop","","","",false,false],["Seggae","seggae",2,"sega","1980s","Mauritius","rasta","","reggae","",false,true],["Mento","mento",4,"jamaicanfolk","1940s","Jamaica","rasta","","","",false,false],["Ska","ska",5,"mento","1950s","Jamaica","rasta","","rhythmandblues","jumpblues",false,false],["Dub","dub",5,"reggae","1960s","Jamaica","rasta","","","",false,false],["Reggae","reggae",5,"rocksteady","1960s","Jamaica","rasta","","mento","",false,false],["Rocksteady","rocksteady",4,"ska","1960s","Jamaica","rasta","","soul","",false,false],["Roots Reggae","rootsreggae",5,"reggae","1960s","Jamaica","rasta","","","",false,false],["Dancehall","dancehall",5,"reggae","1970s","Jamaica","rasta","","dub","",false,false],["Dub Poetry","dubpoetry",4,"dub","1970s","Jamaica, UK","rasta","","","",false,false],["Lovers Rock","loversrock",3,"reggae","1970s","UK","rasta","","soul","",false,false],["Two Tone","twotone",5,"ska","1970s","UK","rasta","","punkrock","",false,false],["Raggamuffin","raggamuffin",4,"dancehall","1980s","Jamaica, UK","rasta","","","",false,false],["Dancehall Pop","dancehallpop",4,"dancehall","2000s","Jamaica, USA, UK, Canada","rasta","","","",false,false],["Jamaican Folk","jamaicanfolk",4,"(none)","early modern","Jamaica","rasta","","","",true,false],["Proto-Punk","protopunk",3,"garagerock","1960s","USA","rock","punk","glamrock","",false,false],["Anarcho-Punk","anarchopunk",3,"punkrock","1970s","UK","rock","punk","","",false,false],["Dance-Punk","dancepunk",4,"postpunk","1970s","USA, UK","rock","punk","funk","",false,false],["Hardcore Punk","hardcorepunk",4,"punkrock","1970s","USA, UK","rock","punk","","",false,false],["Horror Punk","horrorpunk",2,"punkrock","1970s","USA","rock","punk","","",false,false],["Oi!","oi",2,"punkrock","1970s","UK","rock","punk","","",false,false],["Pop Punk","poppunk",5,"punkrock","1970s","USA, UK","rock","punk","powerpop","",false,false],["Post-Punk","postpunk",4,"punkrock","1970s","UK, USA","rock","punk","dub","krautrock",false,false],["Ska Punk","skapunk",4,"punkrock","1970s","UK, USA","rock","punk","ska","",false,false],["Celtic Punk","celticpunk",2,"folkpunk","1980s","UK, USA","rock","punk","celticmusic","",false,false],["Cow Punk","cowpunk",3,"punkrock","1980s","USA","rock","punk","country","",false,false],["Crust Punk","crustpunk",3,"hardcorepunk","1980s","UK","rock","punk","anarchopunk","",false,false],["Emo","emo",4,"hardcorepunk","1980s","USA","rock","punk","","",false,false],["Midwest Emo","midwestemo",2,"emo","1990s","USA","rock","punk","indierock","",false,false],["Folk Punk","folkpunk",3,"punkrock","1980s","UK, USA","rock","punk","folkrock","",false,false],["Garage Punk","garagepunk",3,"garagerock","1980s","USA","rock","punk","","",false,false],["Melodic Hardcore","melodichardcore",3,"hardcorepunk","1980s","USA","rock","punk","","",false,false],["Post-Hardcore","posthardcore",4,"hardcorepunk","1980s","USA","rock","punk","postpunk","",false,false],["Powerviolence","powerviolence",2,"hardcorepunk","1980s","USA","rock","punk","grindcore","",false,false],["Punk Blues","punkblues",2,"punkrock","1980s","USA","rock","punk","","",false,false],["Skate Punk","skatepunk",3,"hardcorepunk","1980s","USA","rock","punk","","",false,false],["Street Punk","streetpunk",4,"punkrock","1980s","UK","rock","punk","","",false,false],["Blackened Crust","blackenedcrust",2,"crustpunk","1990s","Europe, USA","rock","punk","blackmetal","",false,false],["Beatdown Hardcore","beatdownhardcore",3,"hardcorepunk","1990s","USA","rock","punk","groovemetal","",false,false],["Riot Grrrl","riotgrrrl",2,"punkrock","1990s","USA","rock","punk","","",false,false],["Screamo","screamo",3,"emo","1990s","USA","rock","punk","posthardcore","",false,false],["Eggpunk","eggpunk",2,"garagepunk","2010s","USA","rock","punk","","",false,false],["British Blues","britishblues",3,"blues","1950s","UK","rock","","","",false,true],["Latin Rock","latinrock",3,"rockandroll","1950s","USA","rock","","","",false,false],["Beat Music","beatmusic",4,"rockandroll","1960s","UK","rock","","skiffle","",false,false],["Rock & Roll","rockandroll",5,"rhythmandblues","1950s","USA","rock","","country","",false,true],["Rockabilly","rockabilly",3,"rockandroll","1950s","USA","rock","","country","",false,false],["Surf Rock","surfrock",3,"rockandroll","1950s","USA","rock","","","",false,false],["Acid Rock","acidrock",2,"psychedelicrock","1960s","USA","rock","","","",false,false],["Afro-Rock","afrorock",2,"hardrock","1960s","Africa","rock","","","",false,false],["Art Rock","artrock",4,"experimentalrock","1960s","UK, USA","rock","","","",false,false],["Blues Rock","bluesrock",5,"blues","1960s","UK, USA","rock","","","",false,true],["Boogie Rock","boogierock",4,"bluesrock","1960s","USA, UK","rock","","","",false,false],["Choral Rock","choralrock",2,"poprock","1960s","UK, USA","rock","","","",false,false],["Christian Rock","christianrock",3,"hardrock","1960s","USA","rock","","gospel","",false,false],["Experimental Rock","experimentalrock",4,"hardrock","1960s","UK, USA","rock","","","",false,false],["Folk Rock","folkrock",4,"hardrock","1960s","USA, UK","rock","","","",false,false],["Funk Rock","funkrock",4,"hardrock","1960s","USA","rock","","funk","",false,false],["Garage Rock","garagerock",4,"rockandroll","1960s","USA, Canada","rock","","","",false,false],["Hard Rock","hardrock",5,"bluesrock","1960s","UK, USA","rock","","psychedelicrock","",false,false],["Krautrock","krautrock",3,"experimentalrock","1960s","Germany","rock","","psychedelicrock","",false,false],["Pop Rock","poprock",5,"rockandroll","1960s","UK, USA","rock","","","",false,false],["Progg","progg",2,"progressiverock","1960s","Sweden","rock","","","",false,false],["Progressive Rock","progressiverock",4,"artrock","1960s","UK","rock","","psychedelicrock","classical",false,false],["Psychedelic Rock","psychedelicrock",4,"hardrock","1960s","USA, UK","rock","","folkrock","",false,false],["Raga Rock","ragarock",2,"psychedelicrock","1960s","UK, USA","rock","","hindustaniclassical","",false,false],["Roots Rock","rootsrock",3,"rockabilly","1960s","USA","rock","","","",false,false],["Soft Rock","softrock",4,"poprock","1960s","USA, UK","rock","","folkrock","",false,false],["Space Rock","spacerock",4,"psychedelicrock","1960s","UK","rock","","krautrock","",false,false],["Zeuhl","zeuhl",1,"progressiverock","1960s","France","rock","","jazzfusion","",false,false],["Alternative Rock","alternativerock",5,"postpunk","1980s","USA, UK","rock","","newwave","",false,false],["Arena Rock","arenarock",5,"hardrock","1970s","USA, UK","rock","","","",false,false],["Dance-Rock","dancerock",4,"hardrock","1970s","USA, UK","rock","","","",false,false],["Dark Cabaret","darkcabaret",2,"hardrock","1970s","Europe","rock","","","",false,false],["Glam Rock","glamrock",5,"hardrock","1970s","UK","rock","","","",false,false],["Gothic Rock","gothicrock",4,"postpunk","1970s","UK","rock","","","",false,false],["Heartland Rock","heartlandrock",3,"rootsrock","1970s","USA","rock","","folkrock","",false,false],["Neo-Psychedelia","neopsychedelia",2,"newwave","1970s","UK, USA","rock","","psychedelicrock","",false,false],["New Wave","newwave",4,"poprock","1970s","UK, USA","rock","","punkrock","",false,false],["Noise Rock","noiserock",2,"experimentalrock","1970s","USA","rock","","noise","",false,false],["Power Ballad","powerballad",4,"arenarock","1970s","UK, USA","rock","","","",false,false],["Psychobilly","psychobilly",3,"rockabilly","1970s","USA, UK","rock","","punkrock","",false,false],["Pub Rock","pubrock",3,"garagerock","1970s","UK","rock","","rhythmandblues","",false,false],["Punk Rock","punkrock",5,"garagerock","1970s","USA, UK","rock","","glamrock","",false,false],["Southern Rock","southernrock",3,"bluesrock","1970s","USA","rock","","countryrock","",false,false],["Yacht Rock","yachtrock",3,"softrock","1970s","USA","rock","","smoothjazz","",false,false],["Zamrock","zamrock",4,"afrorock","1970s","Zambia","rock","","funk","",false,false],["Alternative Dance","alternativedance",4,"indierock","1980s","UK","rock","","","",false,false],["Grunge","grunge",5,"alternativerock","1980s","USA","rock","","doommetal","hardcorepunk",false,false],["Indie Rock","indierock",5,"postpunk","1980s","USA, UK","rock","","","",false,false],["Slacker Rock","slackerrock",3,"indierock","1980s","USA","rock","","","",false,false],["Math Rock","mathrock",3,"progressiverock","1980s","USA, Japan","rock","","","",false,false],["Neo-Prog","neoprog",2,"progressiverock","1980s","UK","rock","","newwave","",false,false],["Paisley Underground","paisleyunderground",3,"neopsychedelia","1980s","USA","rock","","","",false,false],["Post-Rock","postrock",4,"experimentalrock","1980s","UK, Canada","rock","","krautrock","ambient",false,false],["Rap Rock","raprock",5,"hardrock","1980s","USA","rock","","","",false,false],["Shoegaze","shoegaze",4,"indierock","1980s","UK, Ireland","rock","","neopsychedelia","noisepop",false,false],["Slowcore","slowcore",3,"indierock","1980s","USA","rock","","","",false,false],["Visual Kei","visualkei",3,"glamrock","1980s","Japan","rock","","glammetal","",false,false],["Zolo","zolo",2,"newwave","1980s","USA, UK","rock","","","",false,false],["Britpop","britpop",5,"indierock","1990s","UK","rock","","beatmusic","",false,false],["Stoner Rock","stonerrock",3,"psychedelicrock","1990s","USA","rock","","doommetal","",false,false],["Post-Grunge","postgrunge",4,"grunge","1990s","USA","rock","","","",false,false],["Easycore","easycore",1,"poppunk","2000s","USA","rock","","metalcore","",false,false],["Nu Gaze","nugaze",2,"shoegaze","2000s","UK, USA","rock","","","",false,false],["C86","c86",1,"indiepop","1980s","UK","rock","","janglepop","",false,true],["Indietronica","indietronica",4,"indierock","1990s","USA, UK","rock","","idm","",false,false],["Crunkcore","crunkcore",2,"crunk","2000s","USA","rock","","screamo","",false,true],["Gospel Blues","gospelblues",3,"blues","1920s","USA","soulful","","","",false,true],["Doo-Wop","doowop",4,"rhythmandblues","1940s","USA","soulful","","gospel","",false,false],["Jump Blues","jumpblues",4,"blues","1940s","USA","soulful","","swing","",false,true],["Rhythm And Blues","rhythmandblues",5,"blues","1940s","USA","soulful","","jumpblues","gospel",false,true],["Beach Music","beachmusic",3,"rhythmandblues","1950s","USA","soulful","","","",false,false],["Motown","motown",5,"soul","1960s","USA","soulful","","doowop","pop",false,false],["Soul","soul",5,"rhythmandblues","1950s","USA","soulful","","gospel","",false,false],["Afro-Funk","afrofunk",4,"funk","1960s","Africa","soulful","","afrobeat","",false,false],["Blue Eyed Soul","blueeyedsoul",3,"soul","1960s","USA, UK","soulful","","","",false,false],["Country Soul","countrysoul",4,"soul","1960s","USA","soulful","","country","",false,false],["Funk","funk",5,"soul","1960s","USA","soulful","","","",false,false],["Latin Funk","latinfunk",3,"funk","1960s","USA, Latin America","soulful","","","",false,false],["Latin Soul","latinsoul",4,"soul","1960s","USA","soulful","","salsa","",false,false],["Soul Blues","soulblues",4,"soul","1960s","USA","soulful","","","",false,false],["Disco","disco",5,"soul","1970s","USA","soulful","","funk","",false,false],["Electro Funk","electrofunk",4,"funk","1970s","USA","soulful","","disco","",false,false],["Eurodisco","eurodisco",4,"disco","1970s","Europe","soulful","","","",false,false],["Go-Go","gogo",4,"funk","1970s","USA","soulful","","","",false,false],["Hi-NRG","hinrg",4,"disco","1970s","USA, UK","soulful","","","",false,false],["Italo Disco","italodisco",5,"disco","1970s","Italy","soulful","","eurodisco","",false,false],["Post-Disco","postdisco",4,"disco","1970s","USA","soulful","","","",false,false],["Quiet Storm","quietstorm",4,"soul","1970s","USA","soulful","","smoothjazz","",false,false],["Space Disco","spacedisco",2,"disco","1970s","Europe","soulful","","","",false,false],["Contemporary R&B","contemporaryrandb",5,"rhythmandblues","1980s","USA","soulful","","","",false,false],["Neosoul","neosoul",4,"soul","1980s","USA","soulful","","jazzrap","",false,false],["New Jack Swing","newjackswing",4,"contemporaryrandb","1980s","USA","soulful","","oldschoolhiphop","",false,false],["Nu-Disco","nudisco",4,"disco","1990s","UK","soulful","","discohouse","",false,false],["Pbr&b","pbrandb",4,"contemporaryrandb","2000s","USA","soulful","","","",false,false],["Snap&B","snapandb",1,"contemporaryrandb","2000s","USA","soulful","","","",false,false],["Future Soul","futuresoul",2,"neosoul","2010s","UK","soulful","","","",false,false],["Trap Soul","trapsoul",5,"trap","2010s","USA","soulful","","contemporaryrandb","",false,true],["Gospel","gospel",5,"spirituals","early modern","USA","soulful","","","",false,false],["Spirituals","spirituals",5,"(none)","early modern","USA","soulful","","","",true,false],["Acid Techno","acidtechno",4,"acidhouse","1980s","UK, USA","techno","","","",false,true],["Bleep Techno","bleeptechno",2,"detroittechno","1980s","UK","techno","","","",false,false],["Detroit Techno","detroittechno",5,"electro","1980s","USA","techno","","chicagohouse","electrofunk",false,true],["Ambient Techno","ambienttechno",3,"detroittechno","1990s","UK","techno","","ambient","",false,false],["Deep Techno","deeptechno",3,"detroittechno","1990s","USA, Europe","techno","","","",false,false],["Dubtechno","dubtechno",4,"detroittechno","1990s","Germany","techno","","dub","minimaltechno",false,false],["Free Tekno","freetekno",3,"detroittechno","1990s","Europe","techno","","","",false,false],["Ghetto Tech","ghettotech",3,"detroittechno","1990s","USA","techno","","miamibass","ghettohouse",false,false],["Hard Techno","hardtechno",3,"detroittechno","1990s","Germany","techno","","","",false,false],["Hypnotic Techno","hypnotictechno",3,"minimaltechno","1990s","Europe","techno","","","",false,false],["Industrial Techno","industrialtechno",3,"hardtechno","1990s","Germany, UK","techno","","industrial","",false,false],["Minimal Techno","minimaltechno",4,"detroittechno","1990s","USA, Germany","techno","","","",false,false],["Schranz","schranz",3,"hardtechno","1990s","Germany","techno","","","",false,false],["Swedish Techno","swedishtechno",2,"hardtechno","1990s","Sweden","techno","","","",false,false],["Tribal Techno","tribaltechno",3,"detroittechno","1990s","USA, Europe","techno","","","",false,false],["Melodic Techno","melodictechno",4,"detroittechno","2010s","Europe","techno","","progressivehouse","",false,false],["Buttrock Goa","buttrockgoa",2,"classicgoa","1990s","Europe","trance","psy","","",false,false],["Classic Goa","classicgoa",5,"classictrance","1990s","India, Europe","trance","psy","psychedelicrock","ebm",false,false],["Darkpsy","darkpsy",5,"psychedelictrance","1990s","Worldwide","trance","psy","darkambient","",false,false],["Full-on Psy","fullonpsy",3,"psychedelictrance","1990s","Israel","trance","psy","","",false,false],["Nitzhonot","nitzhonot",2,"classicgoa","1990s","Israel","trance","psy","","",false,false],["Progressive Psy","progressivepsy",3,"psychedelictrance","1990s","Germany, Sweden","trance","psy","","",false,false],["Psy-Chill","psychill",4,"psychedelictrance","1990s","Worldwide","trance","psy","ambient","",false,false],["Psychedelic Trance","psychedelictrance",5,"classicgoa","1990s","India, Europe","trance","psy","","",false,false],["Psybient","psybient",3,"psychill","1990s","Worldwide","trance","psy","","",false,false],["Psydub","psydub",3,"psychill","1990s","Worldwide","trance","psy","dub","",false,false],["Psytekk","psytekk",3,"psychedelictrance","2000s","Germany","trance","psy","","",false,false],["Spugedelic","spugedelic",1,"psychedelictrance","2000s","Finland","trance","psy","","",false,false],["Forest Psytrance","forestpsytrance",2,"darkpsy","2000s","Europe","trance","psy","","",false,false],["Acid Trance","acidtrance",3,"classictrance","1990s","Belgium, Germany","trance","","acidhouse","",false,false],["Classic Trance","classictrance",5,"acidhouse","1990s","Europe","trance","","detroittechno","ambienthouse",false,true],["Ambient Trance","ambienttrance",3,"classictrance","1990s","Germany","trance","","ambienthouse","",false,false],["Deep Trance","deeptrance",2,"progressivetrance","1990s","Europe","trance","","","",false,false],["Dream Trance","dreamtrance",3,"classictrance","1990s","Italy","trance","","","",false,false],["Dutch Trance","dutchtrance",4,"eurotrance","1990s","Netherlands","trance","","","",false,false],["Eurotrance","eurotrance",3,"classictrance","1990s","Europe","trance","","eurodance","",false,false],["Hard Trance","hardtrance",4,"acidtrance","1990s","Germany","trance","","hardcoretechno","",false,false],["Progressive Trance","progressivetrance",4,"classictrance","1990s","Germany, UK","trance","","progressivehouse","",false,false],["Tech Trance","techtrance",3,"progressivetrance","1990s","Germany, UK","trance","","","",false,false],["Vocal Trance","vocaltrance",5,"classictrance","1990s","Europe","trance","","divahouse","",false,false],["Neotrance","neotrance",2,"progressivetrance","2000s","Germany, Sweden, Denmark","trance","","","",false,false],["Uplifting Trance","upliftingtrance",4,"classictrance","1990s","Europe","trance","","eurotrance","",false,false]];
 /* Shared lookups: country/region -> flag asset, and display names for areas
@@ -206,799 +34,122 @@ const regions=new Set(["Africa","Caribbean","Europe","Latin America","Middle Eas
 const regionIcons={Europe:["assets/flags/eu.svg","Europe"],Africa:["assets/flags/africa.svg","Africa"],"West Africa":["assets/flags/africa.svg","West Africa"],"South Asia":["assets/flags/asia.svg","South Asia"],Caribbean:["assets/flags/caribbean.svg","Caribbean"],"Latin America":["assets/flags/latinamerica.svg","Latin America"]};function flagAssets(s){const out=[];for(const raw of (s||"").split(","))for(const bit of raw.trim().split("/")){const v=bit.trim();if(!v)continue;if(regionIcons[v]){out.push([regionIcons[v][0],regionIcons[v][1],""]);continue}if(regions.has(v))continue;if(v==="Worldwide")out.push(["assets/symbols/worldwide.svg",v,"symbol"]);else if(v.toLowerCase()==="online")out.push(["assets/symbols/online.svg","Online","symbol"]);else if(iso[v])out.push(["assets/flags/"+iso[v]+".svg",v,""])}return out}
 const areaDisplay={rock:"Rock",rasta:"Rasta / Reggae",folk:"Folk",hiphop:"Hip Hop",metal:"Metal",breakbeat:"Breakbeat",latin:"Latin",pop:"Pop",house:"House",african:"African",soulful:"Soul / R&B",classical:"Classical",experimental:"Experimental",hardcore:"Hardcore",jazz:"Jazz",techno:"Techno",jamaican:"Jamaican",psy:"Psytrance",industrial:"Industrial",trance:"Trance",chiptune:"Chiptune",downtempo:"Downtempo"};
 const secondaryDisplay={ambient:"Ambient",black:"Black Metal",breakbeat:"Breakbeat",death:"Death Metal",dnb:"Drum & Bass",downtempo:"Downtempo",dubstep:"Dubstep",idm:"IDM",noise:"Noise",punk:"Punk",ukgrime:"UK Grime"};
-/* Mobile genre map.
-   One Area at a time, scrolled vertically: newest music at the top, oldest at
-   the bottom, split into faint decade bands. Swipe (or the header chevrons) to
-   move between Areas. The drilldown selector filters by Importance.
-
-   Row shape, as emitted by build.js:
-     0 name  1 nametech  2 importance  3 parent  4 decade  5 country
-     6 area  7 secondary area  8 parent secondary  9 parent tertiary
-     10 "No Parent" flag  11 "External Parent" flag
-
-   `rows`, plus the shared lookups from src/common.js (iso, regions,
-   regionIcons, flagAssets, areaDisplay), are injected above this file.
-*/
-requestAnimationFrame(() => requestAnimationFrame(function () {
-"use strict";
-
-/* ------------------------------------------------------------------ data */
-
-const DECADES = ["ancient", "medieval", "early modern", "1900s", "1910s", "1920s",
-  "1930s", "1940s", "1950s", "1960s", "1970s", "1980s", "1990s", "2000s",
-  "2010s", "2020s"];
-const DECADE_LABEL = {
-  "ancient": "ancient", "medieval": "medieval", "early modern": "early mod.",
-};
-const decIndex = {};
-DECADES.forEach((d, i) => { decIndex[d] = i; });
-
-const AREA_ACCENT = {
-  rock: "#ff8a6b", metal: "#e0607f", punk: "#ff7ba8", pop: "#ffb454",
-  folk: "#9ad06b", latin: "#ffd166", jazz: "#c9a6ff", soulful: "#f0956b",
-  classical: "#bfc6d4", rasta: "#7fd48f", hiphop: "#ffc857", breakbeat: "#6fd6ff",
-  house: "#7bb8ff", techno: "#8fa8ff", trance: "#a88fff", hardcore: "#ff6f6f",
-  industrial: "#9fa6ad", experimental: "#7fe0d0",
-};
-const FALLBACK_ACCENT = "#8fb6ff";
-
-const nodes = [];
-const byTech = Object.create(null);
-for (const r of rows) {
-  const n = {
-    name: r[0], tech: r[1], imp: r[2], p1: r[3] === "(none)" ? "" : r[3],
-    dec: r[4], country: r[5], area: r[6], sec: r[7],
-    p2: r[8], p3: r[9], noParent: r[10], extParent: r[11],
-    di: decIndex[r[4]] === undefined ? 0 : decIndex[r[4]],
-  };
-  nodes.push(n);
-  byTech[n.tech] = n;
+requestAnimationFrame(()=>requestAnimationFrame(function(){
+/* iso / regions / regionIcons / flagAssets now live in src/common.js */
+function hueFor(s){let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}return ((h>>>0)%300)+18}
+const data=rows.map((r,i)=>({i,name:r[0],tech:r[1],importance:r[2],parent:r[3],decade:r[4]||"undated",country:r[5],category:r[6]||"other",secondary:r[7]||"",parentSecondary:r[8]||"",parentTertiary:r[9]||"",noParent:!!r[10],externalParent:!!r[11]})),secondaryLabel=new Map();{const counts=new Map();for(const n of data){const raw=n.secondary.trim();if(!raw)continue;const norm=raw.toLowerCase();if(!counts.has(norm))counts.set(norm,new Map());const m=counts.get(norm);m.set(raw,(m.get(raw)||0)+1)}for(const [norm,m] of counts){let best=null,bestCount=-1;for(const [txt,cnt] of m)if(cnt>bestCount||(cnt===bestCount&&txt<best)){bestCount=cnt;best=txt}secondaryLabel.set(norm,best)}for(const n of data)n.secondary=n.secondary.trim().toLowerCase()}const byTech=new Map(data.map(n=>[n.tech,n])),earlyOrder=new Map([["ancient",0],["medieval",1],["early modern",2]]),order=d=>earlyOrder.has(d)?earlyOrder.get(d):(1000+(parseInt(d,10)||9999)),decades=[...new Set(data.map(n=>n.decade))].sort((a,b)=>order(a)-order(b)||a.localeCompare(b)),byDecade=new Map(decades.map(d=>[d,data.filter(n=>n.decade===d)])),root=document.getElementById("timeline"),viewport=document.getElementById("viewport");
+for(const n of data)n.children=[];for(const n of data){const p=byTech.get(n.parent);if(p){n.parentNode=p;p.children.push(n)}}for(const n of data)n.children.sort((a,b)=>order(a.decade)-order(b.decade)||a.name.localeCompare(b.name));
+const importanceScale=[0,.65,1.035,1.365,1.624,2.16];const nodeFrag=document.createDocumentFragment();for(const n of data){const el=document.createElement("div");el.className="node";el.dataset.i=n.i;el.dataset.category=n.category;el.dataset.secondary=n.secondary;const size=importanceScale[Math.max(1,Math.min(5,n.importance))],hue=hueFor(n.category);el.style.fontSize=(12.5*size)+"px";el.style.padding=(5.5*size)+"px "+(8*size)+"px";el.style.background="hsl("+hue+" 38% 22%)";el.style.borderColor="hsl("+hue+" 58% 61%)";const name=document.createElement("span");name.className="name";name.textContent=n.name;el.append(name);const assets=flagAssets(n.country);if(assets.length){const box=document.createElement("span");box.className="flags";for(const a of assets){const img=document.createElement("img");img.className="flag "+a[2];img.src=a[0];img.alt=a[1];img.title=a[1];img.draggable=false;box.append(img)}el.append(box)}nodeFrag.append(el);n.el=el}root.append(nodeFrag);for(const n of data){n.w=n.el.offsetWidth;n.h=n.el.offsetHeight}
+/* Topology-driven placement: radius comes from how many same-category ancestor
+   hops a genre is from its own lineage's root (generation), not from a global
+   decade grid. Chronology only nudges radius softly within a generation band.
+   This keeps direct parent->child pairs adjacent in radius (child pushed one
+   step outward from its own predecessor) and lets each Area's genealogy tree
+   be as deep or shallow as its real data, instead of forcing every Area
+   through the same era rings. */
+const decadeIndex=new Map(decades.map((d,i)=>[d,i])),chronoSpan=Math.max(1,decades.length-1);for(const n of data)n.chronoT=decades.length>1?decadeIndex.get(n.decade)/chronoSpan:.5;
+for(const n of data){n.catParent=n.parentNode&&n.parentNode.category===n.category?n.parentNode:null;n.catChildren=[]}
+for(const n of data)if(n.catParent)n.catParent.catChildren.push(n);
+function assignGen(n,g){if(n.gen!==undefined)return;n.gen=g;for(const c of n.catChildren)assignGen(c,g+1)}
+for(const n of data)if(!n.catParent)assignGen(n,0);
+for(const n of data)if(n.gen===undefined)assignGen(n,0);
+let maxGen=0;for(const n of data)if(n.gen>maxGen)maxGen=n.gen;
+const byGen=new Map();for(let g=0;g<=maxGen;g++)byGen.set(g,[]);for(const n of data)byGen.get(n.gen).push(n);
+const ns="http://www.w3.org/2000/svg",tau=Math.PI*2,sectorGap=.007,cardGap=22,trackGap=18;
+function familyKey(n){let p=n,guard=0;while(p.parentNode&&guard++<40)p=p.parentNode;const chain=[];p=n;guard=0;while(p&&guard++<40){chain.push(p.tech);p=p.parentNode}return chain.reverse().join(" ")}
+function chainOrder(items,demand,links,bonus){const unused=new Set(items);if(!unused.size)return[];const order=[];let current=[...unused].sort((a,b)=>demand.get(b)-demand.get(a)||a.localeCompare(b))[0];while(unused.size){order.push(current);unused.delete(current);if(!unused.size)break;const w=x=>(links.get(current)&&links.get(current).get(x)||0)+(bonus?bonus(current,x):0);current=[...unused].sort((a,b)=>w(b)-w(a)||demand.get(b)-demand.get(a)||a.localeCompare(b))[0]}return order}
+function cycleScore(order,links,bonus){let s=0;for(let i=0;i<order.length;i++){const a=order[i],b=order[(i+1)%order.length];s+=(links.get(a)&&links.get(a).get(b)||0)+(bonus?bonus(a,b):0)}return s}
+function twoOptImprove(order,links,bonus,maxPasses){order=order.slice();if(order.length<4)return order;let improved=true,guard=0;while(improved&&guard++<maxPasses){improved=false;for(let i=0;i<order.length-1;i++)for(let j=i+1;j<order.length;j++){const next=order.slice(0,i+1).concat(order.slice(i+1,j+1).reverse(),order.slice(j+1));if(cycleScore(next,links,bonus)>cycleScore(order,links,bonus)+1e-9){order=next;improved=true}}}return order}
+const rawCategories=[...new Set(data.map(n=>n.category))],areaLinks=new Map(rawCategories.map(c=>[c,new Map()]));for(const n of data){if(!n.parentNode||n.category===n.parentNode.category)continue;const a=areaLinks.get(n.category),b=areaLinks.get(n.parentNode.category);a.set(n.parentNode.category,(a.get(n.parentNode.category)||0)+1);b.set(n.category,(b.get(n.category)||0)+1)}
+const areaDemand=new Map(rawCategories.map(c=>{let peak=0;for(let g=0;g<=maxGen;g++)peak=Math.max(peak,byGen.get(g).filter(n=>n.category===c).reduce((s,n)=>s+Math.hypot(n.w,n.h)+cardGap,0));return[c,Math.pow(Math.max(150,peak),.58)]}));
+const electronicKin=new Set(["breakbeat","house","techno","trance","industrial","psy","chiptune","downtempo","experimental","hardcore"]);
+const areaBonus=(a,b)=>electronicKin.has(a)&&electronicKin.has(b)?4:0;
+const categoryOrder=twoOptImprove(chainOrder(rawCategories,areaDemand,areaLinks,areaBonus),areaLinks,areaBonus,60);
+const totalDemand=categoryOrder.reduce((s,c)=>s+areaDemand.get(c),0),usable=tau-sectorGap*categoryOrder.length,sectors=new Map();let sectorCursor=-Math.PI/2;for(const c of categoryOrder){const span=usable*areaDemand.get(c)/totalDemand,se={start:sectorCursor+sectorGap/2,end:sectorCursor+sectorGap/2+span,mid:sectorCursor+sectorGap/2+span/2};sectors.set(c,se);sectorCursor+=span+sectorGap}
+const subKeyOf=n=>n.secondary||"",subSectors=new Map();
+for(const category of categoryOrder){
+  const members=data.filter(n=>n.category===category),subKeys=[...new Set(members.map(subKeyOf))];
+  let peakGen=0,peakVal=-1;for(let g=0;g<=maxGen;g++){const v=members.filter(n=>n.gen===g).reduce((s,n)=>s+Math.hypot(n.w,n.h)+cardGap,0);if(v>peakVal){peakVal=v;peakGen=g}}
+  const subDemand=new Map(subKeys.map(k=>{const atPeak=members.filter(n=>n.gen===peakGen&&subKeyOf(n)===k).reduce((s,n)=>s+Math.hypot(n.w,n.h)+cardGap,0);let ownPeak=0;for(let g=0;g<=maxGen;g++)ownPeak=Math.max(ownPeak,members.filter(n=>n.gen===g&&subKeyOf(n)===k).reduce((s,n)=>s+Math.hypot(n.w,n.h)+cardGap,0));const basis=Math.max(atPeak,ownPeak*.55);return[k,Math.pow(Math.max(80,basis),.58)]}));
+  const subLinks=new Map(subKeys.map(k=>[k,new Map()]));
+  for(const n of members){if(!n.parentNode||n.parentNode.category!==category)continue;const pk=subKeyOf(n.parentNode),ck=subKeyOf(n);if(pk===ck)continue;const a=subLinks.get(ck),b=subLinks.get(pk);a.set(pk,(a.get(pk)||0)+1);b.set(ck,(b.get(ck)||0)+1)}
+  const subOrder=twoOptImprove(chainOrder(subKeys,subDemand,subLinks,null),subLinks,null,40);
+  const se=sectors.get(category),sectorWidth=se.end-se.start,localGap=subOrder.length>1?Math.min(.0045,sectorWidth*.5/subOrder.length):0;
+  const innerUsable=Math.max(0,sectorWidth-localGap*subOrder.length),subTotal=subOrder.reduce((s,k)=>s+subDemand.get(k),0)||1;
+  const map=new Map();let cursor=se.start;
+  for(const k of subOrder){const span=innerUsable*subDemand.get(k)/subTotal,ss={start:cursor+localGap/2,end:cursor+localGap/2+span,mid:cursor+localGap/2+span/2};map.set(k,ss);cursor+=span+localGap}
+  subSectors.set(category,map);
 }
-
-const nodesByArea = Object.create(null);
-for (const n of nodes) (nodesByArea[n.area] || (nodesByArea[n.area] = [])).push(n);
-
-/* Primary-parent children index, used for ghost bricks. */
-const kidsOf = Object.create(null);
-for (const n of nodes) {
-  if (!n.p1) continue;
-  (kidsOf[n.p1] || (kidsOf[n.p1] = [])).push(n);
-}
-
-/* ------------------------------------------------- area order (swipe order)
-   Areas that share parent links sit next to each other, so swiping moves
-   between musically adjacent families rather than jumping at random. */
-
-const areaKeys = Object.keys(nodesByArea);
-const aIdx = Object.create(null);
-areaKeys.forEach((a, i) => { aIdx[a] = i; });
-const W = areaKeys.map(() => new Float64Array(areaKeys.length));
-for (const n of nodes) {
-  for (const t of [n.p1, n.p2, n.p3]) {
-    const p = t && byTech[t];
-    if (!p || p.area === n.area) continue;
-    const a = aIdx[n.area], b = aIdx[p.area];
-    if (a === undefined || b === undefined) continue;
-    W[a][b] += 1; W[b][a] += 1;
-  }
-}
-const order = (function () {
-  const n = areaKeys.length, used = new Array(n).fill(false);
-  let start = 0, best = -1;
-  for (let i = 0; i < n; i++) {
-    let s = 0; for (let j = 0; j < n; j++) s += W[i][j];
-    if (s > best) { best = s; start = i; }
-  }
-  const chain = [start]; used[start] = true;
-  while (chain.length < n) {
-    const tail = chain[chain.length - 1];
-    let pick = -1, pw = -1;
-    for (let j = 0; j < n; j++) {
-      if (used[j]) continue;
-      const w = W[tail][j] + 1e-6 * nodesByArea[areaKeys[j]].length;
-      if (w > pw) { pw = w; pick = j; }
+function boxAt(n,r,a){const cx=Math.cos(a)*r,cy=Math.sin(a)*r;return{x:cx-n.w/2,y:cy-n.h/2,w:n.w,h:n.h,cx,cy}}
+function overlaps(a,b,pad=cardGap){return a.x<a.x+b.w&&false||a.x<b.x+b.w+pad&&a.x+a.w+pad>b.x&&a.y<b.y+b.h+pad&&a.y+a.h+pad>b.y}
+function hashUnit(s){let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}return(h>>>0)/4294967295}
+/* Radius progression runs per-category, independently, rather than sharing one
+   global ring per generation. Sharing a ring meant every category's inner
+   radius at generation g was forced to wait for whichever category had the
+   tallest card at that same g, even though "generation g" means nothing
+   across unrelated lineages — that produced a lot of dead space inside
+   sparser categories' sectors. Each category now grows outward at its own
+   pace, using only its own card sizes, which also tightens each Area's blob
+   into a more genuinely bean-like shape. */
+const allPlaced=[];let globalMaxOuter=90;
+for(const category of categoryOrder){
+  const catAllNodes=data.filter(n=>n.category===category),catMaxGen=Math.max(...catAllNodes.map(n=>n.gen)),catByGen=new Map();for(let g=0;g<=catMaxGen;g++)catByGen.set(g,[]);for(const n of catAllNodes)catByGen.get(n.gen).push(n);
+  const subMap=subSectors.get(category),fullSe=sectors.get(category);
+  let radius=90;
+  for(let gen=0;gen<=catMaxGen;gen++){
+    const catNodes=catByGen.get(gen);
+    if(!catNodes.length){radius+=10;continue}
+    const catMaxH=Math.max(...catNodes.map(n=>n.h)),step=catMaxH+trackGap,base=radius+catMaxH/2+cardGap;let maxOuter=base+catMaxH/2+cardGap;
+    const bySub=new Map();
+    for(const n of catNodes){const k=subKeyOf(n);if(!bySub.has(k))bySub.set(k,[]);bySub.get(k).push(n)}
+    for(const [subKey,nodes] of bySub){
+      nodes.sort((a,b)=>familyKey(a).localeCompare(familyKey(b))||a.chronoT-b.chronoT||a.name.localeCompare(b.name));
+      const confined=subMap.get(subKey);let se;if(!confined)se=fullSe;else{const totalNeed=nodes.reduce((s,n)=>s+Math.hypot(n.w,n.h)+cardGap,0),confCapacity=Math.max(1,(confined.end-confined.start)*base),overflow=Math.max(0,totalNeed/confCapacity-.8),t=Math.min(1,overflow*.7);se=t<=0?confined:{start:confined.start+(fullSe.start-confined.start)*t,end:confined.end+(fullSe.end-confined.end)*t}}
+      const tracks=[];
+      for(const n of nodes){const need=Math.hypot(n.w,n.h)+cardGap;let done=false;for(let ti=0;!done;ti++){if(!tracks[ti])tracks[ti]=se.start;const radialNudge=hashUnit(n.parent&&n.parent!=="(none)"?n.parent:n.tech)*Math.min(18,step*.3),chronoNudge=(n.chronoT-.5)*Math.min(step*.6,40),r=base+ti*step+radialNudge+chronoNudge,limit=se.end,half=need/(2*r);let a=Math.max(tracks[ti]+half,se.start+half),tries=0,candidate;while(a+half<=limit&&tries++<600){candidate=boxAt(n,r,a);const hit=allPlaced.find(q=>overlaps(candidate,q));if(!hit){n.angle=a;n.radius=r;n.cx=candidate.cx;n.cy=candidate.cy;allPlaced.push({...candidate,n});tracks[ti]=a+half;maxOuter=Math.max(maxOuter,r+catMaxH/2+cardGap);done=true;break}a+=Math.max(3/r,Math.atan2(Math.min(hit.w,hit.h)+cardGap,r))}if(ti>80)throw new Error("Unable to pack "+n.name)}}
     }
-    chain.push(pick); used[pick] = true;
+    radius=maxOuter+14;
   }
-  const score = c => { let s = 0; for (let i = 0; i + 1 < c.length; i++) s += W[c[i]][c[i + 1]]; return s; };
-  let cur = chain, curS = score(cur), improved = true, guard = 0;
-  while (improved && guard++ < 40) {
-    improved = false;
-    for (let i = 0; i < n - 1 && !improved; i++) {
-      for (let j = i + 1; j < n; j++) {
-        const cand = cur.slice(0, i).concat(cur.slice(i, j + 1).reverse(), cur.slice(j + 1));
-        const s = score(cand);
-        if (s > curS + 1e-9) { cur = cand; curS = s; improved = true; break; }
-      }
-    }
-  }
-  return cur.map(i => areaKeys[i]);
-})();
-
-/* ------------------------------------------------------------ measurement */
-
-const MEAS = document.createElement("canvas").getContext("2d");
-const FONT_STACK = '600 10.5px "Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif';
-const BRICK_MAX_W = 150, BRICK_MIN_W = 58, PAD_TEXT = 13;
-const LINE_H = [0, 24, 35, 46];
-
-function splitLines(text, k) {
-  const words = text.split(/\s+/);
-  if (words.length < k) return null;
-  let bestCut = null, bestScore = Infinity;
-  const cuts = [];
-  (function rec(start, depth, acc) {
-    if (depth === k - 1) { cuts.push(acc.concat([words.length])); return; }
-    for (let i = start + 1; i <= words.length - (k - depth - 1); i++) rec(i, depth + 1, acc.concat([i]));
-  })(0, 0, []);
-  for (const c of cuts) {
-    const parts = []; let prev = 0;
-    for (const p of c) { parts.push(words.slice(prev, p).join(" ")); prev = p; }
-    const widths = parts.map(p => MEAS.measureText(p).width);
-    const score = Math.max.apply(null, widths);
-    if (score < bestScore) { bestScore = score; bestCut = parts; }
-  }
-  return { parts: bestCut, w: bestScore };
+  globalMaxOuter=Math.max(globalMaxOuter,radius);
 }
-
-const measureCache = Object.create(null);
-function measure(text) {
-  if (measureCache[text]) return measureCache[text];
-  MEAS.font = FONT_STACK;
-  const one = MEAS.measureText(text).width;
-  let out;
-  if (one + PAD_TEXT <= BRICK_MAX_W) {
-    out = { w: Math.max(BRICK_MIN_W, Math.ceil(one) + PAD_TEXT), h: LINE_H[1] };
-  } else {
-    const two = splitLines(text, 2);
-    if (two && two.w + PAD_TEXT <= BRICK_MAX_W) {
-      out = { w: Math.max(BRICK_MIN_W, Math.ceil(two.w) + PAD_TEXT), h: LINE_H[2] };
-    } else {
-      const three = splitLines(text, 3);
-      const w = three ? Math.min(BRICK_MAX_W, Math.ceil(three.w) + PAD_TEXT) : BRICK_MAX_W;
-      out = { w: Math.max(BRICK_MIN_W, w), h: LINE_H[3] };
-    }
-  }
-  measureCache[text] = out;
-  return out;
-}
-
-/* ---------------------------------------------------------------- layout */
-
-const GAP_X = 9, ROW_GAP = 13;
-const BAND_TOP = 26, BAND_BOTTOM = 16;
-const GHOST_W = 30, GHOST_H = 11;
-const EXT_H = 30;
-const MAX_GHOSTS = 2;
-
-/* 1-D placement inside one row: keep the given order and the minimum gaps,
-   but slide each brick as close to its wanted centre as the slack allows. */
-function placeRow(items, width) {
-  const n = items.length;
-  const lo = new Float64Array(n), hi = new Float64Array(n);
-  let acc = 0;
-  for (let i = 0; i < n; i++) { lo[i] = acc; acc += items[i].w + GAP_X; }
-  acc = width;
-  for (let i = n - 1; i >= 0; i--) { acc -= items[i].w; hi[i] = acc; acc -= GAP_X; }
-  for (let i = 0; i < n; i++) {
-    let x = items[i].want - items[i].w / 2;
-    if (x < lo[i]) x = lo[i];
-    if (x > hi[i]) x = hi[i];
-    if (i > 0) { const min = items[i - 1].x + items[i - 1].w + GAP_X; if (x < min) x = min; }
-    items[i].x = x;
-  }
-  for (let i = n - 2; i >= 0; i--) {
-    const max = items[i + 1].x - GAP_X - items[i].w;
-    if (items[i].x > max) items[i].x = Math.max(lo[i], max);
-  }
-}
-
-function packLayer(items, width) {
-  const rowsOut = [];
-  let cur = [], curW = 0;
-  for (const it of items) {
-    const add = cur.length ? GAP_X + it.w : it.w;
-    if (cur.length && curW + add > width) { rowsOut.push(cur); cur = []; curW = 0; }
-    curW += cur.length ? GAP_X + it.w : it.w;
-    cur.push(it);
-  }
-  if (cur.length) rowsOut.push(cur);
-  for (const r of rowsOut) placeRow(r, width);
-  return rowsOut;
-}
-
-const layoutCache = Object.create(null);
-
-function buildLayout(area, level, width) {
-  const key = area + "|" + level + "|" + width;
-  if (layoutCache[key]) return layoutCache[key];
-
-  const all = nodesByArea[area] || [];
-  const vis = all.filter(n => n.imp >= level);
-  const visible = new Set(vis.map(n => n.tech));
-
-  /* nearest visible ancestor inside this area, following primary parents */
-  const resolveCache = Object.create(null);
-  function resolve(tech) {
-    if (!tech) return null;
-    if (tech in resolveCache) return resolveCache[tech];
-    let cur = tech, hops = 0, out = null;
-    const seen = new Set();
-    while (cur && hops++ < 40 && !seen.has(cur)) {
-      seen.add(cur);
-      const n = byTech[cur];
-      if (!n || n.area !== area) { out = null; break; }
-      if (visible.has(cur)) { out = cur; break; }
-      cur = n.p1;
-    }
-    resolveCache[tech] = out;
-    return out;
-  }
-
-  const items = [];
-  const itemFor = Object.create(null);
-  function addItem(it) { items.push(it); return it; }
-
-  for (const n of vis) {
-    const m = measure(n.name);
-    itemFor[n.tech] = addItem({
-      kind: "node", node: n, tech: n.tech, di: n.di,
-      w: m.w, h: m.h, x: 0, y: 0, want: 0,
-    });
-  }
-
-  /* External parents: shown as a translucent oval in their own decade. */
-  const extItems = Object.create(null);
-  for (const n of vis) {
-    if (!n.extParent || !n.p1) continue;
-    const p = byTech[n.p1];
-    if (!p || p.area === area) continue;
-    if (!extItems[p.tech]) {
-      const m = measure(p.name);
-      extItems[p.tech] = addItem({
-        kind: "ext", node: p, tech: "ext:" + p.tech, di: p.di,
-        w: Math.max(74, m.w + 18), h: EXT_H, x: 0, y: 0, want: 0,
-      });
-    }
-  }
-
-  /* Ghost bricks: a few of each visible brick's hidden direct children, so a
-     shallow drilldown still hints at the detail underneath it. */
-  const ghosts = [];
-  if (level > 1) {
-    for (const n of vis) {
-      const kids = (kidsOf[n.tech] || [])
-        .filter(k => k.area === area && k.imp < level)
-        .sort((a, b) => b.imp - a.imp || a.name.localeCompare(b.name))
-        .slice(0, MAX_GHOSTS);
-      for (const k of kids) {
-        ghosts.push(addItem({
-          kind: "ghost", node: k, tech: "gh:" + k.tech, di: k.di,
-          parentItem: itemFor[n.tech], w: GHOST_W, h: GHOST_H, x: 0, y: 0, want: 0,
-        }));
-      }
-    }
-  }
-
-  /* ---- edges ---- */
-  const edges = [];
-  for (const n of vis) {
-    const src = itemFor[n.tech];
-    const drawn = new Set();
-    /* primary */
-    if (n.extParent && n.p1 && byTech[n.p1] && byTech[n.p1].area !== area) {
-      const t = extItems[byTech[n.p1].tech];
-      if (t) { edges.push({ from: src, to: t, rank: "ex" }); drawn.add(t.tech); }
-    } else {
-      const t = resolve(n.p1);
-      if (t && t !== n.tech) { edges.push({ from: src, to: itemFor[t], rank: "p1" }); drawn.add(t); }
-    }
-    /* secondary / tertiary, only when they land inside this area */
-    const t2 = resolve(n.p2);
-    if (t2 && t2 !== n.tech && !drawn.has(t2)) { edges.push({ from: src, to: itemFor[t2], rank: "p2" }); drawn.add(t2); }
-    const t3 = resolve(n.p3);
-    if (t3 && t3 !== n.tech && !drawn.has(t3)) { edges.push({ from: src, to: itemFor[t3], rank: "p3" }); drawn.add(t3); }
-  }
-  for (const g of ghosts) if (g.parentItem) edges.push({ from: g, to: g.parentItem, rank: "gh" });
-
-  /* parents / children adjacency for the placement sweeps */
-  for (const it of items) { it.up = []; it.down = []; }
-  for (const e of edges) { e.from.up.push(e.to); e.to.down.push(e.from); }
-
-  /* ---- layers ---- */
-  const layers = new Map();
-  for (const it of items) {
-    if (!layers.has(it.di)) layers.set(it.di, []);
-    layers.get(it.di).push(it);
-  }
-  const dis = Array.from(layers.keys()).sort((a, b) => a - b);   // oldest first
-  for (const it of items) it.x = (width - it.w) / 2;
-
-  /* Within one decade there is no chronology to lean on, so rank by how deep a
-     brick sits in the same-decade parent chain: deeper = drawn in a higher row,
-     which keeps a same-decade child above the parent it came from. */
-  for (const [di, layer] of layers) {
-    const memo = new Map();
-    const depth = it => {
-      if (memo.has(it)) return memo.get(it);
-      memo.set(it, 0);
-      let d = 0;
-      for (const o of it.up) if (o.di === di) d = Math.max(d, depth(o) + 1);
-      memo.set(it, d);
-      return d;
-    };
-    for (const it of layer) it.rank = 0;
-    for (const it of layer) it.rank = depth(it);
-  }
-
-  function sweep(up) {
-    const seq = up ? dis : dis.slice().reverse();
-    for (const di of seq) {
-      const layer = layers.get(di);
-      for (const it of layer) {
-        const refs = (up ? it.up : it.down).filter(o => o.di !== di);
-        if (refs.length) {
-          let s = 0; for (const o of refs) s += o.x + o.w / 2;
-          it.want = s / refs.length;
-        } else {
-          it.want = it.x + it.w / 2;
-        }
-      }
-      layer.sort((a, b) => b.rank - a.rank || a.want - b.want || a.w - b.w);
-      packLayer(layer, width);
-    }
-  }
-  sweep(true); sweep(false); sweep(true);
-
-  /* ---- vertical: newest band on top ---- */
-  const bands = [];
-  let y = 0;
-  const top = dis.slice().reverse();                              // newest first
-  for (let bi = 0; bi < top.length; bi++) {
-    const di = top[bi];
-    const layer = layers.get(di);
-    const rowsOut = packLayer(layer, width);
-    const bandTop = y;
-    let ry = y + BAND_TOP;
-    for (const r of rowsOut) {
-      let rh = 0; for (const it of r) if (it.h > rh) rh = it.h;
-      for (const it of r) { it.y = ry + (rh - it.h) / 2; it.rowBottom = ry + rh; }
-      ry += rh + ROW_GAP;
-    }
-    y = ry - ROW_GAP + BAND_BOTTOM;
-    bands.push({ di, top: bandTop, bottom: y, first: bi === 0 });
-  }
-
-  for (const it of items) {
-    it.cx = it.x + it.w / 2; it.cy = it.y + it.h / 2;
-    it.eOut = []; it.eIn = [];
-  }
-  for (const e of edges) { e.from.eOut.push(e); e.to.eIn.push(e); }
-  for (const it of items) {
-    const inset = Math.min(7, it.w / 4);
-    it.eOut.sort((a, b) => a.to.cx - b.to.cx);
-    it.eOut.forEach((e, i) => {
-      e.ax = it.x + inset + (it.w - 2 * inset) * ((i + 1) / (it.eOut.length + 1));
-    });
-    it.eIn.sort((a, b) => a.from.cx - b.from.cx);
-    it.eIn.forEach((e, i) => {
-      e.bx = it.x + inset + (it.w - 2 * inset) * ((i + 1) / (it.eIn.length + 1));
-    });
-  }
-  for (const e of edges) e.jog = e.from.rowBottom + ROW_GAP / 2;
-
-  const out = { area, level, width, items, edges, bands, height: y + 56, itemFor };
-  layoutCache[key] = out;
-  return out;
-}
-
-/* ------------------------------------------------------------------- draw */
-
-const scroller = document.getElementById("scroller");
-const pan = document.getElementById("pan");
-const stage = document.getElementById("stage");
-const svg = document.getElementById("edges");
-const areaNameEl = document.getElementById("areaName");
-const tipEl = document.getElementById("tip");
-const scrimEl = document.getElementById("scrim");
-const hintEl = document.getElementById("scrollHint");
-const fadeTop = document.getElementById("fadeTop");
-const fadeBottom = document.getElementById("fadeBottom");
-
-const PAD_L = 10, PAD_R = 50;
-const EDGE_STYLE = {
-  p1: { w: 1.6, o: .50 }, p2: { w: 1.0, o: .28 }, p3: { w: .65, o: .17 },
-  ex: { w: .9, o: .26, dash: "3 4" }, gh: { w: .7, o: .10 },
-};
-
-let curAreaIdx = 0;
-let curLevel = 4;
-let layout = null;
-let focused = null;
-let hintTimer = null;
-
-function availWidth() {
-  return Math.max(200, scroller.clientWidth - PAD_L - PAD_R);
-}
-
-function edgePath(from, to, jog) {
-  const x1 = from.ax, y1 = from.y + from.h;    // child sits above its parent
-  const x2 = to.bx, y2 = to.y;
-  if (y2 < y1 + 10) {
-    /* same band (or overlapping rows): gentle side curve instead */
-    const sy = from.cy, ey = to.cy;
-    const dx = Math.abs(x2 - x1), bow = Math.min(26, Math.max(12, dx * .3));
-    const sx = x1 < x2 ? from.x + from.w : from.x;
-    const ex = x1 < x2 ? to.x : to.x + to.w;
-    return "M" + sx + " " + sy + "C" + (sx + (x1 < x2 ? bow : -bow)) + " " + sy
-      + "," + (ex - (x1 < x2 ? bow : -bow)) + " " + ey + "," + ex + " " + ey;
-  }
-  if (Math.abs(x2 - x1) < 1.5) return "M" + x1 + " " + y1 + "V" + y2;
-  /* Travel sideways in the clear gap just below the child, then drop straight
-     down. Keeps the long runs vertical instead of cutting across bricks. */
-  let my = jog === undefined ? y1 + (y2 - y1) * 0.5 : jog;
-  const half = y1 + (y2 - y1) * 0.5;
-  if (my < y1 + 5) my = Math.min(half, y1 + 5);
-  if (my > y2 - 5) my = Math.max(half, y2 - 5);
-  const r = Math.min(8, Math.abs(x2 - x1) / 2, (my - y1), (y2 - my));
-  const s = x2 > x1 ? 1 : -1;
-  return "M" + x1 + " " + y1
-    + "V" + (my - r)
-    + "Q" + x1 + " " + my + " " + (x1 + s * r) + " " + my
-    + "H" + (x2 - s * r)
-    + "Q" + x2 + " " + my + " " + x2 + " " + (my + r)
-    + "V" + y2;
-}
-
-function render(area, level) {
-  const width = availWidth();
-  layout = buildLayout(area, level, width);
-  const accent = AREA_ACCENT[area] || FALLBACK_ACCENT;
-  stage.style.setProperty("--accent", accent);
-  stage.classList.remove("focus");
-  stage.style.transform = "";
-  focused = null;
-  hideTip();
-
-  /* bands */
-  let html = "";
-  for (const b of layout.bands) {
-    const raw = DECADES[b.di] || "";
-    const label = DECADE_LABEL[raw] || raw;
-    html += '<div class="band" style="top:' + b.top + 'px;height:' + (b.bottom - b.top) + 'px">'
-      + (b.first ? "" : '<div class="bline"></div>')
-      + '<div class="blabel">' + label + "</div></div>";
-  }
-
-  /* bricks */
-  for (let i = 0; i < layout.items.length; i++) {
-    const it = layout.items[i];
-    const style = "left:" + (it.x + PAD_L).toFixed(1) + "px;top:" + it.y.toFixed(1)
-      + "px;width:" + it.w.toFixed(1) + "px;height:" + it.h + "px";
-    if (it.kind === "ghost") {
-      html += '<div class="brick ghost" style="' + style + '"></div>';
-    } else if (it.kind === "ext") {
-      html += '<div class="brick ext" data-i="' + i + '" style="' + style + '">'
-        + '<span>' + esc(it.node.name)
-        + '<span class="xarea">' + esc(areaDisplay[it.node.area] || it.node.area) + "</span></span></div>";
-    } else {
-      html += '<div class="brick" data-i="' + i + '" style="' + style + '">' + esc(it.node.name) + "</div>";
-    }
-  }
-  stage.insertAdjacentHTML("beforeend", html);
-
-  /* the brick x positions above include PAD_L; keep the geometry in sync */
-  for (const it of layout.items) { it.px = it.x + PAD_L; it.pcx = it.cx + PAD_L; }
-
-  /* edges */
-  svg.setAttribute("width", width + PAD_L + PAD_R);
-  svg.setAttribute("height", layout.height);
-  let sv = "";
-  for (let i = 0; i < layout.edges.length; i++) {
-    const e = layout.edges[i];
-    const st = EDGE_STYLE[e.rank];
-    const from = { cx: e.from.pcx, ax: e.ax + PAD_L, x: e.from.px, w: e.from.w, y: e.from.y, h: e.from.h, cy: e.from.cy };
-    const to = { cx: e.to.pcx, bx: e.bx + PAD_L, x: e.to.px, w: e.to.w, y: e.to.y, h: e.to.h, cy: e.to.cy };
-    sv += '<path class="e ' + e.rank + '" data-e="' + i + '" d="' + edgePath(from, to, e.jog)
-      + '" fill="none" stroke="#ffffff" stroke-width="' + st.w + '" opacity="' + st.o + '"'
-      + (st.dash ? ' stroke-dasharray="' + st.dash + '"' : "") + ' stroke-linecap="round"></path>';
-  }
-  svg.innerHTML = sv;
-
-  stage.style.height = layout.height + "px";
-  scroller.scrollTop = 0;
-  updateFades();
-  showHint();
-}
-
-function clearStage() {
-  const kids = stage.querySelectorAll(".brick,.band");
-  for (const k of kids) k.remove();
-  svg.innerHTML = "";
-}
-
-function esc(s) {
-  return String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
-}
-
-/* ------------------------------------------------------------- area swipe */
-
-function setArea(idx, dir) {
-  const n = order.length;
-  curAreaIdx = ((idx % n) + n) % n;
-  const area = order[curAreaIdx];
-  areaNameEl.classList.add("swapping");
-  if (dir) {
-    pan.style.transition = "transform .16s ease-in, opacity .16s ease-in";
-    pan.style.transform = "translateX(" + (dir > 0 ? -50 : 50) + "px)";
-    pan.style.opacity = "0";
-  }
-  const paint = () => {
-    clearStage();
-    render(area, curLevel);
-    areaNameEl.textContent = areaDisplay[area] || area;
-    areaNameEl.classList.remove("swapping");
-    if (dir) {
-      pan.style.transition = "none";
-      pan.style.transform = "translateX(" + (dir > 0 ? 50 : -50) + "px)";
-      pan.style.opacity = "0";
-      requestAnimationFrame(() => {
-        pan.style.transition = "transform .24s cubic-bezier(.25,.8,.3,1), opacity .24s";
-        pan.style.transform = "translateX(0)";
-        pan.style.opacity = "1";
-      });
-    } else {
-      pan.style.transform = "";
-      pan.style.opacity = "1";
-    }
-  };
-  if (dir) setTimeout(paint, 160); else paint();
-}
-
-let ptrId = null, sx = 0, sy = 0, dragAxis = null, dragDX = 0;
-scroller.addEventListener("pointerdown", e => {
-  if (e.pointerType === "mouse" && e.button !== 0) return;
-  ptrId = e.pointerId; sx = e.clientX; sy = e.clientY; dragAxis = null; dragDX = 0;
-}, { passive: true });
-
-scroller.addEventListener("pointermove", e => {
-  if (e.pointerId !== ptrId) return;
-  const dx = e.clientX - sx, dy = e.clientY - sy;
-  if (dragAxis === null) {
-    if (Math.abs(dx) > 10 && Math.abs(dx) > Math.abs(dy) * 1.25) dragAxis = "x";
-    else if (Math.abs(dy) > 10) dragAxis = "y";
-  }
-  if (dragAxis === "x") {
-    e.preventDefault();
-    dragDX = dx;
-    pan.style.transition = "none";
-    pan.style.transform = "translateX(" + (dx * .42) + "px)";
-    pan.style.opacity = String(Math.max(.45, 1 - Math.abs(dx) / 420));
-  }
-}, { passive: false });
-
-function endDrag() {
-  if (ptrId === null) return;
-  ptrId = null;
-  if (dragAxis !== "x") return;
-  const dx = dragDX; dragAxis = null;
-  if (Math.abs(dx) > 55) { setArea(curAreaIdx + (dx < 0 ? 1 : -1), dx < 0 ? 1 : -1); return; }
-  pan.style.transition = "transform .2s, opacity .2s";
-  pan.style.transform = "translateX(0)";
-  pan.style.opacity = "1";
-}
-scroller.addEventListener("pointerup", endDrag, { passive: true });
-scroller.addEventListener("pointercancel", endDrag, { passive: true });
-
-document.getElementById("prevArea").addEventListener("click", () => setArea(curAreaIdx - 1, -1));
-document.getElementById("nextArea").addEventListener("click", () => setArea(curAreaIdx + 1, 1));
-
-/* -------------------------------------------------------------- drilldown */
-
-const LOCK_SVG = '<svg class="dlock" viewBox="0 0 8 9" fill="none">'
-  + '<rect x="0.6" y="3.8" width="6.8" height="4.6" rx="1.1" fill="#f2c94c"/>'
-  + '<path d="M2.3 3.8V2.6a1.7 1.7 0 013.4 0v1.2" stroke="#f2c94c" stroke-width="1.05" fill="none"/></svg>';
-
-const dlevels = document.getElementById("dlevels");
-(function buildDrill() {
-  let html = '<div class="drail"></div>';
-  for (const lv of [5, 4, 3, 2, 1]) {
-    const prem = lv <= 2;
-    html += '<button class="dstep' + (prem ? " premium" : "") + '" data-lv="' + lv + '">'
-      + '<span class="dnum">' + lv + "</span>"
-      + '<span class="dblip"></span>'
-      + (prem ? LOCK_SVG : "")
-      + '<span class="dhit"></span></button>';
-  }
-  dlevels.innerHTML = html;
-  dlevels.addEventListener("click", e => {
-    const b = e.target.closest(".dstep");
-    if (!b) return;
-    const lv = +b.dataset.lv;
-    setLevel(lv);
-    if (lv <= 2) showTipAt(b, "Premium Feature", true, 1900);
-  });
-})();
-
-function setLevel(lv) {
-  curLevel = lv;
-  for (const b of dlevels.querySelectorAll(".dstep")) b.classList.toggle("on", +b.dataset.lv === lv);
-  clearStage();
-  render(order[curAreaIdx], lv);
-}
-
-/* ----------------------------------------------------------- focus + info */
-
-function relatedOf(item) {
-  const nodesSet = new Set([item]), edgeSet = new Set();
-  layout.edges.forEach((e, i) => {
-    if (e.from === item || e.to === item) {
-      edgeSet.add(i);
-      nodesSet.add(e.from); nodesSet.add(e.to);
-    }
-  });
-  return { nodesSet, edgeSet };
-}
-
-function focusItem(item, el) {
-  focused = item;
-  const { nodesSet, edgeSet } = relatedOf(item);
-  const bricks = stage.querySelectorAll(".brick");
-  for (const b of bricks) {
-    const i = b.dataset.i;
-    const it = i === undefined ? null : layout.items[+i];
-    b.classList.toggle("rel", !!it && nodesSet.has(it));
-    b.classList.toggle("sel", b === el);
-  }
-  /* ghosts carry no data-i; relate them through their parent item */
-  for (const b of stage.querySelectorAll(".brick.ghost")) b.classList.remove("rel");
-  svg.querySelectorAll(".e").forEach(p => p.classList.toggle("rel", edgeSet.has(+p.dataset.e)));
-
-  stage.classList.add("focus");
-  stage.style.transformOrigin = item.pcx + "px " + item.cy + "px";
-  stage.style.transform = "scale(.84)";
-  showTipAtItem(item);
-}
-
-function unfocus() {
-  focused = null;
-  stage.classList.remove("focus");
-  stage.style.transform = "";
-  for (const b of stage.querySelectorAll(".brick")) b.classList.remove("rel", "sel");
-  svg.querySelectorAll(".e").forEach(p => p.classList.remove("rel"));
-  hideTip();
-}
-
-let tipTimer = null;
-function hideTip() { tipEl.classList.remove("show"); tipEl.classList.remove("premium"); }
-
-function showTipAt(el, text, premium, autohide) {
-  const r = el.getBoundingClientRect();
-  tipEl.textContent = text;
-  tipEl.classList.toggle("premium", !!premium);
-  tipEl.style.left = (r.left + r.width / 2) + "px";
-  tipEl.style.top = (r.top - 8) + "px";
-  tipEl.classList.add("show");
-  tipEl.dataset.action = premium ? "" : "info";
-  clearTimeout(tipTimer);
-  if (autohide) tipTimer = setTimeout(hideTip, autohide);
-}
-
-function showTipAtItem(item) {
-  const sr = scroller.getBoundingClientRect();
-  const z = .84;
-  const originY = item.cy;
-  const topInStage = originY + (item.y - originY) * z;
-  const x = sr.left + item.pcx;
-  const y = sr.top - scroller.scrollTop + topInStage - 8;
-  tipEl.textContent = "More info";
-  tipEl.classList.remove("premium");
-  tipEl.style.left = x + "px";
-  tipEl.style.top = Math.max(sr.top + 16, y) + "px";
-  tipEl.dataset.action = "info";
-  tipEl.classList.add("show");
-  clearTimeout(tipTimer);
-}
-
-stage.addEventListener("click", e => {
-  if (dragAxis === "x") return;
-  const b = e.target.closest(".brick[data-i]");
-  if (!b) { if (focused) unfocus(); return; }
-  const it = layout.items[+b.dataset.i];
-  if (focused === it) { unfocus(); return; }
-  focusItem(it, b);
-});
-
-tipEl.addEventListener("click", () => {
-  if (tipEl.dataset.action !== "info" || !focused) return;
-  openSheet(focused.node);
-});
-
-/* --------------------------------------------------------------- overlay */
-
-const LOREM = [
-  "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip.",
-  "Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit.",
-  "At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium. Temporibus autem quibusdam et aut officiis debitis aut rerum necessitatibus saepe eveniet.",
-  "Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt.",
-];
-function loremFor(tech) {
-  let h = 2166136261;
-  for (let i = 0; i < tech.length; i++) { h ^= tech.charCodeAt(i); h = Math.imul(h, 16777619); }
-  return LOREM[Math.abs(h) % LOREM.length];
-}
-
-function openSheet(n) {
-  document.getElementById("sheetName").textContent = n.name;
-  const raw = n.dec || "";
-  const dec = DECADE_LABEL[raw] || raw;
-  let meta = dec ? '<span class="chip">' + esc(dec) + "</span>" : "";
-  const flags = flagAssets(n.country);
-  if (flags.length) {
-    meta += '<span class="chip">'
-      + flags.map(f => '<img src="' + f[0] + '" alt="' + esc(f[1]) + '" title="' + esc(f[1]) + '">').join("")
-      + "</span>";
-  }
-  meta += '<span class="chip">' + esc(areaDisplay[n.area] || n.area) + "</span>";
-  document.getElementById("sheetMeta").innerHTML = meta;
-  document.getElementById("sheetDesc").textContent = loremFor(n.tech);
-  scrimEl.classList.add("show");
-  hideTip();
-}
-function closeSheet() { scrimEl.classList.remove("show"); if (focused) showTipAtItem(focused); }
-document.getElementById("sheetClose").addEventListener("click", closeSheet);
-scrimEl.addEventListener("click", e => { if (e.target === scrimEl) closeSheet(); });
-
-/* ------------------------------------------------------- fades + scroll hint */
-
-function updateFades() {
-  const st = scroller.scrollTop;
-  const max = scroller.scrollHeight - scroller.clientHeight;
-  fadeTop.style.opacity = st > 8 ? "1" : "0";
-  fadeBottom.style.opacity = max - st > 8 ? "1" : "0";
-}
-
-function showHint() {
-  clearTimeout(hintTimer);
-  hintEl.classList.remove("show");
-  const max = scroller.scrollHeight - scroller.clientHeight;
-  if (max < 40) return;
-  hintTimer = setTimeout(() => {
-    hintEl.classList.add("show");
-    hintTimer = setTimeout(() => hintEl.classList.remove("show"), 2600);
-  }, 320);
-}
-
-scroller.addEventListener("scroll", () => {
-  updateFades();
-  if (scroller.scrollTop > 12 && hintEl.classList.contains("show")) {
-    clearTimeout(hintTimer);
-    hintEl.classList.remove("show");
-  }
-  if (focused) showTipAtItem(focused);
-}, { passive: true });
-
-let resizeTimer = null;
-window.addEventListener("resize", () => {
-  clearTimeout(resizeTimer);
-  resizeTimer = setTimeout(() => { clearStage(); render(order[curAreaIdx], curLevel); }, 180);
-});
-
-/* ------------------------------------------------------------------- boot */
-
-setLevel(curLevel);
-setArea(0, 0);
-const loading = document.getElementById("loading");
-requestAnimationFrame(() => requestAnimationFrame(() => {
-  loading.classList.add("done");
-  setTimeout(() => loading.remove(), 450);
-}));
-
-window.__genreMap = {
-  get layout() { return layout; },
-  get order() { return order; },
-  setArea, setLevel, focusItem, openSheet,
-  get level() { return curLevel; },
-};
+const margin=120,center=globalMaxOuter+margin,worldW=(globalMaxOuter+margin)*2,worldH=worldW;for(const n of data){n.x=center+n.cx-n.w/2;n.y=center+n.cy-n.h/2;n.el.style.left=n.x+"px";n.el.style.top=n.y+"px"}root.style.width=worldW+"px";root.style.height=worldH+"px";
+function closedContour(points){const mids=points.map((p,i)=>[(p[0]+points[(i+1)%points.length][0])/2,(p[1]+points[(i+1)%points.length][1])/2]);let d="M"+mids.at(-1)[0]+","+mids.at(-1)[1];for(let i=0;i<points.length;i++)d+=" Q"+points[i][0]+","+points[i][1]+" "+mids[i][0]+","+mids[i][1];return d+" Z"}
+function contourPath(nodes,pad,bounds){const gensPresent=[...new Set(nodes.map(n=>n.gen))].sort((a,b)=>a-b),clampA=a=>bounds?Math.max(bounds.start,Math.min(bounds.end,a)):a,groups=gensPresent.map(g=>nodes.filter(n=>n.gen===g)),samples=groups.map(group=>{const inner=Math.min(...group.map(n=>n.radius-Math.hypot(n.w,n.h)/2-pad)),outer=Math.max(...group.map(n=>n.radius+Math.hypot(n.w,n.h)/2+pad)),left=clampA(Math.min(...group.map(n=>n.angle-Math.atan2(n.w/2+pad,n.radius)))),right=clampA(Math.max(...group.map(n=>n.angle+Math.atan2(n.w/2+pad,n.radius))));return{inner,outer,left,right,mid:(inner+outer)/2}}),first=samples[0],last=samples.at(-1),points=[],polar=(r,a)=>[center+Math.cos(a)*r,center+Math.sin(a)*r],apexA=(first.left+first.right)/2,rootR1=first.inner+(first.mid-first.inner)*.35,rootR2=first.inner+(first.mid-first.inner)*.7;points.push(polar(first.inner,apexA));points.push(polar(rootR1,apexA+(first.left-apexA)*.45));points.push(polar(rootR2,apexA+(first.left-apexA)*.8));for(const s of samples)points.push(polar(s.mid,s.left));points.push(polar(last.outer,(last.left+last.right)/2));for(let i=samples.length-1;i>=0;i--)points.push(polar(samples[i].mid,samples[i].right));points.push(polar(rootR2,apexA+(first.right-apexA)*.8));points.push(polar(rootR1,apexA+(first.right-apexA)*.45));return closedContour(points)}
+function contourElement(kind,name,nodes,hue,pad,bounds){const path=document.createElementNS(ns,"path");path.classList.add(kind);path.dataset[kind==="area-lobe"?"area":"secondaryArea"]=name;path.setAttribute("d",contourPath(nodes,pad,bounds));path.style.fill="hsl("+hue+" 62% 43%)";path.style.stroke="hsl("+hue+" 70% 61%)";path.style.strokeWidth="2";return path}
+function titleCase(s){return s.replace(/\w\S*/g,w=>w[0].toUpperCase()+w.slice(1))}
+function blobOuterRadius(nodes){return Math.max(...nodes.map(n=>n.radius+Math.hypot(n.w,n.h)/2))}
+function edgeAnchor(angle,outer){const r=outer+46;return[center+Math.cos(angle)*r,center+Math.sin(angle)*r]}
+const placedLabelRects=[];function rectsOverlap(a,b,pad){return a.x<b.x+b.w+pad&&a.x+a.w+pad>b.x&&a.y<b.y+b.h+pad&&a.y+a.h+pad>b.y}
+function placeLabel(cx,cy,w,h){const pad=12,labelPad=26,rectAt=(x,y)=>({x:x-w/2,y:y-h/2,w,h}),overlapsAny=r=>{for(const n of data){if(rectsOverlap(r,{x:n.x,y:n.y,w:n.w,h:n.h},pad))return true}for(const lr of placedLabelRects){if(rectsOverlap(r,lr,labelPad))return true}return false},base=rectAt(cx,cy);if(!overlapsAny(base))return base;for(const rad of [40,70,105,145,190,240,300,370,450,540,640]){for(let k=0;k<20;k++){const ang=(k/20)*tau,x=cx+Math.cos(ang)*rad,y=cy+Math.sin(ang)*rad,r=rectAt(x,y);if(!overlapsAny(r))return r}}return base}
+function addAreaLabel(text,nodes,ax,ay,hue,kind){const el=document.createElement("div");el.className=kind;el.textContent=text;el.style.left="-9999px";el.style.top="-9999px";const isArea=kind==="area-label",size=isArea?Math.max(26,Math.min(56,20+Math.sqrt(nodes.length)*2.3)):Math.max(18,Math.min(32,16+Math.sqrt(nodes.length)*1.4));el.style.fontSize=size+"px";if(isArea){el.style.color="hsl("+hue+" 72% 90%)";el.style.background="hsla("+hue+",55%,17%,.62)"}else{el.style.color="hsl("+hue+" 68% 88%)";el.style.background="hsla("+hue+",50%,15%,.58)"}root.append(el);const w=el.offsetWidth,h=el.offsetHeight,rect=placeLabel(ax,ay,w,h);el.style.left=(rect.x+w/2)+"px";el.style.top=(rect.y+h/2)+"px";placedLabelRects.push(rect)}
+const areas=document.createElementNS(ns,"svg"),defs=document.createElementNS(ns,"defs"),mainContours=new Map();areas.classList.add("areas");areas.setAttribute("width",worldW);areas.setAttribute("height",worldH);areas.setAttribute("aria-hidden","true");areas.append(defs);for(const category of categoryOrder){const nodes=data.filter(n=>n.category===category),hue=hueFor(category),path=contourElement("area-lobe",category,nodes,hue,34,sectors.get(category)),mask=document.createElementNS(ns,"mask"),maskPath=document.createElementNS(ns,"path"),id="secondary-inset-"+categoryOrder.indexOf(category);mask.id=id;mask.setAttribute("maskUnits","userSpaceOnUse");mask.setAttribute("x","0");mask.setAttribute("y","0");mask.setAttribute("width",worldW);mask.setAttribute("height",worldH);maskPath.setAttribute("d",path.getAttribute("d"));maskPath.setAttribute("fill","white");maskPath.setAttribute("stroke","black");maskPath.setAttribute("stroke-width","36");maskPath.setAttribute("stroke-linejoin","round");mask.append(maskPath);defs.append(mask);mainContours.set(category,{path,mask:id,hue});areas.append(path);const outer=blobOuterRadius(nodes),[ax,ay]=edgeAnchor(sectors.get(category).mid,outer);addAreaLabel(areaDisplay[category]||titleCase(category),nodes,ax,ay,hue,"area-label")}const secondaryGroups=new Map();for(const n of data)if(n.secondary){if(!secondaryGroups.has(n.secondary))secondaryGroups.set(n.secondary,[]);secondaryGroups.get(n.secondary).push(n)}for(const [secondary,nodes] of secondaryGroups){const main=nodes[0].category,info=mainContours.get(main),shue=(info.hue+42)%360,path=contourElement("secondary-lobe",secondary,nodes,shue,10,sectors.get(main));path.dataset.mainArea=main;path.setAttribute("mask","url(#"+info.mask+")");areas.append(path);const subMapMain=subSectors.get(main),ss=subMapMain&&subMapMain.get(secondary),angle=ss?ss.mid:sectors.get(main).mid,outer=blobOuterRadius(nodes),[ax,ay]=edgeAnchor(angle,outer);addAreaLabel(secondaryDisplay[secondary]||secondaryLabel.get(secondary)||titleCase(secondary),nodes,ax,ay,shue,"secondary-label")}root.prepend(areas);
+function segmentHitsRect(a,b,r){let t0=0,t1=1,dx=b[0]-a[0],dy=b[1]-a[1];for(const [p,q] of [[-dx,a[0]-r.x],[dx,r.x+r.w-a[0]],[-dy,a[1]-r.y],[dy,r.y+r.h-a[1]]]){if(!p){if(q<0)return false;continue}const t=q/p;if(p<0){if(t>t1)return false;if(t>t0)t0=t}else{if(t<t0)return false;if(t<t1)t1=t}}return t0<=t1}
+function boundaryToward(n,p){const cx=n.x+n.w/2,cy=n.y+n.h/2,dx=p[0]-cx,dy=p[1]-cy,k=Math.min((n.w/2)/Math.max(.001,Math.abs(dx)),(n.h/2)/Math.max(.001,Math.abs(dy)));return[cx+dx*k,cy+dy*k]}
+function safeBorderAnchor(n,p){const q=boundaryToward(n,p),r=Math.min(7,n.w/2,n.h/2),left=Math.abs(q[0]-n.x),right=Math.abs(q[0]-(n.x+n.w)),top=Math.abs(q[1]-n.y),bottom=Math.abs(q[1]-(n.y+n.h)),side=Math.min(left,right,top,bottom);if(side===left)return[n.x,Math.max(n.y+r,Math.min(n.y+n.h-r,q[1]))];if(side===right)return[n.x+n.w,Math.max(n.y+r,Math.min(n.y+n.h-r,q[1]))];if(side===top)return[Math.max(n.x+r,Math.min(n.x+n.w-r,q[0])),n.y];return[Math.max(n.x+r,Math.min(n.x+n.w-r,q[0])),n.y+n.h]}
+function attachBorderEndpoints(points,p,c){const source=points.map(q=>q.slice());if(source.length===2)return[safeBorderAnchor(p,source[1]),safeBorderAnchor(c,source[0])];return[safeBorderAnchor(p,source[0]),...source,safeBorderAnchor(c,source.at(-1))]}
+/* For edges whose parent and child sit at very different angles, a straight
+   chord cuts diagonally through whatever open territory happens to lie
+   between them, which reads as a chaotic web once enough such edges exist
+   (cross-category links especially). arcPath instead sweeps along a gradually
+   changing radius/angle — closer to how a radial diagram naturally reads —
+   and is only offered as a candidate; it still has to pass the same
+   clear-of-cards check as every other route, and edges with a small angular
+   gap (most same-lineage edges) skip it entirely and keep using the direct
+   line as before. */
+function arcPath(p,c){const pcx=p.x+p.w/2,pcy=p.y+p.h/2,ncx=c.x+c.w/2,ncy=c.y+c.h/2,pr=Math.hypot(pcx-center,pcy-center),pa=Math.atan2(pcy-center,pcx-center),nr=Math.hypot(ncx-center,ncy-center),na=Math.atan2(ncy-center,ncx-center);let da=na-pa;while(da>Math.PI)da-=tau;while(da<-Math.PI)da+=tau;if(Math.abs(da)<.32)return null;const steps=7,pts=[];for(let i=0;i<=steps;i++){const t=i/steps,r=pr+(nr-pr)*t,a=pa+da*t;pts.push([center+Math.cos(a)*r,center+Math.sin(a)*r])}return pts}
+const obstacles=data.map(n=>({x:n.x-4,y:n.y-4,w:n.w+8,h:n.h+8,n}));function clearPath(points,p,c){for(let i=1;i<points.length;i++)for(const r of obstacles)if(r.n!==p&&r.n!==c&&segmentHitsRect(points[i-1],points[i],r))return false;return true}function sampledClearPath(points,p,c){for(let i=1;i<points.length;i++){const a=points[i-1],b=points[i],minX=Math.min(a[0],b[0]),maxX=Math.max(a[0],b[0]),minY=Math.min(a[1],b[1]),maxY=Math.max(a[1],b[1]),steps=Math.max(1,Math.ceil(Math.hypot(b[0]-a[0],b[1]-a[1])/3));for(const r of obstacles){if(r.n===p||r.n===c||maxX<r.x||minX>r.x+r.w||maxY<r.y||minY>r.y+r.h)continue;for(let k=0;k<=steps;k++){const t=k/steps,x=a[0]+(b[0]-a[0])*t,y=a[1]+(b[1]-a[1])*t;if(x>=r.x&&x<=r.x+r.w&&y>=r.y&&y<=r.y+r.h)return false}}}return true}function localDetour(points,p,c){const a=points[0],b=points.at(-1),minX=Math.min(a[0],b[0]),maxX=Math.max(a[0],b[0]),minY=Math.min(a[1],b[1]),maxY=Math.max(a[1],b[1]),candidates=[];for(const q of [20,40,80,140,240])for(const route of [[[a[0],minY-q],[b[0],minY-q]],[[maxX+q,a[1]],[maxX+q,b[1]]],[[a[0],maxY+q],[b[0],maxY+q]],[[minX-q,a[1]],[minX-q,b[1]]]]){const candidate=[a,...route,b];if(sampledClearPath(candidate,p,c))candidates.push(candidate)}for(const r of obstacles){if(r.n===p||r.n===c||maxX<r.x||minX>r.x+r.w||maxY<r.y||minY>r.y+r.h)continue;for(const q of [8,20,40,80,140]){const left=r.x-q,right=r.x+r.w+q,top=r.y-q,bottom=r.y+r.h+q;for(const route of [[[left,top]],[[right,top]],[[right,bottom]],[[left,bottom]],[[left,top],[right,top]],[[right,top],[right,bottom]],[[right,bottom],[left,bottom]],[[left,bottom],[left,top]]]){const candidate=[a,...route,b];if(sampledClearPath(candidate,p,c))candidates.push(candidate)}}}return candidates.sort((u,v)=>pathLength(u)-pathLength(v))[0]||null}function pathLength(points){let n=0;for(let i=1;i<points.length;i++)n+=Math.hypot(points[i][0]-points[i-1][0],points[i][1]-points[i-1][1]);return n}
+const grid=14,cols=Math.ceil(worldW/grid),rowsN=Math.ceil(worldH/grid),blocked=new Uint8Array(cols*rowsN),usage=new Uint16Array(cols*rowsN);for(const r of obstacles){const x0=Math.max(0,Math.floor((r.x-grid*.12)/grid)),x1=Math.min(cols-1,Math.floor((r.x+r.w+grid*.12)/grid)),y0=Math.max(0,Math.floor((r.y-grid*.12)/grid)),y1=Math.min(rowsN-1,Math.floor((r.y+r.h+grid*.12)/grid));for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++)blocked[y*cols+x]=1}
+class Heap{constructor(){this.a=[]}push(v){let i=this.a.length;this.a.push(v);while(i){const p=(i-1)>>1;if(this.a[p][0]<=v[0])break;this.a[i]=this.a[p];i=p;this.a[i]=v}}pop(){const a=this.a,top=a[0],v=a.pop();if(a.length){let i=0;a[0]=v;for(;;){let l=i*2+1,r=l+1,b=i;if(l<a.length&&a[l][0]<a[b][0])b=l;if(r<a.length&&a[r][0]<a[b][0])b=r;if(b===i)break;[a[i],a[b]]=[a[b],a[i]];i=b}}return top}get length(){return this.a.length}}
+function portOptions(n){const x=n.x,y=n.y,w=n.w,h=n.h;return[[x-4,y+h/2,-1,0],[x+w+4,y+h/2,1,0],[x+w/2,y-4,0,-1],[x+w/2,y+h+4,0,1]]}
+function freePort(a,p,c){for(let k=1;k<=30;k++){const x=a[0]+a[2]*grid*k,y=a[1]+a[3]*grid*k,gx=Math.max(0,Math.min(cols-1,Math.floor(x/grid))),gy=Math.max(0,Math.min(rowsN-1,Math.floor(y/grid))),i=gy*cols+gx;if(!blocked[i]&&clearPath([[a[0],a[1]],[x,y]],p,c))return[a[0],a[1],x,y]}return null}
+function routeOutside(p,c){const pad=26;for(const a of portOptions(p))for(const b of portOptions(c)){const ao=a[2]<0?[-pad,a[1]]:a[2]>0?[worldW+pad,a[1]]:a[3]<0?[a[0],-pad]:[a[0],worldH+pad],bo=b[2]<0?[-pad,b[1]]:b[2]>0?[worldW+pad,b[1]]:b[3]<0?[b[0],-pad]:[b[0],worldH+pad],corner=[ao[0]===-pad||ao[0]===worldW+pad?ao[0]:bo[0],ao[1]===-pad||ao[1]===worldH+pad?ao[1]:bo[1]],points=[[a[0],a[1]],ao];if(ao[0]!==bo[0]&&ao[1]!==bo[1])points.push(corner);points.push(bo,[b[0],b[1]]);if(clearPath(points,p,c))return points}return null}
+function simplifyPath(points,p,c){const out=[points[0]];for(let i=0;i<points.length-1;){let j=points.length-1;while(j>i+1&&!clearPath([points[i],points[j]],p,c))j--;out.push(points[j]);i=j}return out}
+function routeGrid(p,c){const pairs=[];for(const ap of portOptions(p))for(const bp of portOptions(c)){const a=freePort(ap,p,c),b=freePort(bp,p,c);if(a&&b){const dA=Math.hypot(a[2]-center,a[3]-center),dB=Math.hypot(b[2]-center,b[3]-center),inward=Math.max(0,dA-dB);pairs.push([Math.hypot(a[2]-b[2],a[3]-b[3])+inward*1.4,a,b])}}pairs.sort((a,b)=>a[0]-b[0]);for(const pair of pairs){const a=pair[1],b=pair[2],sx=Math.max(0,Math.min(cols-1,Math.floor(a[2]/grid))),sy=Math.max(0,Math.min(rowsN-1,Math.floor(a[3]/grid))),tx=Math.max(0,Math.min(cols-1,Math.floor(b[2]/grid))),ty=Math.max(0,Math.min(rowsN-1,Math.floor(b[3]/grid))),si=sy*cols+sx,ti=ty*cols+tx;const heap=new Heap(),came=new Int32Array(cols*rowsN);came.fill(-1);const score=new Float32Array(cols*rowsN);score.fill(Infinity);score[si]=0;heap.push([Math.abs(tx-sx)+Math.abs(ty-sy),si]);let found=false,visits=0;while(heap.length&&visits++<900000){const cur=heap.pop()[1];if(cur===ti){found=true;break}const x=cur%cols,y=(cur/cols)|0;for(const ni of [cur-1,cur+1,cur-cols,cur+cols]){if(ni<0||ni>=blocked.length||blocked[ni]||Math.abs(ni%cols-x)+Math.abs(((ni/cols)|0)-y)!==1)continue;const ng=score[cur]+1-Math.min(.22,usage[ni]*.018);if(ng>=score[ni])continue;score[ni]=ng;came[ni]=cur;const nx=ni%cols,ny=(ni/cols)|0;heap.push([ng+Math.abs(tx-nx)+Math.abs(ty-ny),ni])}}if(!found)continue;const cells=[];for(let q=ti;q!==-1;q=came[q]){cells.push(q);if(q===si)break}cells.reverse();const pts=[[a[0],a[1]],[a[2],a[3]]];let lastDir="";for(let i=0;i<cells.length;i++){const q=cells[i],x=(q%cols+.5)*grid,y=(((q/cols)|0)+.5)*grid,dir=i?((cells[i]-cells[i-1]===1||cells[i]-cells[i-1]===-1)?"h":"v"):"";if(i&&dir===lastDir)pts[pts.length-1]=[x,y];else pts.push([x,y]);lastDir=dir}pts.push([b[2],b[3]],[b[0],b[1]]);if(clearPath(pts,p,c)){for(const q of cells)usage[q]++;return simplifyPath(pts,p,c)}}return null}
+function smoothPath(points,p,c){points=simplifyPath(points,p,c);if(points.length<3)return"M"+points[0]+" L"+points[1];for(const radius of [18,10,5]){let d="M"+points[0][0]+","+points[0][1],samples=[points[0]];for(let i=1;i<points.length-1;i++){const a=points[i-1],b=points[i],c2=points[i+1],r=Math.min(radius,Math.hypot(b[0]-a[0],b[1]-a[1])/3,Math.hypot(c2[0]-b[0],c2[1]-b[1])/3),u=[b[0]+(a[0]-b[0])*r/Math.max(.001,Math.hypot(a[0]-b[0],a[1]-b[1])),b[1]+(a[1]-b[1])*r/Math.max(.001,Math.hypot(a[0]-b[0],a[1]-b[1]))],v=[b[0]+(c2[0]-b[0])*r/Math.max(.001,Math.hypot(c2[0]-b[0],c2[1]-b[1])),b[1]+(c2[1]-b[1])*r/Math.max(.001,Math.hypot(c2[0]-b[0],c2[1]-b[1]))];d+=" L"+u[0]+","+u[1]+" Q"+b[0]+","+b[1]+" "+v[0]+","+v[1];samples.push(u);for(let k=1;k<=18;k++){const t=k/18,s=1-t;samples.push([s*s*u[0]+2*s*t*b[0]+t*t*v[0],s*s*u[1]+2*s*t*b[1]+t*t*v[1]])}}d+=" L"+points.at(-1)[0]+","+points.at(-1)[1];samples.push(points.at(-1));if(clearPath(samples,p,c))return d}return"M"+points.map(q=>q[0]+","+q[1]).join(" L")}
+const svg=document.createElementNS(ns,"svg");svg.classList.add("edges");svg.setAttribute("width",worldW);svg.setAttribute("height",worldH);svg.setAttribute("aria-hidden","true");const edgeByChild=new Map();let routed=0,routeFailures=0;for(const n of data){const p=n.parentNode;if(!p)continue;const pc=[p.x+p.w/2,p.y+p.h/2],nc=[n.x+n.w/2,n.y+n.h/2],direct=[boundaryToward(p,nc),boundaryToward(n,pc)];let points=null,fallback=false,straight=false;const arc=arcPath(p,n);if(arc&&clearPath(arc,p,n))points=arc;if(!points)points=clearPath(direct,p,n)?direct:routeGrid(p,n);if(!points)points=routeOutside(p,n);if(!points){points=localDetour(direct,p,n);straight=!!points}if(!points){points=direct;routeFailures++;fallback=true}else routed++;points=attachBorderEndpoints(points,p,n);if(points.length===2&&!sampledClearPath(points,p,n)){const detour=routeGrid(p,n)||routeOutside(p,n);if(detour){const attached=attachBorderEndpoints(detour,p,n);if(sampledClearPath(attached,p,n)){points=attached;straight=true}}if(!sampledClearPath(points,p,n)){const local=localDetour(points,p,n);if(local){points=local;straight=true}}}const path=document.createElementNS(ns,"path");path.setAttribute("d",straight?"M"+points.map(q=>q[0]+","+q[1]).join(" L"):smoothPath(points,p,n));path.classList.add("edge");path.dataset.parent=p.i;path.dataset.child=n.i;if(fallback)path.dataset.fallback="true";svg.append(path);edgeByChild.set(n.i,path)}root.dataset.nodes=data.length;root.dataset.edges=svg.children.length;root.dataset.routeFailures=routeFailures;root.insertBefore(svg,root.querySelector(".node"));
+function clearChainHover(){root.classList.remove("chain-hover");for(const el of root.querySelectorAll(".chain-highlight"))el.classList.remove("chain-highlight")}function showAncestorChain(n){clearChainHover();root.classList.add("chain-hover");let p=n,guard=0;while(p&&guard++<40){p.el.classList.add("chain-highlight");const edge=edgeByChild.get(p.i);if(edge)edge.classList.add("chain-highlight");p=p.parentNode}}let hoverTarget=null,hoverScheduled=false,hoverApplied;function flushHover(){hoverScheduled=false;if(hoverTarget===hoverApplied)return;hoverApplied=hoverTarget;if(hoverTarget)showAncestorChain(hoverTarget);else clearChainHover()}function scheduleHover(n){hoverTarget=n;if(!hoverScheduled){hoverScheduled=true;requestAnimationFrame(flushHover)}}viewport.addEventListener("pointermove",e=>{if(drag)return;const el=e.target.closest(".node");scheduleHover(el?data[+el.dataset.i]:null)});viewport.addEventListener("pointerleave",()=>scheduleHover(null));
+let scale=1,tx=0,ty=0,fitScale=1,targetScale=1,targetTx=0,targetTy=0,viewFrame=0;function applyView(){root.style.transform="translate("+tx+"px,"+ty+"px) scale("+scale+")"}function animateView(){const k=.24;scale+=(targetScale-scale)*k;tx+=(targetTx-tx)*k;ty+=(targetTy-ty)*k;applyView();if(Math.abs(scale-targetScale)>.0002||Math.abs(tx-targetTx)>.08||Math.abs(ty-targetTy)>.08)viewFrame=requestAnimationFrame(animateView);else{scale=targetScale;tx=targetTx;ty=targetTy;applyView();viewFrame=0;if(!drag)root.classList.remove("interacting")}}function startView(){root.classList.add("interacting");if(!viewFrame)viewFrame=requestAnimationFrame(animateView)}function fit(){const margin=22;fitScale=Math.min((innerWidth-margin*2)/worldW,(innerHeight-margin*2)/worldH,1);scale=targetScale=fitScale;tx=targetTx=(innerWidth-worldW*scale)/2;ty=targetTy=(innerHeight-worldH*scale)/2;applyView()}fit();
+viewport.addEventListener("wheel",e=>{e.preventDefault();const rect=viewport.getBoundingClientRect(),px=e.clientX-rect.left,py=e.clientY-rect.top,wx=(px-targetTx)/targetScale,wy=(py-targetTy)/targetScale,next=Math.max(fitScale*.5,Math.min(4.5,targetScale*Math.exp(-e.deltaY*.0026)));targetTx=px-wx*next;targetTy=py-wy*next;targetScale=next;startView()},{passive:false});
+let drag=null;viewport.addEventListener("dragstart",e=>e.preventDefault());viewport.addEventListener("pointerdown",e=>{if(e.button!==0)return;e.preventDefault();root.classList.add("interacting");if(viewFrame){cancelAnimationFrame(viewFrame);viewFrame=0}targetScale=scale;targetTx=tx;targetTy=ty;drag={id:e.pointerId,x:e.clientX,y:e.clientY,tx,ty};viewport.classList.add("panning");viewport.setPointerCapture(e.pointerId)});viewport.addEventListener("pointermove",e=>{if(!drag||e.pointerId!==drag.id)return;e.preventDefault();tx=targetTx=drag.tx+(e.clientX-drag.x);ty=targetTy=drag.ty+(e.clientY-drag.y);applyView()});function endPan(e){if(!drag||e.pointerId!==drag.id)return;drag=null;viewport.classList.remove("panning");root.classList.remove("interacting");if(viewport.hasPointerCapture(e.pointerId))viewport.releasePointerCapture(e.pointerId)}viewport.addEventListener("pointerup",endPan);viewport.addEventListener("pointercancel",endPan);viewport.addEventListener("lostpointercapture",()=>{drag=null;viewport.classList.remove("panning")});requestAnimationFrame(()=>requestAnimationFrame(()=>{viewport.classList.add("ready");document.getElementById("loading").classList.add("hide")}));
 }));
 </script>
