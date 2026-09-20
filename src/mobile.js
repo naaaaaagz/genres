@@ -132,15 +132,19 @@ const order = (function () {
 
 /* ------------------------------------------------------------ measurement */
 
+/* A genre's Importance drives how big its brick is: 5 reads as a landmark,
+   1 is small but still comfortably readable. */
+const IMP_FONT = { 5: 14.5, 4: 12.8, 3: 11.6, 2: 10.4, 1: 9.6 };
+const impOf = n => Math.max(1, Math.min(5, n | 0));
+const fontFor = imp => '600 ' + IMP_FONT[imp] + 'px "Inter",-apple-system,BlinkMacSystemFont,'
+  + '"Segoe UI",Roboto,Arial,sans-serif';
+
 const MEAS = document.createElement("canvas").getContext("2d");
-const FONT_STACK = '600 10.5px "Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif';
-const BRICK_MAX_W = 150, BRICK_MIN_W = 58, PAD_TEXT = 13;
-const LINE_H = [0, 24, 35, 46];
 
 function splitLines(text, k) {
   const words = text.split(/\s+/);
   if (words.length < k) return null;
-  let bestCut = null, bestScore = Infinity;
+  let best = null, bestScore = Infinity;
   const cuts = [];
   (function rec(start, depth, acc) {
     if (depth === k - 1) { cuts.push(acc.concat([words.length])); return; }
@@ -149,42 +153,62 @@ function splitLines(text, k) {
   for (const c of cuts) {
     const parts = []; let prev = 0;
     for (const p of c) { parts.push(words.slice(prev, p).join(" ")); prev = p; }
-    const widths = parts.map(p => MEAS.measureText(p).width);
-    const score = Math.max.apply(null, widths);
-    if (score < bestScore) { bestScore = score; bestCut = parts; }
+    const score = Math.max.apply(null, parts.map(p => MEAS.measureText(p).width));
+    if (score < bestScore) { bestScore = score; best = parts; }
   }
-  return { parts: bestCut, w: bestScore };
+  return { parts: best, w: bestScore };
+}
+
+/* CSS wraps greedily, so count the lines the chosen width actually produces
+   rather than trusting the balanced split used to pick that width. */
+function greedyLines(text, avail) {
+  const words = text.split(/\s+/);
+  const sp = MEAS.measureText(" ").width;
+  let lines = 1, cur = 0;
+  for (const wd of words) {
+    const ww = MEAS.measureText(wd).width;
+    const cand = cur ? cur + sp + ww : ww;
+    if (cand > avail && cur) { lines++; cur = ww; } else cur = cand;
+  }
+  return lines;
 }
 
 const measureCache = Object.create(null);
-function measure(text) {
-  if (measureCache[text]) return measureCache[text];
-  MEAS.font = FONT_STACK;
+function measure(text, imp) {
+  const key = imp + "|" + text;
+  if (measureCache[key]) return measureCache[key];
+  const f = IMP_FONT[imp];
+  const maxW = 100 + imp * 10, minW = 46 + imp * 7, padX = 9 + imp, padY = 11;
+  const hFor = k => Math.round(k * f * 1.2) + padY;
+  MEAS.font = fontFor(imp);
   const one = MEAS.measureText(text).width;
   let out;
-  if (one + PAD_TEXT <= BRICK_MAX_W) {
-    out = { w: Math.max(BRICK_MIN_W, Math.ceil(one) + PAD_TEXT), h: LINE_H[1] };
+  if (one + padX * 2 <= maxW) {
+    out = { w: Math.max(minW, Math.ceil(one) + padX * 2), h: hFor(1) };
   } else {
     const two = splitLines(text, 2);
-    if (two && two.w + PAD_TEXT <= BRICK_MAX_W) {
-      out = { w: Math.max(BRICK_MIN_W, Math.ceil(two.w) + PAD_TEXT), h: LINE_H[2] };
+    if (two && two.w + padX * 2 <= maxW) {
+      const w = Math.max(minW, Math.ceil(two.w) + padX * 2);
+      out = { w: w, h: hFor(Math.min(2, greedyLines(text, w - padX * 2))) };
     } else {
       const three = splitLines(text, 3);
-      const w = three ? Math.min(BRICK_MAX_W, Math.ceil(three.w) + PAD_TEXT) : BRICK_MAX_W;
-      out = { w: Math.max(BRICK_MIN_W, w), h: LINE_H[3] };
+      const w = Math.max(minW, three ? Math.min(maxW, Math.ceil(three.w) + padX * 2) : maxW);
+      out = { w: w, h: hFor(Math.min(3, greedyLines(text, w - padX * 2))) };
     }
   }
-  measureCache[text] = out;
+  measureCache[key] = out;
   return out;
 }
 
 /* ---------------------------------------------------------------- layout */
 
-const GAP_X = 9, ROW_GAP = 24, JITTER = 5;
-const BAND_TOP = 30, BAND_BOTTOM = 20;
-const GHOST_W = 30, GHOST_H = 11;
-const EXT_H = 30;
-const MAX_GHOSTS = 2;
+const GAP_X = 18, ROW_GAP = 26, JITTER = 4;
+const BAND_TOP = 32, BAND_BOTTOM = 22;
+const EXT_H = 34;
+const CLEAR = 4;          // keep-out margin around a brick for routed lines
+const CHANNEL = 4;        // narrowest gap a connector is allowed to thread
+const STUB_LEN = 24;      // length of the "there is more here" stub
+const MAX_DUDS = 3;
 
 /* 1-D placement inside one row: keep the given order and the minimum gaps,
    but slide each brick as close to its wanted centre as the slack allows. */
@@ -212,8 +236,7 @@ function packLayer(items, width) {
   const rowsOut = [];
   let cur = [], curW = 0;
   for (const it of items) {
-    const add = cur.length ? GAP_X + it.w : it.w;
-    if (cur.length && curW + add > width) { rowsOut.push(cur); cur = []; curW = 0; }
+    if (cur.length && curW + GAP_X + it.w > width) { rowsOut.push(cur); cur = []; curW = 0; }
     curW += cur.length ? GAP_X + it.w : it.w;
     cur.push(it);
   }
@@ -222,77 +245,77 @@ function packLayer(items, width) {
   return rowsOut;
 }
 
+/* How many connectors would visibly cross, judged from the x positions of the
+   two ends; used to pick the best of several ordering sweeps. */
+function countCrossings(edges) {
+  let c = 0;
+  for (let i = 0; i < edges.length; i++) {
+    const a = edges[i];
+    const a0 = Math.min(a.from.yc, a.to.yc), a1 = Math.max(a.from.yc, a.to.yc);
+    for (let j = i + 1; j < edges.length; j++) {
+      const b = edges[j];
+      const b0 = Math.min(b.from.yc, b.to.yc), b1 = Math.max(b.from.yc, b.to.yc);
+      if (a1 <= b0 || b1 <= a0) continue;
+      const d1 = (a.from.x + a.from.w / 2) - (b.from.x + b.from.w / 2);
+      const d2 = (a.to.x + a.to.w / 2) - (b.to.x + b.to.w / 2);
+      if (d1 * d2 < 0) c++;
+    }
+  }
+  return c;
+}
+
 const layoutCache = Object.create(null);
 
-function buildLayout(area, level, width) {
-  const key = area + "|" + level + "|" + width;
+function buildLayout(area, level, width, flip) {
+  const key = area + "|" + level + "|" + width + "|" + (flip ? 1 : 0);
   if (layoutCache[key]) return layoutCache[key];
 
   const all = nodesByArea[area] || [];
   const vis = all.filter(n => n.imp >= level);
   const visible = new Set(vis.map(n => n.tech));
 
-  /* nearest visible ancestor inside this area, following primary parents */
+  /* nearest visible ancestor inside this area, following primary parents;
+     `hidden` counts the omitted genres passed on the way */
   const resolveCache = Object.create(null);
   function resolve(tech) {
     if (!tech) return null;
     if (tech in resolveCache) return resolveCache[tech];
-    let cur = tech, hops = 0, out = null;
+    let cur = tech, hops = 0, out = null, skipped = 0;
     const seen = new Set();
     while (cur && hops++ < 40 && !seen.has(cur)) {
       seen.add(cur);
       const n = byTech[cur];
       if (!n || n.area !== area) { out = null; break; }
-      if (visible.has(cur)) { out = cur; break; }
+      if (visible.has(cur)) { out = { tech: cur, hidden: skipped }; break; }
+      skipped++;
       cur = n.p1;
     }
     resolveCache[tech] = out;
     return out;
   }
 
-  const items = [];
-  const itemFor = Object.create(null);
-  function addItem(it) { items.push(it); return it; }
+  const items = [], itemFor = Object.create(null);
 
   for (const n of vis) {
-    const m = measure(n.name);
-    itemFor[n.tech] = addItem({
-      kind: "node", node: n, tech: n.tech, di: n.di,
-      w: m.w, h: m.h, x: 0, y: 0, want: 0,
-    });
+    const imp = impOf(n.imp);
+    const m = measure(n.name, imp);
+    itemFor[n.tech] = { kind: "node", node: n, tech: n.tech, imp, di: n.di, w: m.w, h: m.h, x: 0, y: 0, want: 0 };
+    items.push(itemFor[n.tech]);
   }
 
-  /* External parents: shown as a translucent oval in their own decade. */
+  /* External parents: a translucent oval tinted with their own Area's colour */
   const extItems = Object.create(null);
   for (const n of vis) {
     if (!n.extParent || !n.p1) continue;
     const p = byTech[n.p1];
-    if (!p || p.area === area) continue;
-    if (!extItems[p.tech]) {
-      const m = measure(p.name);
-      extItems[p.tech] = addItem({
-        kind: "ext", node: p, tech: "ext:" + p.tech, di: p.di,
-        w: Math.max(74, m.w + 18), h: EXT_H, x: 0, y: 0, want: 0,
-      });
-    }
-  }
-
-  /* Ghost bricks: a few of each visible brick's hidden direct children, so a
-     shallow drilldown still hints at the detail underneath it. */
-  const ghosts = [];
-  if (level > 1) {
-    for (const n of vis) {
-      const kids = (kidsOf[n.tech] || [])
-        .filter(k => k.area === area && k.imp < level)
-        .sort((a, b) => b.imp - a.imp || a.name.localeCompare(b.name))
-        .slice(0, MAX_GHOSTS);
-      for (const k of kids) {
-        ghosts.push(addItem({
-          kind: "ghost", node: k, tech: "gh:" + k.tech, di: k.di,
-          parentItem: itemFor[n.tech], w: GHOST_W, h: GHOST_H, x: 0, y: 0, want: 0,
-        }));
-      }
-    }
+    if (!p || p.area === area || extItems[p.tech]) continue;
+    const imp = Math.max(2, impOf(p.imp) - 1);
+    const m = measure(p.name, imp);
+    extItems[p.tech] = {
+      kind: "ext", node: p, tech: "ext:" + p.tech, imp, di: p.di,
+      w: Math.max(84, m.w + 20), h: EXT_H, x: 0, y: 0, want: 0,
+    };
+    items.push(extItems[p.tech]);
   }
 
   /* ---- edges ---- */
@@ -300,23 +323,36 @@ function buildLayout(area, level, width) {
   for (const n of vis) {
     const src = itemFor[n.tech];
     const drawn = new Set();
-    /* primary */
     if (n.extParent && n.p1 && byTech[n.p1] && byTech[n.p1].area !== area) {
       const t = extItems[byTech[n.p1].tech];
-      if (t) { edges.push({ from: src, to: t, rank: "ex" }); drawn.add(t.tech); }
+      if (t) { edges.push({ from: src, to: t, rank: "ex", hidden: 0 }); drawn.add(t.tech); }
     } else {
-      const t = resolve(n.p1);
-      if (t && t !== n.tech) { edges.push({ from: src, to: itemFor[t], rank: "p1" }); drawn.add(t); }
+      const r = resolve(n.p1);
+      if (r && r.tech !== n.tech) {
+        edges.push({ from: src, to: itemFor[r.tech], rank: "p1", hidden: r.hidden });
+        drawn.add(r.tech);
+      }
     }
-    /* secondary / tertiary, only when they land inside this area */
-    const t2 = resolve(n.p2);
-    if (t2 && t2 !== n.tech && !drawn.has(t2)) { edges.push({ from: src, to: itemFor[t2], rank: "p2" }); drawn.add(t2); }
-    const t3 = resolve(n.p3);
-    if (t3 && t3 !== n.tech && !drawn.has(t3)) { edges.push({ from: src, to: itemFor[t3], rank: "p3" }); drawn.add(t3); }
+    const r2 = resolve(n.p2);
+    if (r2 && r2.tech !== n.tech && !drawn.has(r2.tech)) {
+      edges.push({ from: src, to: itemFor[r2.tech], rank: "p2", hidden: r2.hidden }); drawn.add(r2.tech);
+    }
+    const r3 = resolve(n.p3);
+    if (r3 && r3.tech !== n.tech && !drawn.has(r3.tech)) {
+      edges.push({ from: src, to: itemFor[r3.tech], rank: "p3", hidden: r3.hidden });
+    }
   }
-  for (const g of ghosts) if (g.parentItem) edges.push({ from: g, to: g.parentItem, rank: "gh" });
 
-  /* parents / children adjacency for the placement sweeps */
+  /* stubs: a visible genre whose own children were filtered out keeps a short
+     fading line in the children's direction, so the branch is not lost */
+  const stubs = [];
+  if (level > 1) {
+    for (const n of vis) {
+      const hiddenKids = (kidsOf[n.tech] || []).filter(k => k.area === area && k.imp < level).length;
+      if (hiddenKids) stubs.push({ item: itemFor[n.tech], n: hiddenKids });
+    }
+  }
+
   for (const it of items) { it.up = []; it.down = []; }
   for (const e of edges) { e.from.up.push(e.to); e.to.down.push(e.from); }
 
@@ -329,9 +365,8 @@ function buildLayout(area, level, width) {
   const dis = Array.from(layers.keys()).sort((a, b) => a - b);   // oldest first
   for (const it of items) it.x = (width - it.w) / 2;
 
-  /* Within one decade there is no chronology to lean on, so rank by how deep a
-     brick sits in the same-decade parent chain: deeper = drawn in a higher row,
-     which keeps a same-decade child above the parent it came from. */
+  /* Within one decade there is no chronology to lean on, so rank by depth in
+     the same-decade parent chain and draw deeper genres nearer the "new" end. */
   for (const [di, layer] of layers) {
     const memo = new Map();
     const depth = it => {
@@ -339,11 +374,25 @@ function buildLayout(area, level, width) {
       memo.set(it, 0);
       let d = 0;
       for (const o of it.up) if (o.di === di) d = Math.max(d, depth(o) + 1);
-      memo.set(it, d);
-      return d;
+      memo.set(it, d); return d;
     };
     for (const it of layer) it.rank = 0;
     for (const it of layer) it.rank = depth(it);
+  }
+
+  /* provisional y, only so crossings can be scored between sweeps */
+  function provisionalY() {
+    const seq = flip ? dis : dis.slice().reverse();
+    let y = 0;
+    for (const di of seq) {
+      const rowsOut = packLayer(layers.get(di), width);
+      for (const r of rowsOut) {
+        let rh = 0; for (const it of r) if (it.h > rh) rh = it.h;
+        for (const it of r) it.yc = y + rh / 2;
+        y += rh + ROW_GAP;
+      }
+      y += BAND_TOP + BAND_BOTTOM;
+    }
   }
 
   function sweep(up) {
@@ -355,72 +404,172 @@ function buildLayout(area, level, width) {
         if (refs.length) {
           let s = 0; for (const o of refs) s += o.x + o.w / 2;
           it.want = s / refs.length;
-        } else {
-          it.want = it.x + it.w / 2;
-        }
+        } else it.want = it.x + it.w / 2;
       }
-      layer.sort((a, b) => b.rank - a.rank || a.want - b.want || a.w - b.w);
+      layer.sort((a, b) => (flip ? a.rank - b.rank : b.rank - a.rank)
+        || a.want - b.want || a.w - b.w);
       packLayer(layer, width);
     }
   }
-  sweep(true); sweep(false); sweep(true);
 
-  /* ---- vertical: newest band on top ---- */
-  const bands = [];
+  /* Alternate barycentre sweeps and keep whichever pass crosses least. */
+  let best = null, bestScore = Infinity;
+  for (let pass = 0; pass < 6; pass++) {
+    sweep(true); sweep(false);
+    provisionalY();
+    const sc = countCrossings(edges);
+    if (sc < bestScore) {
+      bestScore = sc;
+      best = { x: items.map(it => it.x), ord: dis.map(di => layers.get(di).slice()) };
+    }
+    if (sc === 0) break;
+  }
+  if (best) {
+    items.forEach((it, i) => { it.x = best.x[i]; });
+    dis.forEach((di, i) => layers.set(di, best.ord[i]));
+  }
+
+  /* ---- vertical placement, band by band ---- */
+  const bands = [], rows = [];
   let y = 0;
-  const top = dis.slice().reverse();                              // newest first
-  for (let bi = 0; bi < top.length; bi++) {
-    const di = top[bi];
+  const seq = flip ? dis : dis.slice().reverse();
+  for (let bi = 0; bi < seq.length; bi++) {
+    const di = seq[bi];
     const layer = layers.get(di);
     const rowsOut = packLayer(layer, width);
     const bandTop = y;
     let ry = y + BAND_TOP;
     for (const r of rowsOut) {
       let rh = 0; for (const it of r) if (it.h > rh) rh = it.h;
+      const rowIdx = rows.length;
+      let yTop = Infinity, yBot = -Infinity;
       for (const it of r) {
-        /* nudge each brick off its row's baseline so parallel connectors
-           don't all run at the same height */
         const j = (hash32(it.tech) % (2 * JITTER + 1)) - JITTER;
         it.y = ry + (rh - it.h) / 2 + j;
-        it.rowTop = ry; it.rowBottom = ry + rh;   // nominal, jitter-free
+        it.row = rowIdx;
+        if (it.y < yTop) yTop = it.y;
+        if (it.y + it.h > yBot) yBot = it.y + it.h;
       }
+      rows.push({ yTop, yBot, items: r.slice() });
       ry += rh + ROW_GAP;
     }
     y = ry - ROW_GAP + BAND_BOTTOM;
     bands.push({ di, top: bandTop, bottom: y, first: bi === 0 });
   }
+  for (const it of items) { it.cx = it.x + it.w / 2; it.cy = it.y + it.h / 2; }
 
-  for (const it of items) {
-    it.cx = it.x + it.w / 2; it.cy = it.y + it.h / 2;
-    it.eOut = []; it.eIn = [];
+  /* free horizontal channels per row, for the connector router */
+  for (const r of rows) {
+    const blocked = r.items.map(it => [it.x - CLEAR, it.x + it.w + CLEAR])
+      .sort((a, b) => a[0] - b[0]);
+    const gaps = [];
+    let cursor = 2;
+    for (const b of blocked) {
+      if (b[0] > cursor) gaps.push([cursor, b[0]]);
+      if (b[1] > cursor) cursor = b[1];
+    }
+    if (cursor < width - 2) gaps.push([cursor, width - 2]);
+    r.free = gaps.filter(f => f[1] - f[0] >= CHANNEL);
+    /* a row packed edge to edge still needs one channel: take its widest gap */
+    if (!r.free.length && gaps.length) {
+      r.free = [gaps.reduce((a, b) => (b[1] - b[0] > a[1] - a[0] ? b : a))];
+    }
   }
+
+  /* ---- connector anchors ---- */
+  for (const it of items) { it.eOut = []; it.eIn = []; }
   for (const e of edges) { e.from.eOut.push(e); e.to.eIn.push(e); }
   for (const it of items) {
-    const inset = Math.min(7, it.w / 4);
+    const inset = Math.min(9, it.w / 4);
     it.eOut.sort((a, b) => a.to.cx - b.to.cx);
-    it.eOut.forEach((e, i) => {
-      e.ax = it.x + inset + (it.w - 2 * inset) * ((i + 1) / (it.eOut.length + 1));
-    });
+    it.eOut.forEach((e, i) => { e.ax = it.x + inset + (it.w - 2 * inset) * ((i + 1) / (it.eOut.length + 1)); });
     it.eIn.sort((a, b) => a.from.cx - b.from.cx);
-    it.eIn.forEach((e, i) => {
-      e.bx = it.x + inset + (it.w - 2 * inset) * ((i + 1) / (it.eIn.length + 1));
-    });
-  }
-  /* Each connector drops straight down from the child and only turns sideways
-     in the clear gap just above its parent, at its own height inside that gap,
-     so long runs fan out across the children instead of stacking into one
-     cable above the parent. */
-  const jogBand = Math.max(3, ROW_GAP - 2 * JITTER - 2);
-  for (const e of edges) {
-    e.jog = e.to.rowTop - ROW_GAP + JITTER + 1
-      + (hash32(e.from.tech + ">" + e.to.tech) % jogBand);
+    it.eIn.forEach((e, i) => { e.bx = it.x + inset + (it.w - 2 * inset) * ((i + 1) / (it.eIn.length + 1)); });
   }
 
-  const out = { area, level, width, items, edges, bands, height: y + 56, itemFor };
+  /* ---- route every connector through the free channels ---- */
+  for (const e of edges) e.pts = routeEdge(e, rows, width, flip);
+  for (const s of stubs) s.seg = stubSegments(s.item, rows, flip);
+
+  const out = { area, level, flip, width, items, edges, stubs, rows, bands,
+    height: y + 64, itemFor, crossings: bestScore };
   layoutCache[key] = out;
   return out;
 }
 
+/* ------------------------------------------------------- connector router */
+
+function inFree(row, x) {
+  for (const f of row.free) if (x >= f[0] + 1.5 && x <= f[1] - 1.5) return true;
+  return false;
+}
+function nearestFree(row, x, bias) {
+  if (!row.free.length) return x;
+  let bestX = x, bestD = Infinity;
+  for (const f of row.free) {
+    const mid = (f[0] + f[1]) / 2;
+    const lo = Math.min(f[0] + 1.5, mid), hi = Math.max(f[1] - 1.5, mid);
+    const p = x < lo ? lo : x > hi ? hi : x;
+    const d = Math.abs(p - x) * 1000 + Math.abs(p - bias);
+    if (d < bestD) { bestD = d; bestX = p; }
+  }
+  return bestX;
+}
+function corridorY(rows, a, b, seed) {
+  const lo = rows[Math.min(a, b)].yBot + 3;
+  const hi = rows[Math.max(a, b)].yTop - 3;
+  if (hi <= lo) return (rows[Math.min(a, b)].yBot + rows[Math.max(a, b)].yTop) / 2;
+  return lo + (seed % Math.max(1, Math.round(hi - lo)));
+}
+
+/* Child first, parent second: the line leaves the child, travels only through
+   the gaps between rows, and never passes under a brick or an oval. */
+function routeEdge(e, rows, width, flip) {
+  const from = e.from, to = e.to;
+  const ci = from.row, pi = to.row;
+  const seed = hash32(from.tech + ">" + to.tech);
+  if (ci === pi) {
+    /* same row: hop around the side */
+    const dir = from.cx < to.cx ? 1 : -1;
+    return { side: true, a: [dir > 0 ? from.x + from.w : from.x, from.cy],
+      b: [dir > 0 ? to.x : to.x + to.w, to.cy], dir: dir };
+  }
+  const dir = pi > ci ? 1 : -1;
+  let x = e.ax;
+  const pts = [[x, dir > 0 ? from.y + from.h : from.y]];
+  for (let k = ci; k !== pi; k += dir) {
+    const next = k + dir;
+    const cy = corridorY(rows, k, next, seed + k * 37);
+    if (next === pi) {
+      pts.push([x, cy]);
+      if (Math.abs(e.bx - x) > 0.5) pts.push([e.bx, cy]);
+      x = e.bx;
+    } else if (!inFree(rows[next], x)) {
+      const nx = nearestFree(rows[next], x, e.bx);
+      pts.push([x, cy]);
+      if (Math.abs(nx - x) > 0.5) pts.push([nx, cy]);
+      x = nx;
+    }
+  }
+  pts.push([x, dir > 0 ? to.y : to.y + to.h]);
+  return { pts };
+}
+
+/* Four shortening segments read as a line fading out into nothing. */
+function stubSegments(it, rows, flip) {
+  const dir = flip ? 1 : -1;                     // toward the children
+  const x = it.x + it.w * 0.82;
+  const edge = dir > 0 ? it.y + it.h : it.y;
+  let room = STUB_LEN;
+  const nb = rows[it.row + dir];
+  if (nb) room = Math.min(STUB_LEN, dir > 0 ? nb.yTop - edge - 3 : edge - nb.yBot - 3);
+  if (room < 8) return null;
+  const segs = [], n = 4, step = room / n;
+  for (let i = 0; i < n; i++) {
+    segs.push([x, edge + dir * i * step, x, edge + dir * (i + 1) * step]);
+  }
+  return segs;
+}
 
 /* ------------------------------------------------------------------- draw */
 
@@ -431,29 +580,27 @@ const areaNameEl = document.getElementById("areaName");
 const tipEl = document.getElementById("tip");
 const scrimEl = document.getElementById("scrim");
 const hintEl = document.getElementById("scrollHint");
+const hintText = document.getElementById("hintText");
+const flipBtn = document.getElementById("flipBtn");
 const fadeTop = document.getElementById("fadeTop");
 const fadeBottom = document.getElementById("fadeBottom");
 
-const PAD_L = 10, PAD_R = 50;
+const PAD_L = 12, PAD_R = 52;
 const ZOOM = .84;
 const EDGE_STYLE = {
-  p1: { w: 2.0, o: .62 },
+  p1: { w: 2.1, o: .62 },
   p2: { w: 1.0, o: .30 },
   p3: { w: .55, o: .24, dash: "1.2 3.2" },
   ex: { w: .9, o: .28, dash: "3 4" },
-  gh: { w: .7, o: .10 },
 };
 
 let curAreaIdx = 0;
 let curLevel = 3;
+let curFlip = false;
 let hintTimer = null;
 
-/* Three side-by-side panes: previous area, current area, next area. The track
-   slides horizontally so a swipe carries one out while the next comes in. */
 const panes = Array.prototype.map.call(track.children, el => ({
-  el,
-  stage: el.querySelector(".stage"),
-  svg: el.querySelector(".edges"),
+  el, stage: el.querySelector(".stage"), svg: el.querySelector(".edges"),
   area: null, layout: null, focused: null, selEl: null,
 }));
 const active = () => panes[1];
@@ -467,33 +614,47 @@ function applyScheme(el, area) {
   for (const k in sc) el.style.setProperty(k, sc[k]);
 }
 
-function edgePath(from, to, jog) {
-  const x1 = from.ax, y1 = from.y + from.h;    // child sits above its parent
-  const x2 = to.bx, y2 = to.y;
-  if (y2 < y1 + 10) {
-    const sy = from.cy, ey = to.cy;
-    const dx = Math.abs(to.cx - from.cx), bow = Math.min(26, Math.max(12, dx * .3));
-    const dir = from.cx < to.cx ? 1 : -1;
-    const sx = dir > 0 ? from.x + from.w : from.x;
-    const ex = dir > 0 ? to.x : to.x + to.w;
-    return "M" + sx + " " + sy + "C" + (sx + dir * bow) + " " + sy
-      + "," + (ex - dir * bow) + " " + ey + "," + ex + " " + ey;
+/* rounded-corner polyline */
+function polyPath(pts, r) {
+  if (pts.length < 2) return "";
+  let d = "M" + pts[0][0].toFixed(1) + " " + pts[0][1].toFixed(1);
+  for (let i = 1; i < pts.length - 1; i++) {
+    const p = pts[i], a = pts[i - 1], b = pts[i + 1];
+    const d1 = Math.hypot(p[0] - a[0], p[1] - a[1]);
+    const d2 = Math.hypot(b[0] - p[0], b[1] - p[1]);
+    const rr = Math.min(r, d1 / 2, d2 / 2);
+    if (rr < 1) { d += "L" + p[0].toFixed(1) + " " + p[1].toFixed(1); continue; }
+    const u1 = [(p[0] - a[0]) / d1, (p[1] - a[1]) / d1];
+    const u2 = [(b[0] - p[0]) / d2, (b[1] - p[1]) / d2];
+    d += "L" + (p[0] - u1[0] * rr).toFixed(1) + " " + (p[1] - u1[1] * rr).toFixed(1)
+      + "Q" + p[0].toFixed(1) + " " + p[1].toFixed(1) + " "
+      + (p[0] + u2[0] * rr).toFixed(1) + " " + (p[1] + u2[1] * rr).toFixed(1);
   }
-  if (Math.abs(x2 - x1) < 1.5) return "M" + x1 + " " + y1 + "V" + y2;
-  /* Travel sideways in the clear gap just below the child, then drop straight
-     down. Keeps the long runs vertical instead of cutting across bricks. */
-  let my = jog === undefined ? y1 + (y2 - y1) * 0.5 : jog;
-  const half = y1 + (y2 - y1) * 0.5;
-  if (my < y1 + 5) my = Math.min(half, y1 + 5);
-  if (my > y2 - 5) my = Math.max(half, y2 - 5);
-  const r = Math.min(8, Math.abs(x2 - x1) / 2, (my - y1), (y2 - my));
-  const s = x2 > x1 ? 1 : -1;
-  return "M" + x1 + " " + y1
-    + "V" + (my - r)
-    + "Q" + x1 + " " + my + " " + (x1 + s * r) + " " + my
-    + "H" + (x2 - s * r)
-    + "Q" + x2 + " " + my + " " + x2 + " " + (my + r)
-    + "V" + y2;
+  const L = pts[pts.length - 1];
+  return d + "L" + L[0].toFixed(1) + " " + L[1].toFixed(1);
+}
+function sidePath(rt) {
+  const bow = Math.min(30, Math.max(14, Math.abs(rt.b[0] - rt.a[0]) * .35));
+  return "M" + rt.a[0] + " " + rt.a[1] + "C" + (rt.a[0] + rt.dir * bow) + " " + rt.a[1]
+    + "," + (rt.b[0] - rt.dir * bow) + " " + rt.b[1] + "," + rt.b[0] + " " + rt.b[1];
+}
+/* evenly spaced points along a polyline, for the "omitted genre" blocks */
+function alongPoly(pts, n) {
+  const segs = [], out = [];
+  let total = 0;
+  for (let i = 1; i < pts.length; i++) {
+    const L = Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]);
+    segs.push(L); total += L;
+  }
+  if (!total) return out;
+  for (let k = 1; k <= n; k++) {
+    let t = total * k / (n + 1), i = 0;
+    while (i < segs.length && t > segs[i]) { t -= segs[i]; i++; }
+    if (i >= segs.length) i = segs.length - 1;
+    const a = pts[i], b = pts[i + 1], f = segs[i] ? t / segs[i] : 0;
+    out.push([a[0] + (b[0] - a[0]) * f, a[1] + (b[1] - a[1]) * f]);
+  }
+  return out;
 }
 
 function renderPane(pane, area, level) {
@@ -504,7 +665,7 @@ function renderPane(pane, area, level) {
   pane.stage.style.transform = "";
 
   const width = Math.max(200, pane.el.clientWidth - PAD_L - PAD_R);
-  const L = buildLayout(area, level, width);
+  const L = buildLayout(area, level, width, curFlip);
   pane.layout = L;
 
   let html = "";
@@ -516,41 +677,65 @@ function renderPane(pane, area, level) {
   }
   for (let i = 0; i < L.items.length; i++) {
     const it = L.items[i];
-    const style = "left:" + (it.x + PAD_L).toFixed(1) + "px;top:" + it.y.toFixed(1)
+    let style = "left:" + (it.x + PAD_L).toFixed(1) + "px;top:" + it.y.toFixed(1)
       + "px;width:" + it.w.toFixed(1) + "px;height:" + it.h + "px";
-    if (it.kind === "ghost") {
-      html += '<div class="brick ghost" style="' + style + '"></div>';
-    } else if (it.kind === "ext") {
+    if (it.kind === "ext") {
+      const hs = AREA_HUE[it.node.area] || [215, 18];
+      const h = hs[0], s = hs[1];
+      style += ";--x-line:hsl(" + h + " " + Math.round(s * .95) + "% 74% / .48)"
+        + ";--x-fill:hsl(" + h + " " + Math.round(s * .7) + "% 30% / .30)"
+        + ";--x-ink:hsl(" + h + " " + Math.round(s * .35) + "% 86% / .78)";
       html += '<div class="brick ext" data-i="' + i + '" style="' + style + '"><span>'
         + esc(it.node.name) + '<span class="xarea">'
         + esc(areaDisplay[it.node.area] || it.node.area) + "</span></span></div>";
     } else {
-      html += '<div class="brick" data-i="' + i + '" style="' + style + '">' + esc(it.node.name) + "</div>";
+      html += '<div class="brick i' + it.imp + '" data-i="' + i + '" style="' + style + '">'
+        + esc(it.node.name) + "</div>";
     }
   }
 
-  for (const it of L.items) { it.px = it.x + PAD_L; it.pcx = it.cx + PAD_L; }
-  let sv = "";
+  /* svg geometry shares the same PAD_L offset as the bricks */
+  let sv = "", duds = "";
   for (let i = 0; i < L.edges.length; i++) {
     const e = L.edges[i], st = EDGE_STYLE[e.rank];
-    const from = { cx: e.from.pcx, ax: e.ax + PAD_L, x: e.from.px, w: e.from.w, y: e.from.y, h: e.from.h, cy: e.from.cy };
-    const to = { cx: e.to.pcx, bx: e.bx + PAD_L, x: e.to.px, w: e.to.w, y: e.to.y, h: e.to.h, cy: e.to.cy };
-    sv += '<path class="e ' + e.rank + '" data-e="' + i + '" d="' + edgePath(from, to, e.jog)
+    let d, pts = null;
+    if (e.pts.side) {
+      const rt = e.pts;
+      d = sidePath({ a: [rt.a[0] + PAD_L, rt.a[1]], b: [rt.b[0] + PAD_L, rt.b[1]], dir: rt.dir });
+    } else {
+      pts = e.pts.pts.map(p => [p[0] + PAD_L, p[1]]);
+      d = polyPath(pts, 8);
+    }
+    sv += '<path class="e ' + e.rank + '" data-e="' + i + '" d="' + d
       + '" fill="none" stroke-width="' + st.w + '" opacity="' + st.o + '"'
       + (st.dash ? ' stroke-dasharray="' + st.dash + '"' : "") + ' stroke-linecap="round"></path>';
+    if (pts && e.hidden > 0 && e.rank !== "ex") {
+      for (const p of alongPoly(pts, Math.min(MAX_DUDS, e.hidden))) {
+        duds += '<rect class="dud" x="' + (p[0] - 6.5).toFixed(1) + '" y="' + (p[1] - 3.5).toFixed(1)
+          + '" width="13" height="7" rx="1.5"></rect>';
+      }
+    }
+  }
+  let stubHtml = "";
+  for (const s of L.stubs) {
+    if (!s.seg) continue;
+    const fade = [.5, .32, .18, .07];
+    s.seg.forEach((g, k) => {
+      stubHtml += '<line class="stub" x1="' + (g[0] + PAD_L).toFixed(1) + '" y1="' + g[1].toFixed(1)
+        + '" x2="' + (g[2] + PAD_L).toFixed(1) + '" y2="' + g[3].toFixed(1)
+        + '" stroke-width="1.6" opacity="' + fade[k] + '" stroke-linecap="round"></line>';
+    });
   }
 
   pane.svg.setAttribute("width", width + PAD_L + PAD_R);
   pane.svg.setAttribute("height", L.height);
-  pane.svg.innerHTML = sv;
+  pane.svg.innerHTML = sv + stubHtml + duds;
   for (const k of pane.stage.querySelectorAll(".brick,.band")) k.remove();
   pane.stage.insertAdjacentHTML("beforeend", html);
   pane.stage.style.height = L.height + "px";
   pane.el.scrollTop = 0;
 }
 
-/* The header shows whichever area the carousel is closest to, so the title and
-   the page colours change mid-swipe rather than snapping at the end. */
 let headerIdx = -1;
 function setHeader(idx) {
   if (idx === headerIdx) return;
@@ -559,8 +744,6 @@ function setHeader(idx) {
   areaNameEl.textContent = areaDisplay[area] || area;
   applyScheme(document.documentElement, area);
 }
-
-/* Repaint all three panes around the current index. */
 function paintAll() {
   for (let s = 0; s < 3; s++) renderPane(panes[s], order[wrapIdx(curAreaIdx + s - 1)], curLevel);
   headerIdx = -1;
@@ -572,7 +755,7 @@ function paintAll() {
 
 /* --------------------------------------------------------------- carousel */
 
-const CENTER = -100 / 3;                       // track is 300% wide
+const CENTER = -100 / 3;
 function setTrack(px, animate) {
   track.classList.toggle("anim", !!animate);
   track.style.transform = "translate3d(calc(" + CENTER + "% + " + px + "px),0,0)";
@@ -587,20 +770,14 @@ function goTo(idx, dir) {
   curAreaIdx = wrapIdx(idx);
   setHeader(curAreaIdx);
   setTrack(-step * viewport.clientWidth, true);
-  setTimeout(() => {
-    setTrack(0, false);
-    paintAll();
-    sliding = false;
-  }, 300);
+  setTimeout(() => { setTrack(0, false); paintAll(); sliding = false; }, 300);
 }
 
 let ptrId = null, sx = 0, sy = 0, axis = null, dx = 0, lockX = false;
-
 function onDown(e, forceX) {
   if (sliding || scrimEl.classList.contains("show")) return;
   if (e.pointerType === "mouse" && e.button !== 0) return;
-  ptrId = e.pointerId; sx = e.clientX; sy = e.clientY; dx = 0;
-  axis = forceX ? null : null; lockX = !!forceX;
+  ptrId = e.pointerId; sx = e.clientX; sy = e.clientY; dx = 0; axis = null; lockX = !!forceX;
 }
 function onMove(e) {
   if (e.pointerId !== ptrId || sliding) return;
@@ -619,7 +796,7 @@ function onMove(e) {
   const half = viewport.clientWidth * .45;
   setHeader(wrapIdx(curAreaIdx + (dx <= -half ? 1 : dx >= half ? -1 : 0)));
 }
-function onUp(e) {
+function onUp() {
   if (ptrId === null) return;
   ptrId = null;
   if (axis !== "x") { axis = null; return; }
@@ -630,23 +807,36 @@ function onUp(e) {
   else { setHeader(curAreaIdx); setTrack(0, true); }
   dx = 0;
 }
-
 track.addEventListener("pointerdown", e => onDown(e, false), { passive: true });
 track.addEventListener("pointermove", onMove, { passive: false });
 track.addEventListener("pointerup", onUp, { passive: true });
 track.addEventListener("pointercancel", onUp, { passive: true });
-
-/* the title strip swipes too */
-areabar.addEventListener("pointerdown", e => {
-  if (e.target.closest(".chev")) return;
-  onDown(e, true);
-}, { passive: true });
+areabar.addEventListener("pointerdown", e => { if (!e.target.closest(".chev")) onDown(e, true); }, { passive: true });
 areabar.addEventListener("pointermove", onMove, { passive: false });
 areabar.addEventListener("pointerup", onUp, { passive: true });
 areabar.addEventListener("pointercancel", onUp, { passive: true });
 
 document.getElementById("prevArea").addEventListener("click", () => goTo(curAreaIdx - 1, -1));
 document.getElementById("nextArea").addEventListener("click", () => goTo(curAreaIdx + 1, 1));
+
+window.addEventListener("keydown", e => {
+  if (e.metaKey || e.ctrlKey || e.altKey) return;
+  if (e.key === "Escape" && scrimEl.classList.contains("show")) { closeSheet(); return; }
+  if (scrimEl.classList.contains("show")) return;
+  if (e.key === "ArrowLeft") { e.preventDefault(); goTo(curAreaIdx - 1, -1); }
+  else if (e.key === "ArrowRight") { e.preventDefault(); goTo(curAreaIdx + 1, 1); }
+});
+
+/* ------------------------------------------------------------- time flip */
+
+function setFlip(on) {
+  curFlip = !!on;
+  flipBtn.classList.toggle("down", curFlip);
+  flipBtn.setAttribute("aria-label", curFlip ? "Show newest first" : "Show oldest first");
+  hintText.textContent = curFlip ? "scroll down for the future" : "scroll down for the past";
+  paintAll();
+}
+flipBtn.addEventListener("click", () => setFlip(!curFlip));
 
 /* -------------------------------------------------------------- drilldown */
 
@@ -660,7 +850,7 @@ const dlevels = document.getElementById("dlevels");
   for (const lv of [5, 4, 3, 2, 1]) {
     const prem = lv <= 2;
     html += '<button class="dstep' + (prem ? " premium" : "") + '" data-lv="' + lv + '">'
-      + '<span class="dnum">' + lv + "</span><span class=\"dblip\"></span>"
+      + '<span class="dnum">' + lv + '</span><span class="dblip"></span>'
       + (prem ? LOCK_SVG : "") + '<span class="dhit"></span></button>';
   }
   dlevels.innerHTML = html;
@@ -672,7 +862,6 @@ const dlevels = document.getElementById("dlevels");
     if (lv <= 2) showTipAt(b, "Premium Feature", true, 1900);
   });
 })();
-
 function setLevel(lv) {
   curLevel = lv;
   for (const b of dlevels.querySelectorAll(".dstep")) b.classList.toggle("on", +b.dataset.lv === lv);
@@ -681,9 +870,6 @@ function setLevel(lv) {
 
 /* ------------------------------------------------------- focus on lineage */
 
-/* Everything the genre descends from and everything descended from it: the
-   primary-parent spine walked both ways, plus the node's own secondary and
-   tertiary links. */
 function lineageOf(L, item) {
   const inSet = new Set([item]), edgeSet = new Set();
   const up = new Map(), down = new Map();
@@ -699,17 +885,16 @@ function lineageOf(L, item) {
     while (stack.length) {
       const cur = stack.pop();
       for (const pair of (map.get(cur) || [])) {
-        const e = pair[0];
-        if (!spine(e.rank)) continue;
+        if (!spine(pair[0].rank)) continue;
         edgeSet.add(pair[1]);
-        const nxt = pick(e);
+        const nxt = pick(pair[0]);
         inSet.add(nxt);
         if (!seen.has(nxt)) { seen.add(nxt); stack.push(nxt); }
       }
     }
   };
-  walk(item, up, e => e.to);       // ancestors
-  walk(item, down, e => e.from);   // descendants
+  walk(item, up, e => e.to);
+  walk(item, down, e => e.from);
   for (const pair of (up.get(item) || [])) { edgeSet.add(pair[1]); inSet.add(pair[0].to); }
   for (const pair of (down.get(item) || [])) { edgeSet.add(pair[1]); inSet.add(pair[0].from); }
   return { inSet, edgeSet };
@@ -726,23 +911,17 @@ function focusItem(pane, item, el) {
     b.classList.toggle("sel", b === el);
   }
   for (const p of pane.svg.querySelectorAll(".e")) p.classList.toggle("rel", lin.edgeSet.has(+p.dataset.e));
-
-  /* Scale from the top edge and compensate the scroll position, so the tapped
-     brick stays put and the whole diagram is still scrollable end to end. */
   const before = pane.el.scrollTop;
   pane.stage.style.transformOrigin = "50% 0";
   pane.stage.style.transform = "scale(" + ZOOM + ")";
   pane.stage.style.height = (L.height * ZOOM) + "px";
   pane.el.classList.add("focus");
-  const want = item.cy * ZOOM - item.cy + before;
-  pane.el.scrollTop = Math.max(0, want);
+  pane.el.scrollTop = Math.max(0, item.cy * ZOOM - item.cy + before);
   trackTip(pane);
 }
-
 function unfocus(pane) {
   if (!pane.focused) return;
-  const L = pane.layout, item = pane.focused;
-  const before = pane.el.scrollTop;
+  const L = pane.layout, item = pane.focused, before = pane.el.scrollTop;
   pane.focused = null; pane.selEl = null;
   pane.el.classList.remove("focus");
   pane.stage.style.transform = "";
@@ -804,13 +983,9 @@ function trackTip(pane) {
   positionTip(pane);
   tipEl.classList.add("show");
   clearTimeout(tipTimer);
-  /* follow the brick while the zoom transition plays out */
   const t0 = performance.now();
   cancelAnimationFrame(tipRaf);
-  const step = () => {
-    positionTip(pane);
-    if (performance.now() - t0 < 420) tipRaf = requestAnimationFrame(step);
-  };
+  const step = () => { positionTip(pane); if (performance.now() - t0 < 420) tipRaf = requestAnimationFrame(step); };
   tipRaf = requestAnimationFrame(step);
 }
 tipEl.addEventListener("click", () => {
@@ -861,9 +1036,9 @@ function updateFades() {
 function showHint() {
   clearTimeout(hintTimer);
   hintEl.classList.remove("show");
-  const el = active().el;
-  if (el.scrollHeight - el.clientHeight < 40) return;
   hintTimer = setTimeout(() => {
+    const el = active().el;
+    if (el.scrollHeight - el.clientHeight < 60) return;
     hintEl.classList.add("show");
     hintTimer = setTimeout(() => hintEl.classList.remove("show"), 2600);
   }, 320);
@@ -878,6 +1053,7 @@ window.addEventListener("resize", () => {
 /* ------------------------------------------------------------------- boot */
 
 for (const b of dlevels.querySelectorAll(".dstep")) b.classList.toggle("on", +b.dataset.lv === curLevel);
+hintText.textContent = "scroll down for the past";
 setTrack(0, false);
 paintAll();
 const loading = document.getElementById("loading");
@@ -891,9 +1067,9 @@ window.__genreMap = {
   get layout() { return active().layout; },
   get order() { return order; },
   get level() { return curLevel; },
+  get flip() { return curFlip; },
   get areaIdx() { return curAreaIdx; },
-  setLevel,
+  setLevel, setFlip, goTo, focusItem, unfocus, openSheet, lineageOf, scheme, PAD_L,
   setArea(i) { curAreaIdx = wrapIdx(i); paintAll(); },
-  goTo, focusItem, unfocus, openSheet, lineageOf, scheme,
 };
 }));
