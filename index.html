@@ -471,12 +471,13 @@ function measure(text, imp) {
 
 /* ---------------------------------------------------------------- layout */
 
-const GAP_X = 18, ROW_GAP = 26, JITTER = 4;
-const BAND_TOP = 32, BAND_BOTTOM = 22;
+const GAP_X = 22, ROW_GAP = 38;
+const BAND_TOP = 34, BAND_BOTTOM = 24;
 const EXT_H = 34;
 const CLEAR = 4;          // keep-out margin around a brick for routed lines
-const CHANNEL = 4;        // narrowest gap a connector is allowed to thread
-const STUB_LEN = 24;      // length of the "there is more here" stub
+const LANE = 4;           // minimum distance between two parallel connectors
+const HOP = 3.4;          // radius of the little jump drawn over a crossing
+const STUB_LEN = 26;      // length of the "there is more here" stub
 const MAX_DUDS = 3;
 
 /* 1-D placement inside one row: keep the given order and the minimum gaps,
@@ -713,8 +714,7 @@ function buildLayout(area, level, width, flip) {
       const rowIdx = rows.length;
       let yTop = Infinity, yBot = -Infinity;
       for (const it of r) {
-        const j = (hash32(it.tech) % (2 * JITTER + 1)) - JITTER;
-        it.y = ry + (rh - it.h) / 2 + j;
+        it.y = ry + (rh - it.h) / 2;
         it.row = rowIdx;
         if (it.y < yTop) yTop = it.y;
         if (it.y + it.h > yBot) yBot = it.y + it.h;
@@ -727,22 +727,46 @@ function buildLayout(area, level, width, flip) {
   }
   for (const it of items) { it.cx = it.x + it.w / 2; it.cy = it.y + it.h / 2; }
 
-  /* free horizontal channels per row, for the connector router */
+  /* Vertical lanes: every row is sliced into discrete channels, LANE apart, in
+     the gaps between its bricks. A connector crossing a row books one lane, so
+     two connectors can never run closer than LANE to each other. */
   for (const r of rows) {
     const blocked = r.items.map(it => [it.x - CLEAR, it.x + it.w + CLEAR])
       .sort((a, b) => a[0] - b[0]);
     const gaps = [];
-    let cursor = 2;
+    let cursor = 1;
     for (const b of blocked) {
       if (b[0] > cursor) gaps.push([cursor, b[0]]);
       if (b[1] > cursor) cursor = b[1];
     }
-    if (cursor < width - 2) gaps.push([cursor, width - 2]);
-    r.free = gaps.filter(f => f[1] - f[0] >= CHANNEL);
-    /* a row packed edge to edge still needs one channel: take its widest gap */
-    if (!r.free.length && gaps.length) {
-      r.free = [gaps.reduce((a, b) => (b[1] - b[0] > a[1] - a[0] ? b : a))];
+    if (cursor < width - 1) gaps.push([cursor, width - 1]);
+    r.blocked = blocked;
+  }
+
+  /* One global column grid, LANE apart, spanning the whole diagram. A long
+     vertical run books a column over its whole length, so no two runs can end
+     up in the same column — not even in neighbouring rows. */
+  const cols = [];
+  for (let x = 2; x <= width - 2; x += LANE) cols.push(x);
+  const colOcc = cols.map(() => []);
+  for (const r of rows) {
+    r.colFree = new Uint8Array(cols.length);
+    for (let i = 0; i < cols.length; i++) {
+      let free = 1;
+      for (const b of r.blocked) if (cols[i] > b[0] && cols[i] < b[1]) { free = 0; break; }
+      r.colFree[i] = free;
     }
+  }
+
+  /* Horizontal lanes: the gap between two consecutive rows is sliced the same
+     way. A sideways run books the first lane whose span is still free. */
+  const corridors = [];
+  for (let i = 0; i + 1 < rows.length; i++) {
+    const lo = rows[i].yBot + 3, hi = rows[i + 1].yTop - 3;
+    const ys = [];
+    if (hi > lo) for (let y = lo; y <= hi; y += LANE) ys.push(y);
+    if (!ys.length) ys.push((rows[i].yBot + rows[i + 1].yTop) / 2);
+    corridors.push({ ys: ys, occ: ys.map(() => []) });
   }
 
   /* ---- connector anchors ---- */
@@ -756,9 +780,14 @@ function buildLayout(area, level, width, flip) {
     it.eIn.forEach((e, i) => { e.bx = it.x + inset + (it.w - 2 * inset) * ((i + 1) / (it.eIn.length + 1)); });
   }
 
-  /* ---- route every connector through the free channels ---- */
-  for (const e of edges) e.pts = routeEdge(e, rows, width, flip);
+  /* ---- route every connector through the lanes ---- */
+  const RANK_ORDER = { p1: 0, ex: 1, p2: 2, p3: 3 };
+  const routeOrder = edges.slice().sort((a, b) =>
+    RANK_ORDER[a.rank] - RANK_ORDER[b.rank]
+    || Math.abs(a.from.row - a.to.row) - Math.abs(b.from.row - b.to.row));
+  for (const e of routeOrder) e.pts = routeEdge(e, rows, corridors, cols, colOcc);
   for (const s of stubs) s.seg = stubSegments(s.item, rows, flip);
+  markCrossings(edges);
 
   const out = { area, level, flip, width, items, edges, stubs, rows, bands,
     height: y + 64, itemFor, crossings: bestScore };
@@ -768,60 +797,153 @@ function buildLayout(area, level, width, flip) {
 
 /* ------------------------------------------------------- connector router */
 
-function inFree(row, x) {
-  for (const f of row.free) if (x >= f[0] + 1.5 && x <= f[1] - 1.5) return true;
-  return false;
-}
-function nearestFree(row, x, bias) {
-  if (!row.free.length) return x;
-  let bestX = x, bestD = Infinity;
-  for (const f of row.free) {
-    const mid = (f[0] + f[1]) / 2;
-    const lo = Math.min(f[0] + 1.5, mid), hi = Math.max(f[1] - 1.5, mid);
-    const p = x < lo ? lo : x > hi ? hi : x;
-    const d = Math.abs(p - x) * 1000 + Math.abs(p - bias);
-    if (d < bestD) { bestD = d; bestX = p; }
+/* Book a horizontal lane whose span [x1,x2] is still clear in this corridor. */
+function takeCorrLane(c, x1, x2, want) {
+  const a = Math.min(x1, x2) - LANE, b = Math.max(x1, x2) + LANE;
+  let best = -1, bestD = Infinity;
+  for (let i = 0; i < c.ys.length; i++) {
+    let clash = false;
+    for (const iv of c.occ[i]) if (a < iv[1] && b > iv[0]) { clash = true; break; }
+    if (clash) continue;
+    const d = Math.abs(c.ys[i] - want);
+    if (d < bestD) { bestD = d; best = i; }
   }
-  return bestX;
-}
-function corridorY(rows, a, b, seed) {
-  const lo = rows[Math.min(a, b)].yBot + 3;
-  const hi = rows[Math.max(a, b)].yTop - 3;
-  if (hi <= lo) return (rows[Math.min(a, b)].yBot + rows[Math.max(a, b)].yTop) / 2;
-  return lo + (seed % Math.max(1, Math.round(hi - lo)));
-}
-
-/* Child first, parent second: the line leaves the child, travels only through
-   the gaps between rows, and never passes under a brick or an oval. */
-function routeEdge(e, rows, width, flip) {
-  const from = e.from, to = e.to;
-  const ci = from.row, pi = to.row;
-  const seed = hash32(from.tech + ">" + to.tech);
-  if (ci === pi) {
-    /* same row: hop around the side */
-    const dir = from.cx < to.cx ? 1 : -1;
-    return { side: true, a: [dir > 0 ? from.x + from.w : from.x, from.cy],
-      b: [dir > 0 ? to.x : to.x + to.w, to.cy], dir: dir };
-  }
-  const dir = pi > ci ? 1 : -1;
-  let x = e.ax;
-  const pts = [[x, dir > 0 ? from.y + from.h : from.y]];
-  for (let k = ci; k !== pi; k += dir) {
-    const next = k + dir;
-    const cy = corridorY(rows, k, next, seed + k * 37);
-    if (next === pi) {
-      pts.push([x, cy]);
-      if (Math.abs(e.bx - x) > 0.5) pts.push([e.bx, cy]);
-      x = e.bx;
-    } else if (!inFree(rows[next], x)) {
-      const nx = nearestFree(rows[next], x, e.bx);
-      pts.push([x, cy]);
-      if (Math.abs(nx - x) > 0.5) pts.push([nx, cy]);
-      x = nx;
+  if (best < 0) {
+    let m = Infinity;
+    for (let i = 0; i < c.ys.length; i++) {
+      let n = 0;
+      for (const iv of c.occ[i]) if (a < iv[1] && b > iv[0]) n++;
+      const d = n * 10000 + Math.abs(c.ys[i] - want);
+      if (d < m) { m = d; best = i; }
     }
   }
-  pts.push([x, dir > 0 ? to.y : to.y + to.h]);
-  return { pts };
+  c.occ[best].push([a, b]);
+  return c.ys[best];
+}
+
+/* Middle of a corridor, used as the hint when booking a lane in it. */
+function corrMid(c) { return (c.ys[0] + c.ys[c.ys.length - 1]) / 2; }
+
+/* Child first, parent second. The run drops out of the child and then travels
+   down a chain of booked columns: at each step it takes the column that stays
+   brick-free for the most rows, sits nearest the current one, and is not
+   already carrying another run over the same stretch of y. Every sideways jog
+   books a lane in the corridor it happens in, for exactly the span it covers.
+   So nothing passes under a brick and no two runs land in the same channel. */
+function routeEdge(e, rows, corridors, cols, colOcc) {
+  const from = e.from, to = e.to;
+  const ci = from.row, pi = to.row;
+  if (ci === pi) {
+    const d = from.cx < to.cx ? 1 : -1;
+    return { side: true, a: [d > 0 ? from.x + from.w : from.x, from.cy],
+      b: [d > 0 ? to.x : to.x + to.w, to.cy], dir: d };
+  }
+  const dir = pi > ci ? 1 : -1;
+  const yA = dir > 0 ? from.y + from.h : from.y;
+  const yB = dir > 0 ? to.y : to.y + to.h;
+  const corrOf = (a, b) => corridors[Math.min(a, b)];
+  const n = cols.length;
+
+  const pts = [[e.ax, yA]];
+  let k = ci, x = e.ax, prevCol = -1, prevY = 0, guard = 0;
+
+  const bookLeg = cy => {
+    if (prevCol >= 0) {
+      colOcc[prevCol].push([Math.min(prevY, cy) - LANE, Math.max(prevY, cy) + LANE]);
+    }
+  };
+
+  while (k + dir !== pi && guard++ < 64) {
+    /* how far each column stays clear from here, and whether it is already busy */
+    let best = -1, bestScore = -Infinity, bestLast = k + dir;
+    for (let i = 0; i < n; i++) {
+      let last = k, run = 0;
+      for (let r = k + dir; r !== pi; r += dir) {
+        if (!rows[r].colFree[i]) break;
+        last = r; run++;
+      }
+      if (!run) continue;
+      /* a deliberately generous estimate of the stretch this leg would cover,
+         so a column already in use is never mistaken for a free one */
+      const lo = Math.min(rows[k].yTop, rows[last].yTop) - LANE;
+      const hi = Math.max(rows[k].yBot, rows[last].yBot) + LANE;
+      let busy = 0;
+      for (const iv of colOcc[i]) if (lo < iv[1] && hi > iv[0]) busy++;
+      const score = -busy * 100000 + Math.min(run, 6) * 40 - Math.abs(cols[i] - x);
+      if (score > bestScore) { bestScore = score; best = i; bestLast = last; }
+    }
+    if (best < 0) break;
+
+    const c = corrOf(k, k + dir);
+    if (!c) break;
+    const nx = cols[best];
+    const cy = takeCorrLane(c, x, nx, corrMid(c));
+    pts.push([x, cy]);
+    if (Math.abs(nx - x) > 0.5) pts.push([nx, cy]);
+    bookLeg(cy);
+    prevCol = best; prevY = cy;
+    x = nx; k = bestLast;
+  }
+
+  const cEnd = corrOf(k, k + dir);
+  if (cEnd) {
+    const cy = takeCorrLane(cEnd, x, e.bx, corrMid(cEnd));
+    pts.push([x, cy]);
+    bookLeg(cy);
+    if (Math.abs(e.bx - x) > 0.5) pts.push([e.bx, cy]);
+  }
+  pts.push([e.bx, yB]);
+
+  /* drop repeated and collinear points so the path has no zero-length pieces */
+  const out = [pts[0]];
+  for (let i = 1; i < pts.length; i++) {
+    const p = pts[i], q = out[out.length - 1];
+    if (Math.abs(p[0] - q[0]) < 0.4 && Math.abs(p[1] - q[1]) < 0.4) continue;
+    if (out.length >= 2) {
+      const r = out[out.length - 2];
+      const sameV = Math.abs(r[0] - q[0]) < 0.4 && Math.abs(q[0] - p[0]) < 0.4;
+      const sameH = Math.abs(r[1] - q[1]) < 0.4 && Math.abs(q[1] - p[1]) < 0.4;
+      if (sameV || sameH) { out[out.length - 1] = p; continue; }
+    }
+    out.push(p);
+  }
+  return { pts: out };
+}
+
+/* Where a sideways run passes over another connector's vertical run, mark the
+   spot so the path can be drawn with a little jump instead of a plain cross. */
+function markCrossings(edges) {
+  const H = [], V = [];
+  edges.forEach((e, ei) => {
+    e.hops = null;
+    if (e.pts.side) return;
+    const p = e.pts.pts;
+    for (let i = 0; i + 1 < p.length; i++) {
+      const a = p[i], b = p[i + 1];
+      if (Math.abs(a[1] - b[1]) < 0.01 && Math.abs(a[0] - b[0]) > 0.01) {
+        H.push({ ei: ei, si: i, y: a[1], x1: Math.min(a[0], b[0]), x2: Math.max(a[0], b[0]) });
+      } else if (Math.abs(a[0] - b[0]) < 0.01) {
+        V.push({ ei: ei, x: a[0], y1: Math.min(a[1], b[1]), y2: Math.max(a[1], b[1]) });
+      }
+    }
+  });
+  const END = HOP + 6;
+  for (const h of H) {
+    const xs = [];
+    for (const v of V) {
+      if (v.ei === h.ei) continue;
+      if (v.x < h.x1 + END || v.x > h.x2 - END) continue;
+      if (h.y < v.y1 + 1 || h.y > v.y2 - 1) continue;
+      xs.push(v.x);
+    }
+    if (!xs.length) continue;
+    xs.sort((a, b) => a - b);
+    const keep = [];
+    for (const x of xs) if (!keep.length || x - keep[keep.length - 1] > 2 * HOP + 1.5) keep.push(x);
+    const e = edges[h.ei];
+    if (!e.hops) e.hops = {};
+    e.hops[h.si] = keep;
+  }
 }
 
 /* Four shortening segments read as a line fading out into nothing. */
@@ -883,24 +1005,40 @@ function applyScheme(el, area) {
   for (const k in sc) el.style.setProperty(k, sc[k]);
 }
 
-/* rounded-corner polyline */
-function polyPath(pts, r) {
-  if (pts.length < 2) return "";
-  let d = "M" + pts[0][0].toFixed(1) + " " + pts[0][1].toFixed(1);
-  for (let i = 1; i < pts.length - 1; i++) {
-    const p = pts[i], a = pts[i - 1], b = pts[i + 1];
-    const d1 = Math.hypot(p[0] - a[0], p[1] - a[1]);
-    const d2 = Math.hypot(b[0] - p[0], b[1] - p[1]);
-    const rr = Math.min(r, d1 / 2, d2 / 2);
-    if (rr < 1) { d += "L" + p[0].toFixed(1) + " " + p[1].toFixed(1); continue; }
-    const u1 = [(p[0] - a[0]) / d1, (p[1] - a[1]) / d1];
-    const u2 = [(b[0] - p[0]) / d2, (b[1] - p[1]) / d2];
-    d += "L" + (p[0] - u1[0] * rr).toFixed(1) + " " + (p[1] - u1[1] * rr).toFixed(1)
-      + "Q" + p[0].toFixed(1) + " " + p[1].toFixed(1) + " "
-      + (p[0] + u2[0] * rr).toFixed(1) + " " + (p[1] + u2[1] * rr).toFixed(1);
+/* Rounded-corner polyline. Where `hops` marks a crossing, the run lifts over
+   the other connector in a half circle so the two read as not joined. */
+const F = v => v.toFixed(1);
+function polyPath(pts, r, hops) {
+  const n = pts.length;
+  if (n < 2) return "";
+  const len = i => Math.hypot(pts[i + 1][0] - pts[i][0], pts[i + 1][1] - pts[i][1]);
+  const rr = new Array(n).fill(0);
+  for (let i = 1; i < n - 1; i++) rr[i] = Math.min(r, len(i - 1) / 2, len(i) / 2);
+
+  let d = "M" + F(pts[0][0]) + " " + F(pts[0][1]);
+  for (let i = 0; i < n - 1; i++) {
+    const a = pts[i], b = pts[i + 1], L = len(i) || 1;
+    const ux = (b[0] - a[0]) / L, uy = (b[1] - a[1]) / L;
+    const hs = hops && hops[i];
+    if (hs && Math.abs(uy) < 0.01) {
+      const startX = a[0] + ux * rr[i], endX = b[0] - ux * rr[i + 1];
+      const lo = Math.min(startX, endX) + HOP + 1, hi = Math.max(startX, endX) - HOP - 1;
+      const seq = hs.filter(x => x >= lo && x <= hi).sort((p, q) => (ux > 0 ? p - q : q - p));
+      for (const hx of seq) {
+        d += "L" + F(hx - ux * HOP) + " " + F(a[1])
+          + "A" + HOP + " " + HOP + " 0 0 " + (ux > 0 ? 1 : 0)
+          + " " + F(hx + ux * HOP) + " " + F(a[1]);
+      }
+    }
+    d += "L" + F(b[0] - ux * rr[i + 1]) + " " + F(b[1] - uy * rr[i + 1]);
+    if (i + 1 < n - 1 && rr[i + 1] > 0.5) {
+      const c = pts[i + 2], L2 = len(i + 1) || 1;
+      d += "Q" + F(b[0]) + " " + F(b[1]) + " "
+        + F(b[0] + (c[0] - b[0]) / L2 * rr[i + 1]) + " "
+        + F(b[1] + (c[1] - b[1]) / L2 * rr[i + 1]);
+    }
   }
-  const L = pts[pts.length - 1];
-  return d + "L" + L[0].toFixed(1) + " " + L[1].toFixed(1);
+  return d;
 }
 function sidePath(rt) {
   const bow = Math.min(30, Math.max(14, Math.abs(rt.b[0] - rt.a[0]) * .35));
@@ -973,7 +1111,9 @@ function renderPane(pane, area, level) {
       d = sidePath({ a: [rt.a[0] + PAD_L, rt.a[1]], b: [rt.b[0] + PAD_L, rt.b[1]], dir: rt.dir });
     } else {
       pts = e.pts.pts.map(p => [p[0] + PAD_L, p[1]]);
-      d = polyPath(pts, 8);
+      let hops = null;
+      if (e.hops) { hops = {}; for (const k in e.hops) hops[k] = e.hops[k].map(x => x + PAD_L); }
+      d = polyPath(pts, 7, hops);
     }
     sv += '<path class="e ' + e.rank + '" data-e="' + i + '" d="' + d
       + '" fill="none" stroke-width="' + st.w + '" opacity="' + st.o + '"'
@@ -1148,6 +1288,12 @@ function lineageOf(L, item) {
     up.get(e.from).push([e, i]);
     down.get(e.to).push([e, i]);
   });
+  /* An out-of-area parent is only a marker, not part of this area's tree:
+     show what comes straight off it and stop there. */
+  if (item.kind === "ext") {
+    for (const pair of (down.get(item) || [])) { edgeSet.add(pair[1]); inSet.add(pair[0].from); }
+    return { inSet: inSet, edgeSet: edgeSet };
+  }
   const spine = r => r === "p1" || r === "ex";
   const walk = (start, map, pick) => {
     const stack = [start], seen = new Set([start]);
