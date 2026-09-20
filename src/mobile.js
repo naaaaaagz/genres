@@ -721,8 +721,11 @@ function buildLayout(area, level, width, flip, blobs, uiK) {
     blobList.sort((a2, b2) => b2.n - a2.n);
   }
 
+  let contentBottom = 0;
+  for (const it of items) if (it.y + it.h > contentBottom) contentBottom = it.y + it.h;
+
   const out = { area, level, flip, blobs: !!blobs, uiK, width, items, edges, stubs, rows, bands,
-    blobList, height: y + 64, itemFor, crossings: bestScore };
+    blobList, contentBottom, height: y + 64, itemFor, crossings: bestScore };
   layoutCache[key] = out;
   return out;
 }
@@ -1660,14 +1663,21 @@ function updateFades() {
   fadeTop.style.opacity = el.scrollTop > 8 ? "1" : "0";
   fadeBottom.style.opacity = max - el.scrollTop > 8 ? "1" : "0";
 }
+/* Only worth saying when there is actually something further down: the last
+   brick has to be off-screen, and you must not already be at the end. */
 function showHint() {
   clearTimeout(hintTimer);
   hintEl.classList.remove("show");
   hintTimer = setTimeout(() => {
-    const el = active().el;
-    if (el.scrollHeight - el.clientHeight < 60) return;
+    const pane = active(), el = pane.el, L = pane.layout;
+    const max = el.scrollHeight - el.clientHeight;
+    if (max < 60) return;
+    if (el.scrollTop >= max - 4) return;
+    const zoom = pane.focused ? ZOOM : 1;
+    const bottom = (L ? L.contentBottom : el.scrollHeight) * zoom;
+    if (bottom <= el.scrollTop + el.clientHeight - 8) return;
     hintEl.classList.add("show");
-    hintTimer = setTimeout(() => hintEl.classList.remove("show"), 2600);
+    hintTimer = setTimeout(() => hintEl.classList.remove("show"), 1300);
   }, 320);
 }
 
