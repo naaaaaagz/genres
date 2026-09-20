@@ -922,7 +922,7 @@ const EDGE_STYLE = {
 let curAreaIdx = 0;
 let curLevel = 3;
 let curFlip = false;
-let curBlobs = false;
+let curBlobs = true;           // sub-genre bubbles are on to start with
 let hintTimer = null;
 
 const panes = Array.prototype.map.call(track.children, el => ({
@@ -1266,6 +1266,21 @@ function setHeader(idx) {
   areaNameEl.style.opacity = "1";
   applyScheme(document.documentElement, area);
 }
+/* Seven of the areas have no Secondary Areas at all, so the toggle would look
+   broken there. Dim it instead and say why when it is tapped. */
+function areaHasSubGroups(area) {
+  const list = nodesByArea[area] || [];
+  const seen = new Map();
+  for (const n of list) if (n.sec) seen.set(n.sec, (seen.get(n.sec) || 0) + 1);
+  for (const v of seen.values()) if (v >= 2) return true;
+  return false;
+}
+function syncBlobBtn() {
+  const has = areaHasSubGroups(order[curAreaIdx]);
+  blobBtn.classList.toggle("dim", !has);
+  blobBtn.classList.toggle("on", curBlobs && has);
+}
+
 function paintAll() {
   clearTimeout(morphTimer);
   for (const pn of panes) { pn.svg.style.transition = ""; pn.svg.style.opacity = ""; }
@@ -1277,6 +1292,7 @@ function paintAll() {
   headerIdx = -1;
   setHeader(curAreaIdx);
   hideTip();
+  syncBlobBtn();
   updateFades();
   showHint();
 }
@@ -1376,6 +1392,7 @@ function rearrange() {
     renderPane(panes[i], order[wrapIdx(curAreaIdx + i - 1)], curLevel);
   }
   morphPane(pane, () => renderPane(pane, pane.area, curLevel, true));
+  syncBlobBtn();
   setTimeout(() => { updateFades(); showHint(); }, MORPH_OUT + MORPH_MOVE + 80);
 }
 
@@ -1390,11 +1407,18 @@ flipBtn.addEventListener("click", () => setFlip(!curFlip));
 
 function setBlobs(on) {
   curBlobs = !!on;
-  blobBtn.classList.toggle("on", curBlobs);
-  blobBtn.setAttribute("aria-label", curBlobs ? "Hide secondary areas" : "Show secondary areas");
+  blobBtn.setAttribute("aria-label", curBlobs ? "Hide sub-genre groups" : "Show sub-genre groups");
+  syncBlobBtn();
   rearrange();
 }
-blobBtn.addEventListener("click", () => setBlobs(!curBlobs));
+blobBtn.addEventListener("click", () => {
+  if (!areaHasSubGroups(order[curAreaIdx])) {
+    showTipAt(blobBtn, "No sub-genres in " + areaLabel(order[curAreaIdx]), false, 2000);
+    tipEl.dataset.action = "";
+    return;
+  }
+  setBlobs(!curBlobs);
+});
 
 /* -------------------------------------------------------------- drilldown */
 
@@ -1656,6 +1680,7 @@ window.addEventListener("resize", () => {
 /* ------------------------------------------------------------------- boot */
 
 for (const b of dlevels.querySelectorAll(".dstep")) b.classList.toggle("on", +b.dataset.lv === curLevel);
+blobBtn.setAttribute("aria-label", "Hide sub-genre groups");
 hintText.textContent = "scroll down for the past";
 setTrack(0, false);
 paintAll();

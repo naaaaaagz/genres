@@ -145,7 +145,9 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
   box-shadow:0 3px 14px -2px rgba(0,0,0,.65);
   transition:color .15s,transform .12s,border-color .15s}
 #blobBtn:active{transform:scale(.9)}
-#blobBtn.on{color:var(--ink);border-color:var(--brick-line)}
+#blobBtn.on{color:var(--accent);border-color:var(--accent);
+  box-shadow:0 3px 14px -2px rgba(0,0,0,.65),0 0 12px -4px var(--accent)}
+#blobBtn.dim{opacity:.34}
 #flipBtn .fArrow{transition:transform .25s cubic-bezier(.3,.8,.3,1)}
 #flipBtn.down .fArrow{transform:rotate(180deg)}
 #flipBtn svg{display:block}
@@ -264,11 +266,9 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
     </svg>
   </button>
   <button id="blobBtn" aria-label="Show secondary areas">
-    <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
-      <path d="M1.4 5.6C1.4 3 3.4 1.4 6 1.4s4.6 1.4 4.6 4.2-1.3 4.4-4.3 4.4S1.4 8.2 1.4 5.6Z"
-            stroke="currentColor" stroke-width="1.2" stroke-dasharray="2.4 1.8"/>
-      <path d="M7.2 10.4c0-1.8 1.4-2.8 3.2-2.8s3.2 1 3.2 2.8-1.4 3.2-3.2 3.2-3.2-1.4-3.2-3.2Z"
-            stroke="currentColor" stroke-width="1.2" stroke-dasharray="2.4 1.8"/>
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+      <circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1.2"/>
+      <circle cx="8" cy="8" r="2.7" stroke="currentColor" stroke-width="1.2"/>
     </svg>
   </button>
   <div id="track">
@@ -1240,7 +1240,7 @@ const EDGE_STYLE = {
 let curAreaIdx = 0;
 let curLevel = 3;
 let curFlip = false;
-let curBlobs = false;
+let curBlobs = true;           // sub-genre bubbles are on to start with
 let hintTimer = null;
 
 const panes = Array.prototype.map.call(track.children, el => ({
@@ -1584,6 +1584,21 @@ function setHeader(idx) {
   areaNameEl.style.opacity = "1";
   applyScheme(document.documentElement, area);
 }
+/* Seven of the areas have no Secondary Areas at all, so the toggle would look
+   broken there. Dim it instead and say why when it is tapped. */
+function areaHasSubGroups(area) {
+  const list = nodesByArea[area] || [];
+  const seen = new Map();
+  for (const n of list) if (n.sec) seen.set(n.sec, (seen.get(n.sec) || 0) + 1);
+  for (const v of seen.values()) if (v >= 2) return true;
+  return false;
+}
+function syncBlobBtn() {
+  const has = areaHasSubGroups(order[curAreaIdx]);
+  blobBtn.classList.toggle("dim", !has);
+  blobBtn.classList.toggle("on", curBlobs && has);
+}
+
 function paintAll() {
   clearTimeout(morphTimer);
   for (const pn of panes) { pn.svg.style.transition = ""; pn.svg.style.opacity = ""; }
@@ -1595,6 +1610,7 @@ function paintAll() {
   headerIdx = -1;
   setHeader(curAreaIdx);
   hideTip();
+  syncBlobBtn();
   updateFades();
   showHint();
 }
@@ -1694,6 +1710,7 @@ function rearrange() {
     renderPane(panes[i], order[wrapIdx(curAreaIdx + i - 1)], curLevel);
   }
   morphPane(pane, () => renderPane(pane, pane.area, curLevel, true));
+  syncBlobBtn();
   setTimeout(() => { updateFades(); showHint(); }, MORPH_OUT + MORPH_MOVE + 80);
 }
 
@@ -1708,11 +1725,18 @@ flipBtn.addEventListener("click", () => setFlip(!curFlip));
 
 function setBlobs(on) {
   curBlobs = !!on;
-  blobBtn.classList.toggle("on", curBlobs);
-  blobBtn.setAttribute("aria-label", curBlobs ? "Hide secondary areas" : "Show secondary areas");
+  blobBtn.setAttribute("aria-label", curBlobs ? "Hide sub-genre groups" : "Show sub-genre groups");
+  syncBlobBtn();
   rearrange();
 }
-blobBtn.addEventListener("click", () => setBlobs(!curBlobs));
+blobBtn.addEventListener("click", () => {
+  if (!areaHasSubGroups(order[curAreaIdx])) {
+    showTipAt(blobBtn, "No sub-genres in " + areaLabel(order[curAreaIdx]), false, 2000);
+    tipEl.dataset.action = "";
+    return;
+  }
+  setBlobs(!curBlobs);
+});
 
 /* -------------------------------------------------------------- drilldown */
 
@@ -1974,6 +1998,7 @@ window.addEventListener("resize", () => {
 /* ------------------------------------------------------------------- boot */
 
 for (const b of dlevels.querySelectorAll(".dstep")) b.classList.toggle("on", +b.dataset.lv === curLevel);
+blobBtn.setAttribute("aria-label", "Hide sub-genre groups");
 hintText.textContent = "scroll down for the past";
 setTrack(0, false);
 paintAll();
