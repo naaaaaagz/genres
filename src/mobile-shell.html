@@ -18,7 +18,8 @@
   --edge:#ffffff;
   --accent:#8fb6ff;
   --premium:#f2c94c;
-  --hdr-h:112px;
+  --hdr-h:114px;
+  --ftr-h:21px;
 }
 html{transition:background-color .3s ease}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -31,10 +32,9 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 /* ---------- header ---------- */
 #topbar{position:fixed;top:0;left:0;right:0;z-index:40;background:var(--bg);
   transition:background-color .3s ease;
-  padding:calc(env(safe-area-inset-top,0px) + 8px) 0 0;
   box-shadow:0 10px 18px -12px rgba(0,0,0,.8)}
-#brand{font-size:12px;letter-spacing:.34em;color:var(--ink-faint);text-align:center;font-weight:600;
-  padding-bottom:6px}
+#brand{background:#000;color:#fff;font-size:12px;letter-spacing:.34em;text-align:center;
+  font-weight:600;padding:calc(env(safe-area-inset-top,0px) + 9px) 0 9px}
 #areabar{display:flex;align-items:center;justify-content:space-between;padding:0 10px;
   touch-action:none;user-select:none;-webkit-user-select:none}
 .chev{width:44px;height:34px;touch-action:none;font-size:24px;line-height:1;color:var(--ink-dim);
@@ -64,7 +64,8 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 .dhit{position:absolute;inset:-12px -10px -14px;}
 
 /* ---------- carousel of area panes ---------- */
-#viewport{position:absolute;top:var(--hdr-h);left:0;right:0;bottom:0;overflow:hidden;touch-action:pan-y}
+#viewport{position:absolute;top:var(--hdr-h);left:0;right:0;
+  bottom:calc(var(--ftr-h) + env(safe-area-inset-bottom,0px));overflow:hidden;touch-action:pan-y}
 #track{position:absolute;top:0;left:0;height:100%;width:300%;display:flex;
   touch-action:pan-y;will-change:transform}
 #track.anim{transition:transform .3s cubic-bezier(.25,.8,.3,1)}
@@ -84,18 +85,29 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 
 .brick{position:absolute;display:flex;align-items:center;justify-content:center;text-align:center;
   border:1.5px solid var(--brick-line);background:var(--brick-fill);color:var(--ink);
-  font-size:10.5px;line-height:1.12;font-weight:600;letter-spacing:.005em;
-  padding:2px 4px;border-radius:2px;overflow:hidden;
+  font-size:11.6px;line-height:1.2;font-weight:600;letter-spacing:.005em;
+  padding:2px 5px;border-radius:2.5px;overflow:hidden;
   transition:opacity .22s,border-color .22s,box-shadow .22s,color .22s}
-.brick.ghost{border-color:color-mix(in srgb,var(--brick-line) 16%,transparent);
-  background:color-mix(in srgb,var(--brick-line) 4%,transparent);
-  border-width:1px;border-radius:1px;pointer-events:none}
-.brick.ext{border-radius:999px;border-style:dashed;
-  border-color:color-mix(in srgb,var(--brick-line) 55%,transparent);
-  background:var(--brick-fill);color:color-mix(in srgb,var(--ink) 65%,transparent);
-  font-weight:500;font-size:9.5px}
-.brick.ext .xarea{display:block;font-size:7.5px;letter-spacing:.1em;text-transform:uppercase;
-  color:color-mix(in srgb,var(--ink) 38%,transparent);margin-top:1px}
+/* size tracks Importance: 5 reads as a landmark, 1 stays legible */
+.brick.i5{font-size:14.5px;border-width:2px;border-radius:3.5px;letter-spacing:-.005em}
+.brick.i4{font-size:12.8px;border-width:1.75px;border-radius:3px}
+.brick.i3{font-size:11.6px}
+.brick.i2{font-size:10.4px;border-width:1.25px}
+.brick.i1{font-size:9.6px;border-width:1px;
+  border-color:color-mix(in srgb,var(--brick-line) 78%,transparent)}
+.brick.ext{border-radius:999px;border-style:dashed;border-width:1.25px;
+  border-color:var(--x-line);background:var(--x-fill);color:var(--x-ink);
+  font-weight:500;font-size:10.5px;line-height:1.1}
+.brick.ext .xarea{display:block;font-size:8px;letter-spacing:.1em;text-transform:uppercase;
+  opacity:.62;margin-top:2px}
+
+/* omitted genres: faint blocks sitting on the connector, and fading stubs
+   where a filtered-out branch leaves a genre */
+.edges .dud{fill:color-mix(in srgb,var(--edge) 13%,transparent);
+  stroke:color-mix(in srgb,var(--edge) 20%,transparent);stroke-width:.75;
+  pointer-events:none;transition:opacity .22s}
+.edges .stub{stroke:var(--edge);pointer-events:none;transition:opacity .22s}
+.pane.focus .edges .dud,.pane.focus .edges .stub{opacity:.04}
 
 /* focus mode: the tapped genre's whole lineage stays lit */
 .pane.focus .brick{opacity:.14}
@@ -107,13 +119,34 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 .pane.focus .edges .e.rel{opacity:1;stroke:var(--accent)}
 .edges .e{transition:opacity .22s,stroke .22s}
 
+/* ---------- time-direction toggle ---------- */
+#flipBtn{position:absolute;top:9px;left:9px;z-index:30;width:30px;height:38px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;
+  border:1px solid color-mix(in srgb,var(--brick-line) 42%,transparent);
+  background:var(--bg);border-radius:7px;color:var(--ink-dim);
+  box-shadow:0 3px 14px -2px rgba(0,0,0,.65);
+  transition:color .15s,transform .12s,border-color .15s,background-color .3s ease}
+#flipBtn:active{transform:scale(.9);color:var(--ink)}
+#flipBtn .fArrow{transition:transform .25s cubic-bezier(.3,.8,.3,1)}
+#flipBtn.down .fArrow{transform:rotate(180deg)}
+#flipBtn svg{display:block}
+
+/* ---------- footer ---------- */
+#footer{position:fixed;left:0;right:0;bottom:0;z-index:50;height:var(--ftr-h);
+  display:flex;align-items:center;justify-content:center;background:#000;
+  font-size:9.5px;letter-spacing:.09em;color:#7e8086;
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  box-sizing:content-box}
+#footer a{color:#cfd6e4;text-decoration:none;font-weight:600;margin-left:.35em}
+#footer a:hover,#footer a:focus-visible{color:#fff}
+
 /* ---------- fades ---------- */
 .fade{position:absolute;left:0;right:0;height:64px;pointer-events:none;z-index:20;transition:opacity .25s}
 #fadeTop{top:var(--hdr-h);background:linear-gradient(to bottom,var(--bg) 6%,var(--bg-0) 100%);opacity:0}
-#fadeBottom{bottom:0;height:88px;background:linear-gradient(to top,var(--bg) 10%,var(--bg-0) 100%)}
+#fadeBottom{bottom:calc(var(--ftr-h) + env(safe-area-inset-bottom,0px));height:88px;background:linear-gradient(to top,var(--bg) 10%,var(--bg-0) 100%)}
 
 /* ---------- scroll hint ---------- */
-#scrollHint{position:absolute;left:0;right:0;bottom:calc(env(safe-area-inset-bottom,0px) + 22px);
+#scrollHint{position:absolute;left:0;right:0;bottom:calc(env(safe-area-inset-bottom,0px) + var(--ftr-h) + 18px);
   z-index:25;display:flex;flex-direction:column;align-items:center;gap:6px;
   pointer-events:none;opacity:0;transition:opacity .5s}
 #scrollHint.show{opacity:1;animation:bob 1.5s ease-in-out infinite}
@@ -181,6 +214,17 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 </header>
 
 <div id="viewport">
+  <button id="flipBtn" aria-label="Show oldest first">
+    <svg class="fArrow" width="13" height="13" viewBox="0 0 13 13" fill="none">
+      <path d="M6.5 11.5V1.5M6.5 1.5L2.2 5.8M6.5 1.5l4.3 4.3" stroke="currentColor"
+            stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+      <circle cx="6" cy="6" r="4.7" stroke="currentColor" stroke-width="1.3"/>
+      <path d="M6 3.3V6l1.9 1.2" stroke="currentColor" stroke-width="1.3"
+            stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </button>
   <div id="track">
     <section class="pane"><div class="stage"><svg class="edges" xmlns="http://www.w3.org/2000/svg"></svg></div></section>
     <section class="pane"><div class="stage"><svg class="edges" xmlns="http://www.w3.org/2000/svg"></svg></div></section>
@@ -192,7 +236,7 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 <div class="fade" id="fadeBottom"></div>
 
 <div id="scrollHint">
-  <span class="htext">scroll down for the past</span>
+  <span class="htext" id="hintText">scroll down for the past</span>
   <svg width="30" height="15" viewBox="0 0 30 15" fill="none">
     <path d="M2 2 L15 13 L28 2" stroke="#9a9b9f" stroke-width="2.4"
           stroke-linecap="round" stroke-linejoin="round"/>
@@ -209,5 +253,7 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
     <p id="sheetDesc"></p>
   </div>
 </div>
+
+<footer id="footer">powered by<a href="https://nagz.space" target="_blank" rel="noopener noreferrer">nagz.space</a></footer>
 
 <div id="loading"><div class="ring"></div><div class="msg">mapping genres</div></div>
