@@ -21,31 +21,30 @@
   --hdr-h:114px;
   --ftr-h:21px;
 }
-html{transition:background-color .3s ease}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;padding:0;height:100%;overflow:hidden;background:var(--bg);color:var(--ink);
-  transition:background-color .3s ease,color .3s ease;
   font-family:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
   -webkit-font-smoothing:antialiased;overscroll-behavior:none;touch-action:pan-y}
 button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
 
 /* ---------- header ---------- */
 #topbar{position:fixed;top:0;left:0;right:0;z-index:40;background:var(--bg);
-  transition:background-color .3s ease;
   box-shadow:0 10px 18px -12px rgba(0,0,0,.8)}
 #brand{background:#000;color:#fff;font-size:12px;letter-spacing:.34em;text-align:center;
   font-weight:600;padding:calc(env(safe-area-inset-top,0px) + 9px) 0 9px}
 #areabar{display:flex;align-items:center;justify-content:space-between;padding:0 10px;
+  max-width:720px;margin:0 auto;
   touch-action:none;user-select:none;-webkit-user-select:none}
 .chev{width:44px;height:34px;touch-action:none;font-size:24px;line-height:1;color:var(--ink-dim);
   display:flex;align-items:center;justify-content:center;border-radius:8px;transition:color .15s,transform .15s}
 .chev:active{color:#fff;transform:scale(.88)}
 #areaName{flex:1;text-align:center;font-size:15px;font-weight:700;letter-spacing:.2em;
   text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-  cursor:grab;transition:color .3s ease}
+  cursor:grab}
 
 /* ---------- drilldown ---------- */
-#drill{display:flex;align-items:flex-end;gap:10px;padding:8px 16px 10px}
+#drill{display:flex;align-items:flex-end;gap:10px;padding:8px 16px 10px;
+  max-width:720px;margin:0 auto}
 .dlabel{font-size:11px;letter-spacing:.06em;color:var(--ink);font-weight:600;padding-bottom:1px;flex:none}
 #dlevels{flex:1;display:flex;align-items:flex-end;justify-content:space-between;position:relative}
 .dstep{position:relative;display:flex;flex-direction:column;align-items:center;gap:3px;
@@ -71,34 +70,35 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 #track.anim{transition:transform .3s cubic-bezier(.25,.8,.3,1)}
 .pane{width:33.33333%;height:100%;flex:none;overflow-y:auto;overflow-x:hidden;
   -webkit-overflow-scrolling:touch;overscroll-behavior:contain;touch-action:pan-y;
-  background:var(--bg);transition:background-color .3s ease}
-.stage{position:relative;touch-action:pan-y;transform-origin:50% 0;
-  transition:transform .3s cubic-bezier(.25,.8,.3,1),height .3s cubic-bezier(.25,.8,.3,1)}
+  background:var(--bg)}
+.stage{position:relative;touch-action:pan-y;transform-origin:50% 0;margin:0 auto}
 .edges{position:absolute;top:0;left:0;overflow:visible;pointer-events:none}
 .edges .e{stroke:var(--edge)}
 
 .band{position:absolute;left:0;right:0;pointer-events:none;transition:opacity .22s}
 .band .bline{position:absolute;left:8px;right:8px;top:0;height:0;
   border-top:2px dashed var(--band)}
-.band .blabel{position:absolute;right:10px;top:6px;font-size:15px;font-weight:800;
-  color:var(--band);letter-spacing:.03em}
+.band .blabel{position:absolute;right:9px;top:5px;font-size:calc(15px*var(--fs,1));font-weight:800;
+  color:var(--band);letter-spacing:.03em;max-width:calc(46px*var(--fs,1));text-align:right;
+  line-height:1.02;word-break:normal;overflow-wrap:anywhere}
+.band .blabel.sm{font-size:11px;letter-spacing:.01em;line-height:1.08}
 
 .brick{position:absolute;display:flex;align-items:center;justify-content:center;text-align:center;
   border:1.5px solid var(--brick-line);background:var(--brick-fill);color:var(--ink);
-  font-size:11.6px;line-height:1.2;font-weight:600;letter-spacing:.005em;
+  font-size:calc(11.6px*var(--fs,1));line-height:1.2;font-weight:600;letter-spacing:.005em;
   padding:2px 5px;border-radius:2.5px;overflow:hidden;
   transition:opacity .22s,border-color .22s,box-shadow .22s,color .22s}
 /* size tracks Importance: 5 reads as a landmark, 1 stays legible */
-.brick.i5{font-size:14.5px;border-width:2px;border-radius:3.5px;letter-spacing:-.005em}
-.brick.i4{font-size:12.8px;border-width:1.75px;border-radius:3px}
-.brick.i3{font-size:11.6px}
-.brick.i2{font-size:10.4px;border-width:1.25px}
-.brick.i1{font-size:9.6px;border-width:1px;
+.brick.i5{font-size:calc(14.5px*var(--fs,1));border-width:2px;border-radius:3.5px;letter-spacing:-.005em}
+.brick.i4{font-size:calc(12.8px*var(--fs,1));border-width:1.75px;border-radius:3px}
+.brick.i3{font-size:calc(11.6px*var(--fs,1))}
+.brick.i2{font-size:calc(10.4px*var(--fs,1));border-width:1.25px}
+.brick.i1{font-size:calc(9.6px*var(--fs,1));border-width:1px;
   border-color:color-mix(in srgb,var(--brick-line) 78%,transparent)}
 .brick.ext{border-radius:999px;border-style:dashed;border-width:1.25px;
   border-color:var(--x-line);background:var(--x-fill);color:var(--x-ink);
-  font-weight:500;font-size:10.5px;line-height:1.1}
-.brick.ext .xarea{display:block;font-size:8px;letter-spacing:.1em;text-transform:uppercase;
+  font-weight:500;font-size:calc(10.5px*var(--fs,1));line-height:1.1}
+.brick.ext .xarea{display:block;font-size:calc(8px*var(--fs,1));letter-spacing:.1em;text-transform:uppercase;
   opacity:.62;margin-top:2px}
 
 /* omitted genres: faint blocks sitting on the connector, and fading stubs
@@ -108,6 +108,17 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
   pointer-events:none;transition:opacity .22s}
 .edges .stub{stroke:var(--edge);pointer-events:none;transition:opacity .22s}
 .pane.focus .edges .dud,.pane.focus .edges .stub{opacity:.04}
+
+/* re-arrange animation: bricks glide from their old place to the new one */
+.brick.morphing,.band.morphing{
+  transition:transform 320ms cubic-bezier(.22,.9,.28,1),opacity 260ms ease-out;
+  will-change:transform}
+
+/* secondary-area bubbles */
+.edges .blob{pointer-events:none;transition:opacity .22s}
+.edges .bloblab{font-size:calc(10.5px*var(--fs,1));font-style:italic;font-weight:600;letter-spacing:.04em;
+  text-anchor:middle;pointer-events:none;transition:opacity .22s}
+.pane.focus .edges .blob,.pane.focus .edges .bloblab{opacity:.25}
 
 /* focus mode: the tapped genre's whole lineage stays lit */
 .pane.focus .brick{opacity:.14}
@@ -120,13 +131,21 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 .edges .e{transition:opacity .22s,stroke .22s}
 
 /* ---------- time-direction toggle ---------- */
-#flipBtn{position:absolute;top:9px;left:9px;z-index:30;width:30px;height:38px;
+#flipBtn{position:absolute;top:9px;left:calc(var(--stage-left,0px) + 9px);z-index:30;width:30px;height:38px;
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;
   border:1px solid color-mix(in srgb,var(--brick-line) 42%,transparent);
   background:var(--bg);border-radius:7px;color:var(--ink-dim);
   box-shadow:0 3px 14px -2px rgba(0,0,0,.65);
   transition:color .15s,transform .12s,border-color .15s,background-color .3s ease}
 #flipBtn:active{transform:scale(.9);color:var(--ink)}
+#blobBtn{position:absolute;top:53px;left:calc(var(--stage-left,0px) + 9px);z-index:30;width:30px;height:30px;
+  display:flex;align-items:center;justify-content:center;
+  border:1px solid color-mix(in srgb,var(--brick-line) 42%,transparent);
+  background:var(--bg);border-radius:7px;color:var(--ink-faint);
+  box-shadow:0 3px 14px -2px rgba(0,0,0,.65);
+  transition:color .15s,transform .12s,border-color .15s}
+#blobBtn:active{transform:scale(.9)}
+#blobBtn.on{color:var(--ink);border-color:var(--brick-line)}
 #flipBtn .fArrow{transition:transform .25s cubic-bezier(.3,.8,.3,1)}
 #flipBtn.down .fArrow{transform:rotate(180deg)}
 #flipBtn svg{display:block}
@@ -144,6 +163,25 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 .fade{position:absolute;left:0;right:0;height:64px;pointer-events:none;z-index:20;transition:opacity .25s}
 #fadeTop{top:var(--hdr-h);background:linear-gradient(to bottom,var(--bg) 6%,var(--bg-0) 100%);opacity:0}
 #fadeBottom{bottom:calc(var(--ftr-h) + env(safe-area-inset-bottom,0px));height:88px;background:linear-gradient(to top,var(--bg) 10%,var(--bg-0) 100%)}
+
+/* ---------- swipe hint (plays once on load) ---------- */
+#swipeHint{position:absolute;inset:0;z-index:26;pointer-events:none;opacity:0;
+  display:flex;align-items:center;justify-content:space-between;padding:0 4px}
+#swipeHint span{font-size:50px;line-height:1;font-weight:200;color:var(--ink-dim);
+  text-shadow:0 2px 16px rgba(0,0,0,.85)}
+#swipeHint.play{animation:swipePulse 2.5s ease-in-out forwards}
+#swipeHint.play .sL{animation:nudgeL 2.5s ease-in-out}
+#swipeHint.play .sR{animation:nudgeR 2.5s ease-in-out}
+@keyframes swipePulse{
+  0%{opacity:0}   8%{opacity:.9}  24%{opacity:0}
+  38%{opacity:.9} 54%{opacity:0}
+  68%{opacity:.9} 84%{opacity:0}  100%{opacity:0}}
+@keyframes nudgeL{
+  0%,24%,54%,84%,100%{transform:translateX(0)}
+  8%,38%,68%{transform:translateX(7px)}}
+@keyframes nudgeR{
+  0%,24%,54%,84%,100%{transform:translateX(0)}
+  8%,38%,68%{transform:translateX(-7px)}}
 
 /* ---------- scroll hint ---------- */
 #scrollHint{position:absolute;left:0;right:0;bottom:calc(env(safe-area-inset-bottom,0px) + var(--ftr-h) + 18px);
@@ -225,12 +263,22 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
             stroke-linecap="round" stroke-linejoin="round"/>
     </svg>
   </button>
+  <button id="blobBtn" aria-label="Show secondary areas">
+    <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+      <path d="M1.4 5.6C1.4 3 3.4 1.4 6 1.4s4.6 1.4 4.6 4.2-1.3 4.4-4.3 4.4S1.4 8.2 1.4 5.6Z"
+            stroke="currentColor" stroke-width="1.2" stroke-dasharray="2.4 1.8"/>
+      <path d="M7.2 10.4c0-1.8 1.4-2.8 3.2-2.8s3.2 1 3.2 2.8-1.4 3.2-3.2 3.2-3.2-1.4-3.2-3.2Z"
+            stroke="currentColor" stroke-width="1.2" stroke-dasharray="2.4 1.8"/>
+    </svg>
+  </button>
   <div id="track">
     <section class="pane"><div class="stage"><svg class="edges" xmlns="http://www.w3.org/2000/svg"></svg></div></section>
     <section class="pane"><div class="stage"><svg class="edges" xmlns="http://www.w3.org/2000/svg"></svg></div></section>
     <section class="pane"><div class="stage"><svg class="edges" xmlns="http://www.w3.org/2000/svg"></svg></div></section>
   </div>
 </div>
+
+<div id="swipeHint"><span class="sL">&#8249;</span><span class="sR">&#8250;</span></div>
 
 <div class="fade" id="fadeTop"></div>
 <div class="fade" id="fadeBottom"></div>

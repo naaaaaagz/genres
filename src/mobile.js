@@ -19,9 +19,7 @@ requestAnimationFrame(() => requestAnimationFrame(function () {
 const DECADES = ["ancient", "medieval", "early modern", "1900s", "1910s", "1920s",
   "1930s", "1940s", "1950s", "1960s", "1970s", "1980s", "1990s", "2000s",
   "2010s", "2020s"];
-const DECADE_LABEL = {
-  "ancient": "ancient", "medieval": "medieval", "early modern": "early mod.",
-};
+const DECADE_LABEL = {};          // decades print in full
 const decIndex = {};
 DECADES.forEach((d, i) => { decIndex[d] = i; });
 
@@ -34,9 +32,8 @@ const AREA_HUE = {
   pop: [322, 44], folk: [96, 38], rock: [14, 50], metal: [348, 42],
   classical: [40, 18],
 };
-function scheme(area) {
-  const hs = AREA_HUE[area] || [215, 18];
-  const h = hs[0], s = hs[1];
+function hueOf(area) { return AREA_HUE[area] || [215, 18]; }
+function schemeAt(h, s) {
   const S = k => Math.round(s * k);
   return {
     "--bg": "hsl(" + h + " " + S(.30) + "% 18.5%)",
@@ -50,6 +47,17 @@ function scheme(area) {
     "--band": "hsl(" + h + " " + S(.62) + "% 82% / .18)",
     "--edge": "hsl(" + h + " " + S(.52) + "% 87%)",
   };
+}
+function scheme(area) { const a = hueOf(area); return schemeAt(a[0], a[1]); }
+/* Custom properties don't interpolate on their own, so the palette is blended
+   numerically and written every frame — that is what keeps a swipe smooth
+   instead of snapping from one area's colour to the next. */
+function schemeMix(areaA, areaB, t) {
+  if (t <= 0) return scheme(areaA);
+  if (t >= 1) return scheme(areaB);
+  const A = hueOf(areaA), B = hueOf(areaB);
+  const dh = ((B[0] - A[0]) % 360 + 540) % 360 - 180;   // shortest way round
+  return schemeAt(A[0] + dh * t, A[1] + (B[1] - A[1]) * t);
 }
 function hash32(str) {
   let h = 2166136261;
@@ -136,8 +144,19 @@ const order = (function () {
    1 is small but still comfortably readable. */
 const IMP_FONT = { 5: 14.5, 4: 12.8, 3: 11.6, 2: 10.4, 1: 9.6 };
 const impOf = n => Math.max(1, Math.min(5, n | 0));
-const fontFor = imp => '600 ' + IMP_FONT[imp] + 'px "Inter",-apple-system,BlinkMacSystemFont,'
-  + '"Segoe UI",Roboto,Arial,sans-serif';
+const fontFor = (imp, k) => '600 ' + (IMP_FONT[imp] * k) + 'px "Inter",-apple-system,'
+  + 'BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif';
+
+/* A wide screen gets bigger bricks, and the diagram keeps a readable column
+   width instead of stretching every decade into one flat line. */
+const WIDE_AT = 660, MAX_CONTENT = 600;
+function metricsFor(paneW) {
+  const wide = paneW >= WIDE_AT;
+  const scale = wide ? 1.22 : 1;
+  const avail = Math.max(200, paneW - PAD_L - PAD_R);
+  const contentW = wide ? Math.min(avail, MAX_CONTENT) : avail;
+  return { scale, contentW, stageW: contentW + PAD_L + PAD_R };
+}
 
 const MEAS = document.createElement("canvas").getContext("2d");
 
@@ -174,13 +193,14 @@ function greedyLines(text, avail) {
 }
 
 const measureCache = Object.create(null);
-function measure(text, imp) {
-  const key = imp + "|" + text;
+function measure(text, imp, k) {
+  const key = imp + "|" + k + "|" + text;
   if (measureCache[key]) return measureCache[key];
-  const f = IMP_FONT[imp];
-  const maxW = 100 + imp * 10, minW = 46 + imp * 7, padX = 9 + imp, padY = 11;
-  const hFor = k => Math.round(k * f * 1.2) + padY;
-  MEAS.font = fontFor(imp);
+  const f = IMP_FONT[imp] * k;
+  const maxW = (100 + imp * 10) * k, minW = (46 + imp * 7) * k;
+  const padX = (9 + imp) * k, padY = 11 * k;
+  const hFor = n => Math.round(n * f * 1.2 + padY);
+  MEAS.font = fontFor(imp, k);
   const one = MEAS.measureText(text).width;
   let out;
   if (one + padX * 2 <= maxW) {
@@ -213,12 +233,12 @@ const MAX_DUDS = 3;
 
 /* 1-D placement inside one row: keep the given order and the minimum gaps,
    but slide each brick as close to its wanted centre as the slack allows. */
-function placeRow(items, width) {
+function placeRow(items, width, inset) {
   const n = items.length;
   const lo = new Float64Array(n), hi = new Float64Array(n);
-  let acc = 0;
+  let acc = inset || 0;
   for (let i = 0; i < n; i++) { lo[i] = acc; acc += items[i].w + GAP_X; }
-  acc = width;
+  acc = width - (inset || 0);
   for (let i = n - 1; i >= 0; i--) { acc -= items[i].w; hi[i] = acc; acc -= GAP_X; }
   for (let i = 0; i < n; i++) {
     let x = items[i].want - items[i].w / 2;
@@ -233,16 +253,17 @@ function placeRow(items, width) {
   }
 }
 
-function packLayer(items, width) {
+function packLayer(items, width, inset) {
+  const usable = width - 2 * (inset || 0);
   const rowsOut = [];
   let cur = [], curW = 0;
   for (const it of items) {
-    if (cur.length && curW + GAP_X + it.w > width) { rowsOut.push(cur); cur = []; curW = 0; }
+    if (cur.length && curW + GAP_X + it.w > usable) { rowsOut.push(cur); cur = []; curW = 0; }
     curW += cur.length ? GAP_X + it.w : it.w;
     cur.push(it);
   }
   if (cur.length) rowsOut.push(cur);
-  for (const r of rowsOut) placeRow(r, width);
+  for (const r of rowsOut) placeRow(r, width, inset);
   return rowsOut;
 }
 
@@ -267,13 +288,67 @@ function countCrossings(edges) {
 
 const layoutCache = Object.create(null);
 
-function buildLayout(area, level, width, flip) {
-  const key = area + "|" + level + "|" + width + "|" + (flip ? 1 : 0);
+function buildLayout(area, level, width, flip, blobs, uiK) {
+  const key = area + "|" + level + "|" + width + "|" + (flip ? 1 : 0) + "|" + (blobs ? 1 : 0)
+    + "|" + uiK;
   if (layoutCache[key]) return layoutCache[key];
 
   const all = nodesByArea[area] || [];
   const vis = all.filter(n => n.imp >= level);
   const visible = new Set(vis.map(n => n.tech));
+
+  /* --- Secondary Areas: order them, then give each one a target band of the
+     width so its genres gather into a column a blob can be drawn around. --- */
+  const secIdx = new Map(), secTarget = new Map();
+  let secInset = 0;
+  if (blobs) {
+    const counts = new Map();
+    for (const n of vis) if (n.sec) counts.set(n.sec, (counts.get(n.sec) || 0) + 1);
+    const keys = Array.from(counts.keys());
+    const ki = new Map(); keys.forEach((k, i) => ki.set(k, i));
+    const wt = keys.map(() => new Float64Array(keys.length));
+    for (const n of vis) {
+      if (!n.sec || !ki.has(n.sec)) continue;
+      for (const t of [n.p1, n.p2, n.p3]) {
+        const q = t && byTech[t];
+        if (!q || q.area !== area || !q.sec || q.sec === n.sec || !ki.has(q.sec)) continue;
+        wt[ki.get(n.sec)][ki.get(q.sec)] += 1;
+        wt[ki.get(q.sec)][ki.get(n.sec)] += 1;
+      }
+    }
+    const used = new Array(keys.length).fill(false);
+    let start = 0, bw = -1;
+    for (let i = 0; i < keys.length; i++) {
+      const c = counts.get(keys[i]);
+      if (c > bw) { bw = c; start = i; }
+    }
+    const chain = [];
+    if (keys.length) { chain.push(start); used[start] = true; }
+    while (chain.length < keys.length) {
+      const tail = chain[chain.length - 1];
+      let pick = -1, pw = -1;
+      for (let j = 0; j < keys.length; j++) {
+        if (used[j]) continue;
+        const w = wt[tail][j] + 1e-6 * counts.get(keys[j]);
+        if (w > pw) { pw = w; pick = j; }
+      }
+      chain.push(pick); used[pick] = true;
+    }
+    let total = 0; for (const k of keys) total += counts.get(k);
+    let acc = 0;
+    /* keep clear lanes down both edges so a bubble that has nothing in a row
+       can still slip past without touching anybody else */
+    /* wide enough for one tail per side with two sub-groups, two per side
+       beyond that — anything narrower and a tail would graze a brick */
+    secInset = keys.length <= 1 ? 0 : keys.length === 2 ? 28 : 40;
+    const inner = width - 2 * secInset;
+    chain.forEach((j, i) => {
+      const k = keys[j], share = counts.get(k) / (total || 1);
+      secIdx.set(k, i);
+      secTarget.set(k, secInset + inner * (acc + share / 2));
+      acc += share;
+    });
+  }
 
   /* nearest visible ancestor inside this area, following primary parents;
      `hidden` counts the omitted genres passed on the way */
@@ -299,8 +374,10 @@ function buildLayout(area, level, width, flip) {
 
   for (const n of vis) {
     const imp = impOf(n.imp);
-    const m = measure(n.name, imp);
-    itemFor[n.tech] = { kind: "node", node: n, tech: n.tech, imp, di: n.di, w: m.w, h: m.h, x: 0, y: 0, want: 0 };
+    const m = measure(n.name, imp, uiK);
+    itemFor[n.tech] = { kind: "node", node: n, tech: n.tech, imp, di: n.di,
+      sec: n.sec || "", si: secIdx.has(n.sec) ? secIdx.get(n.sec) : 9999,
+      w: m.w, h: m.h, x: 0, y: 0, want: 0 };
     items.push(itemFor[n.tech]);
   }
 
@@ -311,10 +388,11 @@ function buildLayout(area, level, width, flip) {
     const p = byTech[n.p1];
     if (!p || p.area === area || extItems[p.tech]) continue;
     const imp = Math.max(2, impOf(p.imp) - 1);
-    const m = measure(p.name, imp);
+    const m = measure(p.name, imp, uiK);
     extItems[p.tech] = {
       kind: "ext", node: p, tech: "ext:" + p.tech, imp, di: p.di,
-      w: Math.max(84, m.w + 20), h: EXT_H, x: 0, y: 0, want: 0,
+      sec: "", si: 9999, w: Math.max(84 * uiK, m.w + 20 * uiK), h: Math.round(EXT_H * uiK),
+      x: 0, y: 0, want: 0,
     };
     items.push(extItems[p.tech]);
   }
@@ -356,6 +434,14 @@ function buildLayout(area, level, width, flip) {
 
   for (const it of items) { it.up = []; it.down = []; }
   for (const e of edges) { e.from.up.push(e.to); e.to.down.push(e.from); }
+  if (blobs) {
+    for (const it of items) {
+      if (it.kind !== "ext") continue;
+      let best = 9999;
+      for (const c of it.down) if (c.si < best) best = c.si;
+      it.si = best;
+    }
+  }
 
   /* ---- layers ---- */
   const layers = new Map();
@@ -386,7 +472,7 @@ function buildLayout(area, level, width, flip) {
     const seq = flip ? dis : dis.slice().reverse();
     let y = 0;
     for (const di of seq) {
-      const rowsOut = packLayer(layers.get(di), width);
+      const rowsOut = packLayer(layers.get(di), width, secInset);
       for (const r of rowsOut) {
         let rh = 0; for (const it of r) if (it.h > rh) rh = it.h;
         for (const it of r) it.yc = y + rh / 2;
@@ -402,14 +488,18 @@ function buildLayout(area, level, width, flip) {
       const layer = layers.get(di);
       for (const it of layer) {
         const refs = (up ? it.up : it.down).filter(o => o.di !== di);
+        let w;
         if (refs.length) {
           let s = 0; for (const o of refs) s += o.x + o.w / 2;
-          it.want = s / refs.length;
-        } else it.want = it.x + it.w / 2;
+          w = s / refs.length;
+        } else w = it.x + it.w / 2;
+        if (blobs && secTarget.has(it.sec)) w = w * 0.22 + secTarget.get(it.sec) * 0.78;
+        it.want = w;
       }
-      layer.sort((a, b) => (flip ? a.rank - b.rank : b.rank - a.rank)
+      layer.sort((a, b) => (blobs ? a.si - b.si : 0)
+        || (flip ? a.rank - b.rank : b.rank - a.rank)
         || a.want - b.want || a.w - b.w);
-      packLayer(layer, width);
+      packLayer(layer, width, secInset);
     }
   }
 
@@ -437,7 +527,7 @@ function buildLayout(area, level, width, flip) {
   for (let bi = 0; bi < seq.length; bi++) {
     const di = seq[bi];
     const layer = layers.get(di);
-    const rowsOut = packLayer(layer, width);
+    const rowsOut = packLayer(layer, width, secInset);
     const bandTop = y;
     let ry = y + BAND_TOP;
     for (const r of rowsOut) {
@@ -481,6 +571,13 @@ function buildLayout(area, level, width, flip) {
   for (let x = 2; x <= width - 2; x += LANE) cols.push(x);
   const colOcc = cols.map(() => []);
   for (const r of rows) {
+    r.gaps = [];
+    let cur = 1;
+    for (const bk of r.blocked) {
+      if (bk[0] > cur) r.gaps.push([cur, bk[0]]);
+      if (bk[1] > cur) cur = bk[1];
+    }
+    if (cur < width - 1) r.gaps.push([cur, width - 1]);
     r.colFree = new Uint8Array(cols.length);
     for (let i = 0; i < cols.length; i++) {
       let free = 1;
@@ -520,8 +617,112 @@ function buildLayout(area, level, width, flip) {
   for (const s of stubs) s.seg = stubSegments(s.item, rows, flip);
   markCrossings(edges);
 
-  const out = { area, level, flip, width, items, edges, stubs, rows, bands,
-    height: y + 64, itemFor, crossings: bestScore };
+  /* --- one soft outline per Secondary Area ------------------------------
+     Bubbles must never touch, so real extents are reserved first and the
+     necks that bridge skipped rows are then threaded through what is left. */
+  const blobList = [];
+  if (blobs) {
+    const BP = 7, SEP = 5;                     // outline padding, clear space
+    const groups = new Map();
+    for (const it of items) {
+      if (it.kind !== "node" || !it.sec) continue;
+      if (!groups.has(it.sec)) groups.set(it.sec, []);
+      groups.get(it.sec).push(it);
+    }
+    const ext = new Map(), secs = [];
+    for (const entry of groups) {
+      const sec = entry[0], list = entry[1];
+      if (list.length < 2) continue;
+      const byRow = new Map();
+      for (const it of list) {
+        let r = byRow.get(it.row);
+        if (!r) { r = { x1: Infinity, x2: -Infinity, yTop: Infinity, yBot: -Infinity }; byRow.set(it.row, r); }
+        r.x1 = Math.min(r.x1, it.x); r.x2 = Math.max(r.x2, it.x + it.w);
+        r.yTop = Math.min(r.yTop, it.y); r.yBot = Math.max(r.yBot, it.y + it.h);
+      }
+      ext.set(sec, byRow); secs.push(sec);
+    }
+    const reserved = new Map();
+    const reserve = (r, a2, b2, sec) => {
+      if (!reserved.has(r)) reserved.set(r, []);
+      reserved.get(r).push([a2, b2, sec]);
+    };
+    for (const sec of secs) {
+      for (const kv of ext.get(sec)) reserve(kv[0], kv[1].x1 - BP - SEP, kv[1].x2 + BP + SEP, sec);
+    }
+    /* longest-running sub-groups choose their necks first */
+    secs.sort((a2, b2) => ext.get(b2).size - ext.get(a2).size);
+    for (const sec of secs) {
+      const byRow = ext.get(sec), list = groups.get(sec);
+      const used = Array.from(byRow.keys()).sort((a2, b2) => a2 - b2);
+      const spans = [];
+      for (let r = used[0]; r <= used[used.length - 1]; r++) {
+        const got = byRow.get(r);
+        if (got) { spans.push(got); continue; }
+        let prev = null, next = null;
+        for (let q = r - 1; q >= used[0]; q--) if (byRow.get(q)) { prev = byRow.get(q); break; }
+        for (let q = r + 1; q <= used[used.length - 1]; q++) if (byRow.get(q)) { next = byRow.get(q); break; }
+        const pc = prev ? (prev.x1 + prev.x2) / 2 : null;
+        const nc = next ? (next.x1 + next.x2) / 2 : null;
+        const target = pc === null ? nc : nc === null ? pc : (pc + nc) / 2;
+
+        /* the reserved side lanes, nearest to where the bubble wants to be */
+        const NH = 3, NP = 3, NSEP = 3;         // neck half-width, padding, clearance
+        const slots = [];
+        if (secInset >= 36) slots.push(8, 20, width - 20, width - 8);
+        else if (secInset >= 20) slots.push(8, width - 8);
+        const taken = reserved.get(r) || [];
+        const clashes = (a2, b2) => {
+          for (const iv of taken) if (iv[2] !== sec && a2 < iv[1] && b2 > iv[0]) return true;
+          return false;
+        };
+
+        /* gaps between bricks, minus every other bubble's reserved space */
+        let cands = rows[r].gaps.map(g => [g[0], g[1]]);
+        for (const iv of (reserved.get(r) || [])) {
+          if (iv[2] === sec) continue;
+          const out2 = [];
+          for (const c of cands) {
+            if (iv[1] <= c[0] || iv[0] >= c[1]) { out2.push(c); continue; }
+            if (iv[0] > c[0]) out2.push([c[0], iv[0]]);
+            if (iv[1] < c[1]) out2.push([iv[1], c[1]]);
+          }
+          cands = out2;
+        }
+        /* first choice: a gap between bricks wide enough and nobody else's */
+        const need = 2 * (NH + NP + NSEP);
+        let cx = null, pd = Infinity;
+        for (const c of cands) {
+          if (c[1] - c[0] < need) continue;
+          const lo2 = c[0] + NH + NP + NSEP, hi2 = c[1] - NH - NP - NSEP;
+          const cc = Math.min(Math.max(target, lo2), hi2);
+          const d = Math.abs(cc - target);
+          if (d < pd && !clashes(cc - NH - NP - NSEP, cc + NH + NP + NSEP)) { pd = d; cx = cc; }
+        }
+        /* otherwise slip down one of the reserved side lanes */
+        if (cx === null) {
+          let sd = Infinity;
+          for (const sx of slots) {
+            if (clashes(sx - NH - NP - NSEP, sx + NH + NP + NSEP)) continue;
+            const d = Math.abs(sx - target);
+            if (d < sd) { sd = d; cx = sx; }
+          }
+        }
+        if (cx === null) {                       // give up gracefully at the edge
+          cx = slots.length ? (target < width / 2 ? slots[0] : slots[slots.length - 1])
+            : (target < width / 2 ? NH + NP + 2 : width - NH - NP - 2);
+        }
+        spans.push({ x1: cx - NH, x2: cx + NH, yTop: rows[r].yTop, yBot: rows[r].yBot, neck: true });
+        reserve(r, cx - NH - NP - NSEP, cx + NH + NP + NSEP, sec);
+      }
+      blobList.push({ sec, label: secondaryLabel(sec), spans, n: list.length,
+        si: secIdx.has(sec) ? secIdx.get(sec) : 0, secN: secs.length });
+    }
+    blobList.sort((a2, b2) => b2.n - a2.n);
+  }
+
+  const out = { area, level, flip, blobs: !!blobs, uiK, width, items, edges, stubs, rows, bands,
+    blobList, height: y + 64, itemFor, crossings: bestScore };
   layoutCache[key] = out;
   return out;
 }
@@ -704,6 +905,8 @@ const scrimEl = document.getElementById("scrim");
 const hintEl = document.getElementById("scrollHint");
 const hintText = document.getElementById("hintText");
 const flipBtn = document.getElementById("flipBtn");
+const swipeHintEl = document.getElementById("swipeHint");
+const blobBtn = document.getElementById("blobBtn");
 const fadeTop = document.getElementById("fadeTop");
 const fadeBottom = document.getElementById("fadeBottom");
 
@@ -719,6 +922,7 @@ const EDGE_STYLE = {
 let curAreaIdx = 0;
 let curLevel = 3;
 let curFlip = false;
+let curBlobs = false;
 let hintTimer = null;
 
 const panes = Array.prototype.map.call(track.children, el => ({
@@ -771,6 +975,39 @@ function polyPath(pts, r, hops) {
   }
   return d;
 }
+/* A closed, corner-rounded outline: down the left extents, back up the right. */
+function blobPath(spans, padX, padNeck, padY, padTop, padBot, r) {
+  const n = spans.length;
+  const top = [], bot = [], px = [];
+  for (let i = 0; i < n; i++) {
+    px[i] = spans[i].neck ? padNeck : padX;
+    top[i] = i === 0 ? spans[0].yTop - padTop : (spans[i - 1].yBot + spans[i].yTop) / 2;
+    bot[i] = i === n - 1 ? spans[n - 1].yBot + padBot : (spans[i].yBot + spans[i + 1].yTop) / 2;
+  }
+  const pts = [];
+  for (let i = 0; i < n; i++) { pts.push([spans[i].x1 - px[i], top[i]], [spans[i].x1 - px[i], bot[i]]); }
+  for (let i = n - 1; i >= 0; i--) { pts.push([spans[i].x2 + px[i], bot[i]], [spans[i].x2 + px[i], top[i]]); }
+  const p = [pts[0]];
+  for (let i = 1; i < pts.length; i++) {
+    const q = p[p.length - 1];
+    if (Math.abs(pts[i][0] - q[0]) > 0.4 || Math.abs(pts[i][1] - q[1]) > 0.4) p.push(pts[i]);
+  }
+  const m = p.length;
+  if (m < 3) return "";
+  let d = "";
+  for (let i = 0; i < m; i++) {
+    const a = p[(i - 1 + m) % m], c = p[i], b = p[(i + 1) % m];
+    const d1 = Math.hypot(c[0] - a[0], c[1] - a[1]) || 1;
+    const d2 = Math.hypot(b[0] - c[0], b[1] - c[1]) || 1;
+    const rr = Math.min(r, d1 / 2, d2 / 2);
+    const inX = c[0] - (c[0] - a[0]) / d1 * rr, inY = c[1] - (c[1] - a[1]) / d1 * rr;
+    const outX = c[0] + (b[0] - c[0]) / d2 * rr, outY = c[1] + (b[1] - c[1]) / d2 * rr;
+    d += (i === 0 ? "M" + F(inX) + " " + F(inY) : "L" + F(inX) + " " + F(inY));
+    d += "Q" + F(c[0]) + " " + F(c[1]) + " " + F(outX) + " " + F(outY);
+  }
+  return d + "Z";
+}
+
 function sidePath(rt) {
   const bow = Math.min(30, Math.max(14, Math.abs(rt.b[0] - rt.a[0]) * .35));
   return "M" + rt.a[0] + " " + rt.a[1] + "C" + (rt.a[0] + rt.dir * bow) + " " + rt.a[1]
@@ -795,23 +1032,30 @@ function alongPoly(pts, n) {
   return out;
 }
 
-function renderPane(pane, area, level) {
+function renderPane(pane, area, level, keepScroll) {
+  cancelAnimationFrame(zoomRaf);
   pane.area = area;
   pane.focused = null; pane.selEl = null;
+  pane.stage.style.transition = "";
   applyScheme(pane.el, area);
   pane.el.classList.remove("focus");
   pane.stage.style.transform = "";
 
-  const width = Math.max(200, pane.el.clientWidth - PAD_L - PAD_R);
-  const L = buildLayout(area, level, width, curFlip);
+  const mx = metricsFor(pane.el.clientWidth);
+  const width = mx.contentW;
+  pane.el.style.setProperty("--fs", String(mx.scale));
+  pane.stage.style.width = mx.stageW + "px";
+  const L = buildLayout(area, level, width, curFlip, curBlobs, mx.scale);
   pane.layout = L;
 
   let html = "";
   for (const b of L.bands) {
     const raw = DECADES[b.di] || "";
-    html += '<div class="band" style="top:' + b.top + 'px;height:' + (b.bottom - b.top) + 'px">'
+    html += '<div class="band" data-b="' + b.di + '" style="top:' + b.top
+      + 'px;height:' + (b.bottom - b.top) + 'px">'
       + (b.first ? "" : '<div class="bline"></div>')
-      + '<div class="blabel">' + (DECADE_LABEL[raw] || raw) + "</div></div>";
+      + '<div class="blabel' + (raw.length > 7 ? " sm" : "") + '">'
+      + esc(DECADE_LABEL[raw] || raw) + "</div></div>";
   }
   for (let i = 0; i < L.items.length; i++) {
     const it = L.items[i];
@@ -823,12 +1067,13 @@ function renderPane(pane, area, level) {
       style += ";--x-line:hsl(" + h + " " + Math.round(s * .95) + "% 74% / .48)"
         + ";--x-fill:hsl(" + h + " " + Math.round(s * .7) + "% 30% / .30)"
         + ";--x-ink:hsl(" + h + " " + Math.round(s * .35) + "% 86% / .78)";
-      html += '<div class="brick ext" data-i="' + i + '" style="' + style + '"><span>'
+      html += '<div class="brick ext" data-i="' + i + '" data-k="' + esc(it.tech)
+        + '" style="' + style + '"><span>'
         + esc(it.node.name) + '<span class="xarea">'
         + esc(areaDisplay[it.node.area] || it.node.area) + "</span></span></div>";
     } else {
-      html += '<div class="brick i' + it.imp + '" data-i="' + i + '" style="' + style + '">'
-        + esc(it.node.name) + "</div>";
+      html += '<div class="brick i' + it.imp + '" data-i="' + i + '" data-k="' + esc(it.tech)
+        + '" style="' + style + '">' + esc(it.node.name) + "</div>";
     }
   }
 
@@ -867,25 +1112,168 @@ function renderPane(pane, area, level) {
     });
   }
 
+  /* Secondary-Area outlines sit behind everything, each tinted a step off the
+     Area's own hue, with its name in italics on top of the bubble. */
+  let blobHtml = "", blobLab = "";
+  if (L.blobList && L.blobList.length) {
+    const ah = AREA_HUE[area] || [215, 18];
+    for (const g of L.blobList) {
+      /* each sub-group sits a measured step off the Area's own hue, so two
+         of them are never the same tint */
+      const n = Math.max(1, g.secN);
+      const spread = Math.min(34, 150 / n);
+      const shift = (g.si - (n - 1) / 2) * spread;
+      const h = (ah[0] + shift + 720) % 360;
+      const sat = Math.max(24, ah[1]) + (g.si % 2 ? 7 : -3);
+      const spans = g.spans.map(sp => ({ x1: sp.x1 + PAD_L, x2: sp.x2 + PAD_L,
+        yTop: sp.yTop, yBot: sp.yBot, neck: sp.neck }));
+      const d = blobPath(spans, 7, 3, 7, 20, 11, 14);
+      if (!d) continue;
+      blobHtml += '<path class="blob" d="' + d + '" fill="hsl(' + h + ' ' + sat + '% 62% / .055)"'
+        + ' stroke="hsl(' + h + ' ' + sat + '% 72% / .26)" stroke-width="1" stroke-dasharray="5 4"></path>';
+      const lx = (spans[0].x1 + spans[0].x2) / 2, ly = spans[0].yTop - 8;
+      blobLab += '<text class="bloblab" x="' + F(lx) + '" y="' + F(ly) + '"'
+        + ' fill="hsl(' + h + ' ' + sat + '% 80% / .62)">' + esc(g.label) + "</text>";
+    }
+  }
+
   pane.svg.setAttribute("width", width + PAD_L + PAD_R);
   pane.svg.setAttribute("height", L.height);
-  pane.svg.innerHTML = sv + stubHtml + duds;
+  pane.svg.innerHTML = blobHtml + sv + stubHtml + duds + blobLab;
   for (const k of pane.stage.querySelectorAll(".brick,.band")) k.remove();
   pane.stage.insertAdjacentHTML("beforeend", html);
   pane.stage.style.height = L.height + "px";
-  pane.el.scrollTop = 0;
+  if (!keepScroll) pane.el.scrollTop = 0;
 }
 
-let headerIdx = -1;
+/* ---------------------------------------------------- re-arrange animation
+   Every brick is rebuilt in its new place, then pushed back to where it was
+   with a transform and released — so it glides. The connectors can't tween
+   between two different path shapes, so they cross-fade instead, and the
+   decade you were looking at is kept under the top of the screen. */
+const MORPH_OUT = 100, MORPH_MOVE = 320;
+let morphTimer = null;
+function morphPane(pane, rebuild) {
+  const el = pane.el, old = pane.layout;
+  if (!old) { rebuild(); return; }
+  clearTimeout(morphTimer);
+  const paneH = el.clientHeight, sTop = el.scrollTop;
+
+  let anchor = null;
+  for (const b of old.bands) {
+    if (sTop + 1 >= b.top && sTop + 1 < b.bottom) {
+      anchor = { di: b.di, frac: (sTop - b.top) / Math.max(1, b.bottom - b.top) };
+      break;
+    }
+  }
+  if (!anchor && old.bands.length) anchor = { di: old.bands[0].di, frac: 0 };
+
+  const prev = new Map();
+  for (const it of old.items) prev.set(it.tech, { x: it.x, y: it.y });
+  const prevBand = new Map();
+  for (const b of old.bands) prevBand.set(String(b.di), b.top);
+
+  pane.svg.style.transition = "opacity " + MORPH_OUT + "ms linear";
+  pane.svg.style.opacity = "0";
+
+  morphTimer = setTimeout(() => {
+    rebuild();
+    const L = pane.layout;
+
+    let ns = sTop;
+    if (anchor) {
+      for (const b of L.bands) {
+        if (b.di === anchor.di) { ns = b.top + anchor.frac * (b.bottom - b.top); break; }
+      }
+    }
+    ns = Math.min(Math.max(0, ns), Math.max(0, el.scrollHeight - el.clientHeight));
+    el.scrollTop = ns;
+    const dS = ns - sTop;
+
+    const byTech = new Map();
+    for (const it of L.items) byTech.set(it.tech, it);
+    const moved = [];
+    const near = (a, b) => (a > -1.3 * paneH && a < 2.3 * paneH) || (b > -1.3 * paneH && b < 2.3 * paneH);
+
+    for (const node of pane.stage.querySelectorAll(".brick[data-k]")) {
+      const it = byTech.get(node.dataset.k), p = prev.get(node.dataset.k);
+      if (!it) continue;
+      if (!p) { node.style.opacity = "0"; moved.push(node); continue; }
+      const dy = (p.y - it.y) + dS, dx = p.x - it.x;
+      if (!near(p.y - sTop, it.y - ns) || (Math.abs(dx) < 0.5 && Math.abs(dy) < 0.5)) continue;
+      node.style.transform = "translate(" + dx.toFixed(1) + "px," + dy.toFixed(1) + "px)";
+      moved.push(node);
+    }
+    for (const node of pane.stage.querySelectorAll(".band[data-b]")) {
+      const b = L.bands.find(z => String(z.di) === node.dataset.b);
+      const pt = prevBand.get(node.dataset.b);
+      if (!b || pt === undefined) continue;
+      const dy = (pt - b.top) + dS;
+      if (!near(pt - sTop, b.top - ns) || Math.abs(dy) < 0.5) continue;
+      node.style.transform = "translateY(" + dy.toFixed(1) + "px)";
+      moved.push(node);
+    }
+
+    void pane.stage.offsetHeight;                 // commit the start positions
+    for (const node of moved) {
+      node.classList.add("morphing");
+      node.style.transform = "";
+      node.style.opacity = "";
+    }
+    morphTimer = setTimeout(() => {
+      pane.svg.style.transition = "opacity 190ms ease-out";
+      pane.svg.style.opacity = "";
+    }, MORPH_MOVE - 70);
+    setTimeout(() => {
+      for (const node of moved) { node.classList.remove("morphing"); node.style.transform = ""; }
+      pane.svg.style.transition = "";
+    }, MORPH_MOVE + 60);
+  }, MORPH_OUT);
+}
+
+let headerIdx = -1, tweenRaf = 0;
+function applyVars(el, vars) { for (const k in vars) el.style.setProperty(k, vars[k]); }
+function areaLabel(a) { return areaDisplay[a] || a; }
+
+/* One blended frame of the transition between two areas. */
+function paintChrome(fromArea, toArea, t) {
+  applyVars(document.documentElement, schemeMix(fromArea, toArea, t));
+  const name = t < 0.5 ? fromArea : toArea;
+  if (areaNameEl.dataset.a !== name) {
+    areaNameEl.dataset.a = name;
+    areaNameEl.textContent = areaLabel(name);
+  }
+  areaNameEl.style.opacity = String(Math.max(0.06, Math.abs(2 * t - 1)));
+}
+function tweenChrome(fromArea, toArea, t0, t1, ms, done) {
+  cancelAnimationFrame(tweenRaf);
+  const t = performance.now();
+  const step = now => {
+    const k = Math.min(1, (now - t) / ms);
+    const e = k < .5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2;
+    paintChrome(fromArea, toArea, t0 + (t1 - t0) * e);
+    if (k < 1) tweenRaf = requestAnimationFrame(step);
+    else if (done) done();
+  };
+  tweenRaf = requestAnimationFrame(step);
+}
 function setHeader(idx) {
-  if (idx === headerIdx) return;
+  cancelAnimationFrame(tweenRaf);
   headerIdx = idx;
   const area = order[idx];
-  areaNameEl.textContent = areaDisplay[area] || area;
+  areaNameEl.dataset.a = area;
+  areaNameEl.textContent = areaLabel(area);
+  areaNameEl.style.opacity = "1";
   applyScheme(document.documentElement, area);
 }
 function paintAll() {
+  clearTimeout(morphTimer);
+  for (const pn of panes) { pn.svg.style.transition = ""; pn.svg.style.opacity = ""; }
   for (let s = 0; s < 3; s++) renderPane(panes[s], order[wrapIdx(curAreaIdx + s - 1)], curLevel);
+  /* keep the two corner buttons beside the diagram, not the window edge */
+  const mx = metricsFor(active().el.clientWidth);
+  document.documentElement.style.setProperty("--stage-left",
+    Math.max(0, (active().el.clientWidth - mx.stageW) / 2) + "px");
   headerIdx = -1;
   setHeader(curAreaIdx);
   hideTip();
@@ -902,18 +1290,21 @@ function setTrack(px, animate) {
 }
 
 let sliding = false;
-function goTo(idx, dir) {
+function goTo(idx, dir, fromT) {
   if (sliding) return;
   const step = dir || (idx > curAreaIdx ? 1 : -1);
   sliding = true;
   hideTip();
+  const fromArea = order[curAreaIdx], toArea = order[wrapIdx(idx)];
   curAreaIdx = wrapIdx(idx);
-  setHeader(curAreaIdx);
+  headerIdx = curAreaIdx;
+  tweenChrome(fromArea, toArea, fromT || 0, 1, 300);
   setTrack(-step * viewport.clientWidth, true);
   setTimeout(() => { setTrack(0, false); paintAll(); sliding = false; }, 300);
 }
 
 let ptrId = null, sx = 0, sy = 0, axis = null, dx = 0, lockX = false;
+let dragT = 0, dragTo = null;
 function onDown(e, forceX) {
   if (sliding || scrimEl.classList.contains("show")) return;
   if (e.pointerType === "mouse" && e.button !== 0) return;
@@ -933,8 +1324,11 @@ function onMove(e) {
   hideTip();
   dx = ddx;
   setTrack(dx, false);
-  const half = viewport.clientWidth * .45;
-  setHeader(wrapIdx(curAreaIdx + (dx <= -half ? 1 : dx >= half ? -1 : 0)));
+  /* the palette follows the finger, so there is nothing to flicker */
+  cancelAnimationFrame(tweenRaf);
+  dragT = Math.min(1, Math.abs(dx) / Math.max(1, viewport.clientWidth));
+  dragTo = order[wrapIdx(curAreaIdx + (dx < 0 ? 1 : -1))];
+  paintChrome(order[curAreaIdx], dragTo, dragT);
 }
 function onUp() {
   if (ptrId === null) return;
@@ -942,10 +1336,14 @@ function onUp() {
   if (axis !== "x") { axis = null; return; }
   axis = null;
   const threshold = Math.min(70, viewport.clientWidth * .2);
-  if (dx <= -threshold) goTo(curAreaIdx + 1, 1);
-  else if (dx >= threshold) goTo(curAreaIdx - 1, -1);
-  else { setHeader(curAreaIdx); setTrack(0, true); }
-  dx = 0;
+  if (dx <= -threshold) goTo(curAreaIdx + 1, 1, dragT);
+  else if (dx >= threshold) goTo(curAreaIdx - 1, -1, dragT);
+  else {
+    const from = order[curAreaIdx], to = dragTo || from;
+    tweenChrome(from, to, dragT, 0, 200, () => setHeader(curAreaIdx));
+    setTrack(0, true);
+  }
+  dx = 0; dragT = 0;
 }
 track.addEventListener("pointerdown", e => onDown(e, false), { passive: true });
 track.addEventListener("pointermove", onMove, { passive: false });
@@ -969,14 +1367,34 @@ window.addEventListener("keydown", e => {
 
 /* ------------------------------------------------------------- time flip */
 
+function rearrange() {
+  const pane = active();
+  unfocus(pane);
+  hideTip();
+  for (let i = 0; i < 3; i++) {
+    if (i === 1) continue;
+    renderPane(panes[i], order[wrapIdx(curAreaIdx + i - 1)], curLevel);
+  }
+  morphPane(pane, () => renderPane(pane, pane.area, curLevel, true));
+  setTimeout(() => { updateFades(); showHint(); }, MORPH_OUT + MORPH_MOVE + 80);
+}
+
 function setFlip(on) {
   curFlip = !!on;
   flipBtn.classList.toggle("down", curFlip);
   flipBtn.setAttribute("aria-label", curFlip ? "Show newest first" : "Show oldest first");
   hintText.textContent = curFlip ? "scroll down for the future" : "scroll down for the past";
-  paintAll();
+  rearrange();
 }
 flipBtn.addEventListener("click", () => setFlip(!curFlip));
+
+function setBlobs(on) {
+  curBlobs = !!on;
+  blobBtn.classList.toggle("on", curBlobs);
+  blobBtn.setAttribute("aria-label", curBlobs ? "Hide secondary areas" : "Show secondary areas");
+  rearrange();
+}
+blobBtn.addEventListener("click", () => setBlobs(!curBlobs));
 
 /* -------------------------------------------------------------- drilldown */
 
@@ -1046,6 +1464,27 @@ function lineageOf(L, item) {
   return { inSet, edgeSet };
 }
 
+/* Scale and scroll are driven together on one eased curve, so the diagram
+   eases out rather than snapping. */
+let zoomRaf = 0;
+function tweenZoom(pane, fromZ, toZ, fromScroll, toScroll, holdH, ms) {
+  cancelAnimationFrame(zoomRaf);
+  const H = pane.layout.height;
+  pane.stage.style.transition = "none";
+  pane.stage.style.height = holdH + "px";
+  const t0 = performance.now();
+  const step = now => {
+    const k = Math.min(1, (now - t0) / ms);
+    const e = k < .5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;  // easeInOutCubic
+    const z = fromZ + (toZ - fromZ) * e;
+    pane.stage.style.transform = z >= 0.999 ? "" : "scale(" + z.toFixed(4) + ")";
+    pane.el.scrollTop = fromScroll + (toScroll - fromScroll) * e;
+    if (k < 1) zoomRaf = requestAnimationFrame(step);
+    else pane.stage.style.height = (H * toZ) + "px";
+  };
+  zoomRaf = requestAnimationFrame(step);
+}
+
 function focusItem(pane, item, el) {
   const L = pane.layout;
   const lin = lineageOf(L, item);
@@ -1059,10 +1498,11 @@ function focusItem(pane, item, el) {
   for (const p of pane.svg.querySelectorAll(".e")) p.classList.toggle("rel", lin.edgeSet.has(+p.dataset.e));
   const before = pane.el.scrollTop;
   pane.stage.style.transformOrigin = "50% 0";
-  pane.stage.style.transform = "scale(" + ZOOM + ")";
-  pane.stage.style.height = (L.height * ZOOM) + "px";
   pane.el.classList.add("focus");
-  pane.el.scrollTop = Math.max(0, item.cy * ZOOM - item.cy + before);
+  /* hold the full height while shrinking so the browser never clamps the
+     scroll position mid-animation */
+  tweenZoom(pane, 1, ZOOM, before, Math.max(0, item.cy * ZOOM - item.cy + before),
+    L.height, 500);
   trackTip(pane);
 }
 function unfocus(pane) {
@@ -1070,9 +1510,8 @@ function unfocus(pane) {
   const L = pane.layout, item = pane.focused, before = pane.el.scrollTop;
   pane.focused = null; pane.selEl = null;
   pane.el.classList.remove("focus");
-  pane.stage.style.transform = "";
-  pane.stage.style.height = L.height + "px";
-  pane.el.scrollTop = Math.max(0, before + item.cy - item.cy * ZOOM);
+  tweenZoom(pane, ZOOM, 1, before, Math.max(0, before + item.cy - item.cy * ZOOM),
+    L.height, 440);
   for (const b of pane.stage.querySelectorAll(".brick")) b.classList.remove("rel", "sel");
   for (const p of pane.svg.querySelectorAll(".e")) p.classList.remove("rel");
   hideTip();
@@ -1086,6 +1525,11 @@ for (const pane of panes) {
     const it = pane.layout.items[+b.dataset.i];
     if (pane.focused === it) { unfocus(pane); return; }
     focusItem(pane, it, b);
+  });
+  /* while zoomed out the stage no longer fills the pane, so a tap on the
+     bare margin has to drop focus too */
+  pane.el.addEventListener("click", e => {
+    if (e.target === pane.el && pane.focused && !sliding) unfocus(pane);
   });
   pane.el.addEventListener("scroll", () => {
     if (pane !== active()) return;
@@ -1123,20 +1567,33 @@ function positionTip(pane) {
   tipEl.style.top = Math.max(vp.top + 18, r.top - 8) + "px";
 }
 function trackTip(pane) {
-  tipEl.textContent = "More info";
+  const it = pane.focused;
+  const jump = it && it.kind === "ext";
+  tipEl.textContent = jump ? "Switch to " + areaLabel(it.node.area) : "More info";
   tipEl.classList.remove("premium");
-  tipEl.dataset.action = "info";
+  tipEl.dataset.action = jump ? "jump" : "info";
+  tipEl.dataset.area = jump ? it.node.area : "";
   positionTip(pane);
   tipEl.classList.add("show");
   clearTimeout(tipTimer);
   const t0 = performance.now();
   cancelAnimationFrame(tipRaf);
-  const step = () => { positionTip(pane); if (performance.now() - t0 < 420) tipRaf = requestAnimationFrame(step); };
+  const step = () => { positionTip(pane); if (performance.now() - t0 < 620) tipRaf = requestAnimationFrame(step); };
   tipRaf = requestAnimationFrame(step);
 }
 tipEl.addEventListener("click", () => {
   const pane = active();
-  if (tipEl.dataset.action !== "info" || !pane.focused) return;
+  if (!pane.focused) return;
+  if (tipEl.dataset.action === "jump") {
+    const target = order.indexOf(tipEl.dataset.area);
+    if (target < 0) return;
+    let step = target - curAreaIdx;
+    const n = order.length;
+    if (step > n / 2) step -= n; else if (step < -n / 2) step += n;
+    goTo(target, step >= 0 ? 1 : -1);
+    return;
+  }
+  if (tipEl.dataset.action !== "info") return;
   openSheet(pane.focused.node);
 });
 
@@ -1206,6 +1663,11 @@ const loading = document.getElementById("loading");
 requestAnimationFrame(() => requestAnimationFrame(() => {
   loading.classList.add("done");
   setTimeout(() => loading.remove(), 450);
+  /* blink the side chevrons a few times so the swipe is discoverable */
+  setTimeout(() => {
+    swipeHintEl.classList.add("play");
+    setTimeout(() => swipeHintEl.remove(), 2700);
+  }, 500);
 }));
 
 window.__genreMap = {
@@ -1215,7 +1677,8 @@ window.__genreMap = {
   get level() { return curLevel; },
   get flip() { return curFlip; },
   get areaIdx() { return curAreaIdx; },
-  setLevel, setFlip, goTo, focusItem, unfocus, openSheet, lineageOf, scheme, PAD_L,
+  get blobs() { return curBlobs; },
+  setLevel, setFlip, setBlobs, goTo, focusItem, unfocus, openSheet, lineageOf, scheme, PAD_L,
   setArea(i) { curAreaIdx = wrapIdx(i); paintAll(); },
 };
 }));
