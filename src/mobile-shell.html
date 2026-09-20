@@ -8,37 +8,41 @@
 <style>
 :root{
   --bg:#2f3033;
-  --bg-deep:#26272a;
+  --bg-0:rgba(47,48,51,0);
   --ink:#ececee;
   --ink-dim:#9a9b9f;
   --ink-faint:#6c6d72;
   --brick-line:rgba(255,255,255,.60);
   --brick-fill:#292a2d;
+  --band:rgba(255,255,255,.18);
+  --edge:#ffffff;
   --accent:#8fb6ff;
   --premium:#f2c94c;
   --hdr-h:112px;
 }
+html{transition:background-color .3s ease}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;padding:0;height:100%;overflow:hidden;background:var(--bg);color:var(--ink);
+  transition:background-color .3s ease,color .3s ease;
   font-family:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
-  -webkit-font-smoothing:antialiased;overscroll-behavior:none}
+  -webkit-font-smoothing:antialiased;overscroll-behavior:none;touch-action:pan-y}
 button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
 
 /* ---------- header ---------- */
 #topbar{position:fixed;top:0;left:0;right:0;z-index:40;background:var(--bg);
+  transition:background-color .3s ease;
   padding:calc(env(safe-area-inset-top,0px) + 8px) 0 0;
   box-shadow:0 10px 18px -12px rgba(0,0,0,.8)}
 #brand{font-size:12px;letter-spacing:.34em;color:var(--ink-faint);text-align:center;font-weight:600;
   padding-bottom:6px}
-#areabar{display:flex;align-items:center;justify-content:space-between;padding:0 10px}
-.chev{width:44px;height:34px;font-size:24px;line-height:1;color:var(--ink-dim);
+#areabar{display:flex;align-items:center;justify-content:space-between;padding:0 10px;
+  touch-action:none;user-select:none;-webkit-user-select:none}
+.chev{width:44px;height:34px;touch-action:none;font-size:24px;line-height:1;color:var(--ink-dim);
   display:flex;align-items:center;justify-content:center;border-radius:8px;transition:color .15s,transform .15s}
 .chev:active{color:#fff;transform:scale(.88)}
 #areaName{flex:1;text-align:center;font-size:15px;font-weight:700;letter-spacing:.2em;
   text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-  transition:opacity .18s}
-#areaName.swapping{opacity:0}
-#areaCount{font-size:10px;letter-spacing:.14em;color:var(--ink-faint);font-weight:500}
+  cursor:grab;transition:color .3s ease}
 
 /* ---------- drilldown ---------- */
 #drill{display:flex;align-items:flex-end;gap:10px;padding:8px 16px 10px}
@@ -59,45 +63,54 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
   border-top:1px dashed rgba(255,255,255,.34);z-index:0}
 .dhit{position:absolute;inset:-12px -10px -14px;}
 
-/* ---------- stage ---------- */
-#scroller{position:absolute;top:var(--hdr-h);left:0;right:0;bottom:0;overflow-y:auto;overflow-x:hidden;
-  -webkit-overflow-scrolling:touch;overscroll-behavior:contain;touch-action:pan-y}
-#pan{position:relative;transition:transform .22s cubic-bezier(.3,.7,.3,1),opacity .18s}
-#stage{position:relative;transform-origin:50% 0;transition:transform .3s cubic-bezier(.25,.8,.3,1)}
-#edges{position:absolute;top:0;left:0;overflow:visible;pointer-events:none}
+/* ---------- carousel of area panes ---------- */
+#viewport{position:absolute;top:var(--hdr-h);left:0;right:0;bottom:0;overflow:hidden;touch-action:pan-y}
+#track{position:absolute;top:0;left:0;height:100%;width:300%;display:flex;
+  touch-action:pan-y;will-change:transform}
+#track.anim{transition:transform .3s cubic-bezier(.25,.8,.3,1)}
+.pane{width:33.33333%;height:100%;flex:none;overflow-y:auto;overflow-x:hidden;
+  -webkit-overflow-scrolling:touch;overscroll-behavior:contain;touch-action:pan-y;
+  background:var(--bg);transition:background-color .3s ease}
+.stage{position:relative;touch-action:pan-y;transform-origin:50% 0;
+  transition:transform .3s cubic-bezier(.25,.8,.3,1),height .3s cubic-bezier(.25,.8,.3,1)}
+.edges{position:absolute;top:0;left:0;overflow:visible;pointer-events:none}
+.edges .e{stroke:var(--edge)}
 
 .band{position:absolute;left:0;right:0;pointer-events:none;transition:opacity .22s}
 .band .bline{position:absolute;left:8px;right:8px;top:0;height:0;
-  border-top:2px dashed rgba(255,255,255,.17)}
+  border-top:2px dashed var(--band)}
 .band .blabel{position:absolute;right:10px;top:6px;font-size:15px;font-weight:800;
-  color:rgba(255,255,255,.17);letter-spacing:.03em}
+  color:var(--band);letter-spacing:.03em}
 
 .brick{position:absolute;display:flex;align-items:center;justify-content:center;text-align:center;
   border:1.5px solid var(--brick-line);background:var(--brick-fill);color:var(--ink);
   font-size:10.5px;line-height:1.12;font-weight:600;letter-spacing:.005em;
   padding:2px 4px;border-radius:2px;overflow:hidden;
   transition:opacity .22s,border-color .22s,box-shadow .22s,color .22s}
-.brick.ghost{border-color:rgba(255,255,255,.085);background:rgba(255,255,255,.018);
+.brick.ghost{border-color:color-mix(in srgb,var(--brick-line) 16%,transparent);
+  background:color-mix(in srgb,var(--brick-line) 4%,transparent);
   border-width:1px;border-radius:1px;pointer-events:none}
-.brick.ext{border-radius:999px;border-style:dashed;border-color:rgba(255,255,255,.30);
-  background:#2b2c2f;color:rgba(236,236,238,.62);font-weight:500;font-size:9.5px}
+.brick.ext{border-radius:999px;border-style:dashed;
+  border-color:color-mix(in srgb,var(--brick-line) 55%,transparent);
+  background:var(--brick-fill);color:color-mix(in srgb,var(--ink) 65%,transparent);
+  font-weight:500;font-size:9.5px}
 .brick.ext .xarea{display:block;font-size:7.5px;letter-spacing:.1em;text-transform:uppercase;
-  color:rgba(255,255,255,.32);margin-top:1px}
+  color:color-mix(in srgb,var(--ink) 38%,transparent);margin-top:1px}
 
-/* focus mode */
-#stage.focus .brick{opacity:.18}
-#stage.focus .brick.rel{opacity:1}
-#stage.focus .brick.sel{opacity:1;border-color:var(--accent);color:#fff;
-  box-shadow:0 0 0 1px var(--accent),0 0 16px -2px var(--accent)}
-#stage.focus .band{opacity:.35}
-#stage.focus #edges .e{opacity:.07}
-#stage.focus #edges .e.rel{opacity:1;stroke:var(--accent)}
-#edges .e{transition:opacity .22s,stroke .22s}
+/* focus mode: the tapped genre's whole lineage stays lit */
+.pane.focus .brick{opacity:.14}
+.pane.focus .brick.rel{opacity:1}
+.pane.focus .brick.sel{opacity:1;border-color:var(--accent);color:#fff;
+  box-shadow:0 0 0 1px var(--accent),0 0 18px -2px var(--accent)}
+.pane.focus .band{opacity:.4}
+.pane.focus .edges .e{opacity:.05}
+.pane.focus .edges .e.rel{opacity:1;stroke:var(--accent)}
+.edges .e{transition:opacity .22s,stroke .22s}
 
 /* ---------- fades ---------- */
 .fade{position:absolute;left:0;right:0;height:64px;pointer-events:none;z-index:20;transition:opacity .25s}
-#fadeTop{top:var(--hdr-h);background:linear-gradient(to bottom,var(--bg) 6%,rgba(47,48,51,0) 100%);opacity:0}
-#fadeBottom{bottom:0;height:88px;background:linear-gradient(to top,var(--bg) 10%,rgba(47,48,51,0) 100%)}
+#fadeTop{top:var(--hdr-h);background:linear-gradient(to bottom,var(--bg) 6%,var(--bg-0) 100%);opacity:0}
+#fadeBottom{bottom:0;height:88px;background:linear-gradient(to top,var(--bg) 10%,var(--bg-0) 100%)}
 
 /* ---------- scroll hint ---------- */
 #scrollHint{position:absolute;left:0;right:0;bottom:calc(env(safe-area-inset-bottom,0px) + 22px);
@@ -105,7 +118,7 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
   pointer-events:none;opacity:0;transition:opacity .5s}
 #scrollHint.show{opacity:1;animation:bob 1.5s ease-in-out infinite}
 #scrollHint .htext{font-size:11px;letter-spacing:.09em;color:var(--ink-dim);text-transform:lowercase;
-  background:rgba(47,48,51,.92);padding:4px 12px;border-radius:999px}
+  background:var(--bg);padding:4px 12px;border-radius:999px}
 #scrollHint svg{display:block}
 @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(7px)}}
 
@@ -142,7 +155,7 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 #sheetClose:active{color:#fff}
 
 /* ---------- loading ---------- */
-#loading{position:fixed;inset:0;z-index:90;background:var(--bg);display:flex;
+#loading{position:fixed;inset:0;z-index:90;background:#2f3033;display:flex;
   align-items:center;justify-content:center;flex-direction:column;gap:14px;
   transition:opacity .4s}
 #loading.done{opacity:0;pointer-events:none}
@@ -167,9 +180,11 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
   </div>
 </header>
 
-<div id="scroller">
-  <div id="pan">
-    <div id="stage"><svg id="edges" xmlns="http://www.w3.org/2000/svg"></svg></div>
+<div id="viewport">
+  <div id="track">
+    <section class="pane"><div class="stage"><svg class="edges" xmlns="http://www.w3.org/2000/svg"></svg></div></section>
+    <section class="pane"><div class="stage"><svg class="edges" xmlns="http://www.w3.org/2000/svg"></svg></div></section>
+    <section class="pane"><div class="stage"><svg class="edges" xmlns="http://www.w3.org/2000/svg"></svg></div></section>
   </div>
 </div>
 

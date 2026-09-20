@@ -25,14 +25,37 @@ const DECADE_LABEL = {
 const decIndex = {};
 DECADES.forEach((d, i) => { decIndex[d] = i; });
 
-const AREA_ACCENT = {
-  rock: "#ff8a6b", metal: "#e0607f", punk: "#ff7ba8", pop: "#ffb454",
-  folk: "#9ad06b", latin: "#ffd166", jazz: "#c9a6ff", soulful: "#f0956b",
-  classical: "#bfc6d4", rasta: "#7fd48f", hiphop: "#ffc857", breakbeat: "#6fd6ff",
-  house: "#7bb8ff", techno: "#8fa8ff", trance: "#a88fff", hardcore: "#ff6f6f",
-  industrial: "#9fa6ad", experimental: "#7fe0d0",
+/* Each Area gets its own hue + saturation, from which the whole page palette
+   is derived, so swiping visibly changes the mood rather than just the title. */
+const AREA_HUE = {
+  rasta: [138, 44], latin: [26, 58], jazz: [272, 38], experimental: [172, 36],
+  industrial: [206, 14], hardcore: [2, 50], trance: [258, 44], techno: [222, 40],
+  house: [198, 48], breakbeat: [188, 50], hiphop: [44, 54], soulful: [16, 48],
+  pop: [322, 44], folk: [96, 38], rock: [14, 50], metal: [348, 42],
+  classical: [40, 18],
 };
-const FALLBACK_ACCENT = "#8fb6ff";
+function scheme(area) {
+  const hs = AREA_HUE[area] || [215, 18];
+  const h = hs[0], s = hs[1];
+  const S = k => Math.round(s * k);
+  return {
+    "--bg": "hsl(" + h + " " + S(.30) + "% 18.5%)",
+    "--bg-0": "hsl(" + h + " " + S(.30) + "% 18.5% / 0)",
+    "--brick-fill": "hsl(" + h + " " + S(.38) + "% 14.5%)",
+    "--brick-line": "hsl(" + h + " " + S(.95) + "% 79% / .62)",
+    "--ink": "hsl(" + h + " " + S(.16) + "% 93%)",
+    "--ink-dim": "hsl(" + h + " " + S(.14) + "% 63%)",
+    "--ink-faint": "hsl(" + h + " " + S(.14) + "% 45%)",
+    "--accent": "hsl(" + h + " " + Math.min(82, S(1.35)) + "% 69%)",
+    "--band": "hsl(" + h + " " + S(.62) + "% 82% / .18)",
+    "--edge": "hsl(" + h + " " + S(.52) + "% 87%)",
+  };
+}
+function hash32(str) {
+  let h = 2166136261;
+  for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); }
+  return h >>> 0;
+}
 
 const nodes = [];
 const byTech = Object.create(null);
@@ -157,8 +180,8 @@ function measure(text) {
 
 /* ---------------------------------------------------------------- layout */
 
-const GAP_X = 9, ROW_GAP = 13;
-const BAND_TOP = 26, BAND_BOTTOM = 16;
+const GAP_X = 9, ROW_GAP = 24, JITTER = 5;
+const BAND_TOP = 30, BAND_BOTTOM = 20;
 const GHOST_W = 30, GHOST_H = 11;
 const EXT_H = 30;
 const MAX_GHOSTS = 2;
@@ -354,7 +377,13 @@ function buildLayout(area, level, width) {
     let ry = y + BAND_TOP;
     for (const r of rowsOut) {
       let rh = 0; for (const it of r) if (it.h > rh) rh = it.h;
-      for (const it of r) { it.y = ry + (rh - it.h) / 2; it.rowBottom = ry + rh; }
+      for (const it of r) {
+        /* nudge each brick off its row's baseline so parallel connectors
+           don't all run at the same height */
+        const j = (hash32(it.tech) % (2 * JITTER + 1)) - JITTER;
+        it.y = ry + (rh - it.h) / 2 + j;
+        it.rowTop = ry; it.rowBottom = ry + rh;   // nominal, jitter-free
+      }
       ry += rh + ROW_GAP;
     }
     y = ry - ROW_GAP + BAND_BOTTOM;
@@ -377,19 +406,27 @@ function buildLayout(area, level, width) {
       e.bx = it.x + inset + (it.w - 2 * inset) * ((i + 1) / (it.eIn.length + 1));
     });
   }
-  for (const e of edges) e.jog = e.from.rowBottom + ROW_GAP / 2;
+  /* Each connector drops straight down from the child and only turns sideways
+     in the clear gap just above its parent, at its own height inside that gap,
+     so long runs fan out across the children instead of stacking into one
+     cable above the parent. */
+  const jogBand = Math.max(3, ROW_GAP - 2 * JITTER - 2);
+  for (const e of edges) {
+    e.jog = e.to.rowTop - ROW_GAP + JITTER + 1
+      + (hash32(e.from.tech + ">" + e.to.tech) % jogBand);
+  }
 
   const out = { area, level, width, items, edges, bands, height: y + 56, itemFor };
   layoutCache[key] = out;
   return out;
 }
 
+
 /* ------------------------------------------------------------------- draw */
 
-const scroller = document.getElementById("scroller");
-const pan = document.getElementById("pan");
-const stage = document.getElementById("stage");
-const svg = document.getElementById("edges");
+const viewport = document.getElementById("viewport");
+const track = document.getElementById("track");
+const areabar = document.getElementById("areabar");
 const areaNameEl = document.getElementById("areaName");
 const tipEl = document.getElementById("tip");
 const scrimEl = document.getElementById("scrim");
@@ -398,32 +435,49 @@ const fadeTop = document.getElementById("fadeTop");
 const fadeBottom = document.getElementById("fadeBottom");
 
 const PAD_L = 10, PAD_R = 50;
+const ZOOM = .84;
 const EDGE_STYLE = {
-  p1: { w: 1.6, o: .50 }, p2: { w: 1.0, o: .28 }, p3: { w: .65, o: .17 },
-  ex: { w: .9, o: .26, dash: "3 4" }, gh: { w: .7, o: .10 },
+  p1: { w: 2.0, o: .62 },
+  p2: { w: 1.0, o: .30 },
+  p3: { w: .55, o: .24, dash: "1.2 3.2" },
+  ex: { w: .9, o: .28, dash: "3 4" },
+  gh: { w: .7, o: .10 },
 };
 
 let curAreaIdx = 0;
-let curLevel = 4;
-let layout = null;
-let focused = null;
+let curLevel = 3;
 let hintTimer = null;
 
-function availWidth() {
-  return Math.max(200, scroller.clientWidth - PAD_L - PAD_R);
+/* Three side-by-side panes: previous area, current area, next area. The track
+   slides horizontally so a swipe carries one out while the next comes in. */
+const panes = Array.prototype.map.call(track.children, el => ({
+  el,
+  stage: el.querySelector(".stage"),
+  svg: el.querySelector(".edges"),
+  area: null, layout: null, focused: null, selEl: null,
+}));
+const active = () => panes[1];
+
+function wrapIdx(i) { const n = order.length; return ((i % n) + n) % n; }
+function esc(s) {
+  return String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+}
+function applyScheme(el, area) {
+  const sc = scheme(area);
+  for (const k in sc) el.style.setProperty(k, sc[k]);
 }
 
 function edgePath(from, to, jog) {
   const x1 = from.ax, y1 = from.y + from.h;    // child sits above its parent
   const x2 = to.bx, y2 = to.y;
   if (y2 < y1 + 10) {
-    /* same band (or overlapping rows): gentle side curve instead */
     const sy = from.cy, ey = to.cy;
-    const dx = Math.abs(x2 - x1), bow = Math.min(26, Math.max(12, dx * .3));
-    const sx = x1 < x2 ? from.x + from.w : from.x;
-    const ex = x1 < x2 ? to.x : to.x + to.w;
-    return "M" + sx + " " + sy + "C" + (sx + (x1 < x2 ? bow : -bow)) + " " + sy
-      + "," + (ex - (x1 < x2 ? bow : -bow)) + " " + ey + "," + ex + " " + ey;
+    const dx = Math.abs(to.cx - from.cx), bow = Math.min(26, Math.max(12, dx * .3));
+    const dir = from.cx < to.cx ? 1 : -1;
+    const sx = dir > 0 ? from.x + from.w : from.x;
+    const ex = dir > 0 ? to.x : to.x + to.w;
+    return "M" + sx + " " + sy + "C" + (sx + dir * bow) + " " + sy
+      + "," + (ex - dir * bow) + " " + ey + "," + ex + " " + ey;
   }
   if (Math.abs(x2 - x1) < 1.5) return "M" + x1 + " " + y1 + "V" + y2;
   /* Travel sideways in the clear gap just below the child, then drop straight
@@ -442,148 +496,157 @@ function edgePath(from, to, jog) {
     + "V" + y2;
 }
 
-function render(area, level) {
-  const width = availWidth();
-  layout = buildLayout(area, level, width);
-  const accent = AREA_ACCENT[area] || FALLBACK_ACCENT;
-  stage.style.setProperty("--accent", accent);
-  stage.classList.remove("focus");
-  stage.style.transform = "";
-  focused = null;
-  hideTip();
+function renderPane(pane, area, level) {
+  pane.area = area;
+  pane.focused = null; pane.selEl = null;
+  applyScheme(pane.el, area);
+  pane.el.classList.remove("focus");
+  pane.stage.style.transform = "";
 
-  /* bands */
+  const width = Math.max(200, pane.el.clientWidth - PAD_L - PAD_R);
+  const L = buildLayout(area, level, width);
+  pane.layout = L;
+
   let html = "";
-  for (const b of layout.bands) {
+  for (const b of L.bands) {
     const raw = DECADES[b.di] || "";
-    const label = DECADE_LABEL[raw] || raw;
     html += '<div class="band" style="top:' + b.top + 'px;height:' + (b.bottom - b.top) + 'px">'
       + (b.first ? "" : '<div class="bline"></div>')
-      + '<div class="blabel">' + label + "</div></div>";
+      + '<div class="blabel">' + (DECADE_LABEL[raw] || raw) + "</div></div>";
   }
-
-  /* bricks */
-  for (let i = 0; i < layout.items.length; i++) {
-    const it = layout.items[i];
+  for (let i = 0; i < L.items.length; i++) {
+    const it = L.items[i];
     const style = "left:" + (it.x + PAD_L).toFixed(1) + "px;top:" + it.y.toFixed(1)
       + "px;width:" + it.w.toFixed(1) + "px;height:" + it.h + "px";
     if (it.kind === "ghost") {
       html += '<div class="brick ghost" style="' + style + '"></div>';
     } else if (it.kind === "ext") {
-      html += '<div class="brick ext" data-i="' + i + '" style="' + style + '">'
-        + '<span>' + esc(it.node.name)
-        + '<span class="xarea">' + esc(areaDisplay[it.node.area] || it.node.area) + "</span></span></div>";
+      html += '<div class="brick ext" data-i="' + i + '" style="' + style + '"><span>'
+        + esc(it.node.name) + '<span class="xarea">'
+        + esc(areaDisplay[it.node.area] || it.node.area) + "</span></span></div>";
     } else {
       html += '<div class="brick" data-i="' + i + '" style="' + style + '">' + esc(it.node.name) + "</div>";
     }
   }
-  stage.insertAdjacentHTML("beforeend", html);
 
-  /* the brick x positions above include PAD_L; keep the geometry in sync */
-  for (const it of layout.items) { it.px = it.x + PAD_L; it.pcx = it.cx + PAD_L; }
-
-  /* edges */
-  svg.setAttribute("width", width + PAD_L + PAD_R);
-  svg.setAttribute("height", layout.height);
+  for (const it of L.items) { it.px = it.x + PAD_L; it.pcx = it.cx + PAD_L; }
   let sv = "";
-  for (let i = 0; i < layout.edges.length; i++) {
-    const e = layout.edges[i];
-    const st = EDGE_STYLE[e.rank];
+  for (let i = 0; i < L.edges.length; i++) {
+    const e = L.edges[i], st = EDGE_STYLE[e.rank];
     const from = { cx: e.from.pcx, ax: e.ax + PAD_L, x: e.from.px, w: e.from.w, y: e.from.y, h: e.from.h, cy: e.from.cy };
     const to = { cx: e.to.pcx, bx: e.bx + PAD_L, x: e.to.px, w: e.to.w, y: e.to.y, h: e.to.h, cy: e.to.cy };
     sv += '<path class="e ' + e.rank + '" data-e="' + i + '" d="' + edgePath(from, to, e.jog)
-      + '" fill="none" stroke="#ffffff" stroke-width="' + st.w + '" opacity="' + st.o + '"'
+      + '" fill="none" stroke-width="' + st.w + '" opacity="' + st.o + '"'
       + (st.dash ? ' stroke-dasharray="' + st.dash + '"' : "") + ' stroke-linecap="round"></path>';
   }
-  svg.innerHTML = sv;
 
-  stage.style.height = layout.height + "px";
-  scroller.scrollTop = 0;
+  pane.svg.setAttribute("width", width + PAD_L + PAD_R);
+  pane.svg.setAttribute("height", L.height);
+  pane.svg.innerHTML = sv;
+  for (const k of pane.stage.querySelectorAll(".brick,.band")) k.remove();
+  pane.stage.insertAdjacentHTML("beforeend", html);
+  pane.stage.style.height = L.height + "px";
+  pane.el.scrollTop = 0;
+}
+
+/* The header shows whichever area the carousel is closest to, so the title and
+   the page colours change mid-swipe rather than snapping at the end. */
+let headerIdx = -1;
+function setHeader(idx) {
+  if (idx === headerIdx) return;
+  headerIdx = idx;
+  const area = order[idx];
+  areaNameEl.textContent = areaDisplay[area] || area;
+  applyScheme(document.documentElement, area);
+}
+
+/* Repaint all three panes around the current index. */
+function paintAll() {
+  for (let s = 0; s < 3; s++) renderPane(panes[s], order[wrapIdx(curAreaIdx + s - 1)], curLevel);
+  headerIdx = -1;
+  setHeader(curAreaIdx);
+  hideTip();
   updateFades();
   showHint();
 }
 
-function clearStage() {
-  const kids = stage.querySelectorAll(".brick,.band");
-  for (const k of kids) k.remove();
-  svg.innerHTML = "";
+/* --------------------------------------------------------------- carousel */
+
+const CENTER = -100 / 3;                       // track is 300% wide
+function setTrack(px, animate) {
+  track.classList.toggle("anim", !!animate);
+  track.style.transform = "translate3d(calc(" + CENTER + "% + " + px + "px),0,0)";
 }
 
-function esc(s) {
-  return String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+let sliding = false;
+function goTo(idx, dir) {
+  if (sliding) return;
+  const step = dir || (idx > curAreaIdx ? 1 : -1);
+  sliding = true;
+  hideTip();
+  curAreaIdx = wrapIdx(idx);
+  setHeader(curAreaIdx);
+  setTrack(-step * viewport.clientWidth, true);
+  setTimeout(() => {
+    setTrack(0, false);
+    paintAll();
+    sliding = false;
+  }, 300);
 }
 
-/* ------------------------------------------------------------- area swipe */
+let ptrId = null, sx = 0, sy = 0, axis = null, dx = 0, lockX = false;
 
-function setArea(idx, dir) {
-  const n = order.length;
-  curAreaIdx = ((idx % n) + n) % n;
-  const area = order[curAreaIdx];
-  areaNameEl.classList.add("swapping");
-  if (dir) {
-    pan.style.transition = "transform .16s ease-in, opacity .16s ease-in";
-    pan.style.transform = "translateX(" + (dir > 0 ? -50 : 50) + "px)";
-    pan.style.opacity = "0";
-  }
-  const paint = () => {
-    clearStage();
-    render(area, curLevel);
-    areaNameEl.textContent = areaDisplay[area] || area;
-    areaNameEl.classList.remove("swapping");
-    if (dir) {
-      pan.style.transition = "none";
-      pan.style.transform = "translateX(" + (dir > 0 ? 50 : -50) + "px)";
-      pan.style.opacity = "0";
-      requestAnimationFrame(() => {
-        pan.style.transition = "transform .24s cubic-bezier(.25,.8,.3,1), opacity .24s";
-        pan.style.transform = "translateX(0)";
-        pan.style.opacity = "1";
-      });
-    } else {
-      pan.style.transform = "";
-      pan.style.opacity = "1";
-    }
-  };
-  if (dir) setTimeout(paint, 160); else paint();
-}
-
-let ptrId = null, sx = 0, sy = 0, dragAxis = null, dragDX = 0;
-scroller.addEventListener("pointerdown", e => {
+function onDown(e, forceX) {
+  if (sliding || scrimEl.classList.contains("show")) return;
   if (e.pointerType === "mouse" && e.button !== 0) return;
-  ptrId = e.pointerId; sx = e.clientX; sy = e.clientY; dragAxis = null; dragDX = 0;
-}, { passive: true });
-
-scroller.addEventListener("pointermove", e => {
-  if (e.pointerId !== ptrId) return;
-  const dx = e.clientX - sx, dy = e.clientY - sy;
-  if (dragAxis === null) {
-    if (Math.abs(dx) > 10 && Math.abs(dx) > Math.abs(dy) * 1.25) dragAxis = "x";
-    else if (Math.abs(dy) > 10) dragAxis = "y";
+  ptrId = e.pointerId; sx = e.clientX; sy = e.clientY; dx = 0;
+  axis = forceX ? null : null; lockX = !!forceX;
+}
+function onMove(e) {
+  if (e.pointerId !== ptrId || sliding) return;
+  const ddx = e.clientX - sx, ddy = e.clientY - sy;
+  if (axis === null) {
+    if (lockX) { if (Math.abs(ddx) > 6) axis = "x"; }
+    else if (Math.abs(ddx) > 10 && Math.abs(ddx) > Math.abs(ddy) * 1.25) axis = "x";
+    else if (Math.abs(ddy) > 10) axis = "y";
   }
-  if (dragAxis === "x") {
-    e.preventDefault();
-    dragDX = dx;
-    pan.style.transition = "none";
-    pan.style.transform = "translateX(" + (dx * .42) + "px)";
-    pan.style.opacity = String(Math.max(.45, 1 - Math.abs(dx) / 420));
-  }
-}, { passive: false });
-
-function endDrag() {
+  if (axis !== "x") return;
+  e.preventDefault();
+  if (hintEl.classList.contains("show")) { clearTimeout(hintTimer); hintEl.classList.remove("show"); }
+  hideTip();
+  dx = ddx;
+  setTrack(dx, false);
+  const half = viewport.clientWidth * .45;
+  setHeader(wrapIdx(curAreaIdx + (dx <= -half ? 1 : dx >= half ? -1 : 0)));
+}
+function onUp(e) {
   if (ptrId === null) return;
   ptrId = null;
-  if (dragAxis !== "x") return;
-  const dx = dragDX; dragAxis = null;
-  if (Math.abs(dx) > 55) { setArea(curAreaIdx + (dx < 0 ? 1 : -1), dx < 0 ? 1 : -1); return; }
-  pan.style.transition = "transform .2s, opacity .2s";
-  pan.style.transform = "translateX(0)";
-  pan.style.opacity = "1";
+  if (axis !== "x") { axis = null; return; }
+  axis = null;
+  const threshold = Math.min(70, viewport.clientWidth * .2);
+  if (dx <= -threshold) goTo(curAreaIdx + 1, 1);
+  else if (dx >= threshold) goTo(curAreaIdx - 1, -1);
+  else { setHeader(curAreaIdx); setTrack(0, true); }
+  dx = 0;
 }
-scroller.addEventListener("pointerup", endDrag, { passive: true });
-scroller.addEventListener("pointercancel", endDrag, { passive: true });
 
-document.getElementById("prevArea").addEventListener("click", () => setArea(curAreaIdx - 1, -1));
-document.getElementById("nextArea").addEventListener("click", () => setArea(curAreaIdx + 1, 1));
+track.addEventListener("pointerdown", e => onDown(e, false), { passive: true });
+track.addEventListener("pointermove", onMove, { passive: false });
+track.addEventListener("pointerup", onUp, { passive: true });
+track.addEventListener("pointercancel", onUp, { passive: true });
+
+/* the title strip swipes too */
+areabar.addEventListener("pointerdown", e => {
+  if (e.target.closest(".chev")) return;
+  onDown(e, true);
+}, { passive: true });
+areabar.addEventListener("pointermove", onMove, { passive: false });
+areabar.addEventListener("pointerup", onUp, { passive: true });
+areabar.addEventListener("pointercancel", onUp, { passive: true });
+
+document.getElementById("prevArea").addEventListener("click", () => goTo(curAreaIdx - 1, -1));
+document.getElementById("nextArea").addEventListener("click", () => goTo(curAreaIdx + 1, 1));
 
 /* -------------------------------------------------------------- drilldown */
 
@@ -597,10 +660,8 @@ const dlevels = document.getElementById("dlevels");
   for (const lv of [5, 4, 3, 2, 1]) {
     const prem = lv <= 2;
     html += '<button class="dstep' + (prem ? " premium" : "") + '" data-lv="' + lv + '">'
-      + '<span class="dnum">' + lv + "</span>"
-      + '<span class="dblip"></span>'
-      + (prem ? LOCK_SVG : "")
-      + '<span class="dhit"></span></button>';
+      + '<span class="dnum">' + lv + "</span><span class=\"dblip\"></span>"
+      + (prem ? LOCK_SVG : "") + '<span class="dhit"></span></button>';
   }
   dlevels.innerHTML = html;
   dlevels.addEventListener("click", e => {
@@ -615,95 +676,147 @@ const dlevels = document.getElementById("dlevels");
 function setLevel(lv) {
   curLevel = lv;
   for (const b of dlevels.querySelectorAll(".dstep")) b.classList.toggle("on", +b.dataset.lv === lv);
-  clearStage();
-  render(order[curAreaIdx], lv);
+  paintAll();
 }
 
-/* ----------------------------------------------------------- focus + info */
+/* ------------------------------------------------------- focus on lineage */
 
-function relatedOf(item) {
-  const nodesSet = new Set([item]), edgeSet = new Set();
-  layout.edges.forEach((e, i) => {
-    if (e.from === item || e.to === item) {
-      edgeSet.add(i);
-      nodesSet.add(e.from); nodesSet.add(e.to);
-    }
+/* Everything the genre descends from and everything descended from it: the
+   primary-parent spine walked both ways, plus the node's own secondary and
+   tertiary links. */
+function lineageOf(L, item) {
+  const inSet = new Set([item]), edgeSet = new Set();
+  const up = new Map(), down = new Map();
+  L.edges.forEach((e, i) => {
+    if (!up.has(e.from)) up.set(e.from, []);
+    if (!down.has(e.to)) down.set(e.to, []);
+    up.get(e.from).push([e, i]);
+    down.get(e.to).push([e, i]);
   });
-  return { nodesSet, edgeSet };
+  const spine = r => r === "p1" || r === "ex";
+  const walk = (start, map, pick) => {
+    const stack = [start], seen = new Set([start]);
+    while (stack.length) {
+      const cur = stack.pop();
+      for (const pair of (map.get(cur) || [])) {
+        const e = pair[0];
+        if (!spine(e.rank)) continue;
+        edgeSet.add(pair[1]);
+        const nxt = pick(e);
+        inSet.add(nxt);
+        if (!seen.has(nxt)) { seen.add(nxt); stack.push(nxt); }
+      }
+    }
+  };
+  walk(item, up, e => e.to);       // ancestors
+  walk(item, down, e => e.from);   // descendants
+  for (const pair of (up.get(item) || [])) { edgeSet.add(pair[1]); inSet.add(pair[0].to); }
+  for (const pair of (down.get(item) || [])) { edgeSet.add(pair[1]); inSet.add(pair[0].from); }
+  return { inSet, edgeSet };
 }
 
-function focusItem(item, el) {
-  focused = item;
-  const { nodesSet, edgeSet } = relatedOf(item);
-  const bricks = stage.querySelectorAll(".brick");
-  for (const b of bricks) {
+function focusItem(pane, item, el) {
+  const L = pane.layout;
+  const lin = lineageOf(L, item);
+  pane.focused = item; pane.selEl = el;
+  for (const b of pane.stage.querySelectorAll(".brick")) {
     const i = b.dataset.i;
-    const it = i === undefined ? null : layout.items[+i];
-    b.classList.toggle("rel", !!it && nodesSet.has(it));
+    const it = i === undefined ? null : L.items[+i];
+    b.classList.toggle("rel", !!it && lin.inSet.has(it));
     b.classList.toggle("sel", b === el);
   }
-  /* ghosts carry no data-i; relate them through their parent item */
-  for (const b of stage.querySelectorAll(".brick.ghost")) b.classList.remove("rel");
-  svg.querySelectorAll(".e").forEach(p => p.classList.toggle("rel", edgeSet.has(+p.dataset.e)));
+  for (const p of pane.svg.querySelectorAll(".e")) p.classList.toggle("rel", lin.edgeSet.has(+p.dataset.e));
 
-  stage.classList.add("focus");
-  stage.style.transformOrigin = item.pcx + "px " + item.cy + "px";
-  stage.style.transform = "scale(.84)";
-  showTipAtItem(item);
+  /* Scale from the top edge and compensate the scroll position, so the tapped
+     brick stays put and the whole diagram is still scrollable end to end. */
+  const before = pane.el.scrollTop;
+  pane.stage.style.transformOrigin = "50% 0";
+  pane.stage.style.transform = "scale(" + ZOOM + ")";
+  pane.stage.style.height = (L.height * ZOOM) + "px";
+  pane.el.classList.add("focus");
+  const want = item.cy * ZOOM - item.cy + before;
+  pane.el.scrollTop = Math.max(0, want);
+  trackTip(pane);
 }
 
-function unfocus() {
-  focused = null;
-  stage.classList.remove("focus");
-  stage.style.transform = "";
-  for (const b of stage.querySelectorAll(".brick")) b.classList.remove("rel", "sel");
-  svg.querySelectorAll(".e").forEach(p => p.classList.remove("rel"));
+function unfocus(pane) {
+  if (!pane.focused) return;
+  const L = pane.layout, item = pane.focused;
+  const before = pane.el.scrollTop;
+  pane.focused = null; pane.selEl = null;
+  pane.el.classList.remove("focus");
+  pane.stage.style.transform = "";
+  pane.stage.style.height = L.height + "px";
+  pane.el.scrollTop = Math.max(0, before + item.cy - item.cy * ZOOM);
+  for (const b of pane.stage.querySelectorAll(".brick")) b.classList.remove("rel", "sel");
+  for (const p of pane.svg.querySelectorAll(".e")) p.classList.remove("rel");
   hideTip();
 }
 
-let tipTimer = null;
-function hideTip() { tipEl.classList.remove("show"); tipEl.classList.remove("premium"); }
+for (const pane of panes) {
+  pane.stage.addEventListener("click", e => {
+    if (axis === "x" || sliding || pane !== active()) return;
+    const b = e.target.closest(".brick[data-i]");
+    if (!b) { unfocus(pane); return; }
+    const it = pane.layout.items[+b.dataset.i];
+    if (pane.focused === it) { unfocus(pane); return; }
+    focusItem(pane, it, b);
+  });
+  pane.el.addEventListener("scroll", () => {
+    if (pane !== active()) return;
+    updateFades();
+    if (pane.el.scrollTop > 12 && hintEl.classList.contains("show")) {
+      clearTimeout(hintTimer); hintEl.classList.remove("show");
+    }
+    if (pane.focused) positionTip(pane);
+  }, { passive: true });
+}
 
+/* ---------------------------------------------------------------- tooltip */
+
+let tipTimer = null, tipRaf = 0;
+function hideTip() {
+  tipEl.classList.remove("show", "premium");
+  cancelAnimationFrame(tipRaf); tipRaf = 0;
+}
 function showTipAt(el, text, premium, autohide) {
   const r = el.getBoundingClientRect();
   tipEl.textContent = text;
   tipEl.classList.toggle("premium", !!premium);
   tipEl.style.left = (r.left + r.width / 2) + "px";
   tipEl.style.top = (r.top - 8) + "px";
-  tipEl.classList.add("show");
   tipEl.dataset.action = premium ? "" : "info";
+  tipEl.classList.add("show");
   clearTimeout(tipTimer);
   if (autohide) tipTimer = setTimeout(hideTip, autohide);
 }
-
-function showTipAtItem(item) {
-  const sr = scroller.getBoundingClientRect();
-  const z = .84;
-  const originY = item.cy;
-  const topInStage = originY + (item.y - originY) * z;
-  const x = sr.left + item.pcx;
-  const y = sr.top - scroller.scrollTop + topInStage - 8;
+function positionTip(pane) {
+  if (!pane.selEl) return;
+  const r = pane.selEl.getBoundingClientRect();
+  const vp = viewport.getBoundingClientRect();
+  tipEl.style.left = (r.left + r.width / 2) + "px";
+  tipEl.style.top = Math.max(vp.top + 18, r.top - 8) + "px";
+}
+function trackTip(pane) {
   tipEl.textContent = "More info";
   tipEl.classList.remove("premium");
-  tipEl.style.left = x + "px";
-  tipEl.style.top = Math.max(sr.top + 16, y) + "px";
   tipEl.dataset.action = "info";
+  positionTip(pane);
   tipEl.classList.add("show");
   clearTimeout(tipTimer);
+  /* follow the brick while the zoom transition plays out */
+  const t0 = performance.now();
+  cancelAnimationFrame(tipRaf);
+  const step = () => {
+    positionTip(pane);
+    if (performance.now() - t0 < 420) tipRaf = requestAnimationFrame(step);
+  };
+  tipRaf = requestAnimationFrame(step);
 }
-
-stage.addEventListener("click", e => {
-  if (dragAxis === "x") return;
-  const b = e.target.closest(".brick[data-i]");
-  if (!b) { if (focused) unfocus(); return; }
-  const it = layout.items[+b.dataset.i];
-  if (focused === it) { unfocus(); return; }
-  focusItem(it, b);
-});
-
 tipEl.addEventListener("click", () => {
-  if (tipEl.dataset.action !== "info" || !focused) return;
-  openSheet(focused.node);
+  const pane = active();
+  if (tipEl.dataset.action !== "info" || !pane.focused) return;
+  openSheet(pane.focused.node);
 });
 
 /* --------------------------------------------------------------- overlay */
@@ -714,72 +827,59 @@ const LOREM = [
   "At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium. Temporibus autem quibusdam et aut officiis debitis aut rerum necessitatibus saepe eveniet.",
   "Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt.",
 ];
-function loremFor(tech) {
-  let h = 2166136261;
-  for (let i = 0; i < tech.length; i++) { h ^= tech.charCodeAt(i); h = Math.imul(h, 16777619); }
-  return LOREM[Math.abs(h) % LOREM.length];
-}
-
 function openSheet(n) {
   document.getElementById("sheetName").textContent = n.name;
   const raw = n.dec || "";
-  const dec = DECADE_LABEL[raw] || raw;
-  let meta = dec ? '<span class="chip">' + esc(dec) + "</span>" : "";
+  let meta = raw ? '<span class="chip">' + esc(DECADE_LABEL[raw] || raw) + "</span>" : "";
   const flags = flagAssets(n.country);
   if (flags.length) {
-    meta += '<span class="chip">'
-      + flags.map(f => '<img src="' + f[0] + '" alt="' + esc(f[1]) + '" title="' + esc(f[1]) + '">').join("")
-      + "</span>";
+    meta += '<span class="chip">' + flags.map(f =>
+      '<img src="' + f[0] + '" alt="' + esc(f[1]) + '" title="' + esc(f[1]) + '">').join("") + "</span>";
   }
   meta += '<span class="chip">' + esc(areaDisplay[n.area] || n.area) + "</span>";
   document.getElementById("sheetMeta").innerHTML = meta;
-  document.getElementById("sheetDesc").textContent = loremFor(n.tech);
+  document.getElementById("sheetDesc").textContent = LOREM[hash32(n.tech) % LOREM.length];
   scrimEl.classList.add("show");
   hideTip();
 }
-function closeSheet() { scrimEl.classList.remove("show"); if (focused) showTipAtItem(focused); }
+function closeSheet() {
+  scrimEl.classList.remove("show");
+  const pane = active();
+  if (pane.focused) trackTip(pane);
+}
 document.getElementById("sheetClose").addEventListener("click", closeSheet);
 scrimEl.addEventListener("click", e => { if (e.target === scrimEl) closeSheet(); });
 
-/* ------------------------------------------------------- fades + scroll hint */
+/* ----------------------------------------------------- fades + scroll hint */
 
 function updateFades() {
-  const st = scroller.scrollTop;
-  const max = scroller.scrollHeight - scroller.clientHeight;
-  fadeTop.style.opacity = st > 8 ? "1" : "0";
-  fadeBottom.style.opacity = max - st > 8 ? "1" : "0";
+  const el = active().el;
+  const max = el.scrollHeight - el.clientHeight;
+  fadeTop.style.opacity = el.scrollTop > 8 ? "1" : "0";
+  fadeBottom.style.opacity = max - el.scrollTop > 8 ? "1" : "0";
 }
-
 function showHint() {
   clearTimeout(hintTimer);
   hintEl.classList.remove("show");
-  const max = scroller.scrollHeight - scroller.clientHeight;
-  if (max < 40) return;
+  const el = active().el;
+  if (el.scrollHeight - el.clientHeight < 40) return;
   hintTimer = setTimeout(() => {
     hintEl.classList.add("show");
     hintTimer = setTimeout(() => hintEl.classList.remove("show"), 2600);
   }, 320);
 }
 
-scroller.addEventListener("scroll", () => {
-  updateFades();
-  if (scroller.scrollTop > 12 && hintEl.classList.contains("show")) {
-    clearTimeout(hintTimer);
-    hintEl.classList.remove("show");
-  }
-  if (focused) showTipAtItem(focused);
-}, { passive: true });
-
 let resizeTimer = null;
 window.addEventListener("resize", () => {
   clearTimeout(resizeTimer);
-  resizeTimer = setTimeout(() => { clearStage(); render(order[curAreaIdx], curLevel); }, 180);
+  resizeTimer = setTimeout(paintAll, 180);
 });
 
 /* ------------------------------------------------------------------- boot */
 
-setLevel(curLevel);
-setArea(0, 0);
+for (const b of dlevels.querySelectorAll(".dstep")) b.classList.toggle("on", +b.dataset.lv === curLevel);
+setTrack(0, false);
+paintAll();
 const loading = document.getElementById("loading");
 requestAnimationFrame(() => requestAnimationFrame(() => {
   loading.classList.add("done");
@@ -787,9 +887,13 @@ requestAnimationFrame(() => requestAnimationFrame(() => {
 }));
 
 window.__genreMap = {
-  get layout() { return layout; },
+  get pane() { return active(); },
+  get layout() { return active().layout; },
   get order() { return order; },
-  setArea, setLevel, focusItem, openSheet,
   get level() { return curLevel; },
+  get areaIdx() { return curAreaIdx; },
+  setLevel,
+  setArea(i) { curAreaIdx = wrapIdx(i); paintAll(); },
+  goTo, focusItem, unfocus, openSheet, lineageOf, scheme,
 };
 }));
