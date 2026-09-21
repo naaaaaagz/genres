@@ -340,7 +340,7 @@ function buildLayout(area, level, width, flip, blobs, uiK) {
        can still slip past without touching anybody else */
     /* wide enough for one tail per side with two sub-groups, two per side
        beyond that — anything narrower and a tail would graze a brick */
-    secInset = keys.length <= 1 ? 0 : keys.length === 2 ? 28 : 40;
+    secInset = keys.length <= 1 ? 0 : keys.length === 2 ? 28 : keys.length <= 4 ? 40 : 44;
     const inner = width - 2 * secInset;
     chain.forEach((j, i) => {
       const k = keys[j], share = counts.get(k) / (total || 1);
@@ -667,10 +667,12 @@ function buildLayout(area, level, width, flip, blobs, uiK) {
         const target = pc === null ? nc : nc === null ? pc : (pc + nc) / 2;
 
         /* the reserved side lanes, nearest to where the bubble wants to be */
-        const NH = 3, NP = 3, NSEP = 3;         // neck half-width, padding, clearance
+        const NH = 3, NP = 2, NSEP = 2;         // neck half-width, padding, clearance
+        /* two tails fit side by side in each lane: 14px apart, 4px of air
+           between their outlines, and clear of the first brick's outline */
         const slots = [];
-        if (secInset >= 36) slots.push(8, 20, width - 20, width - 8);
-        else if (secInset >= 20) slots.push(8, width - 8);
+        if (secInset >= 36) slots.push(7, 21, width - 21, width - 7);
+        else if (secInset >= 20) slots.push(7, width - 7);
         const taken = reserved.get(r) || [];
         const clashes = (a2, b2) => {
           for (const iv of taken) if (iv[2] !== sec && a2 < iv[1] && b2 > iv[0]) return true;
@@ -708,9 +710,15 @@ function buildLayout(area, level, width, flip, blobs, uiK) {
             if (d < sd) { sd = d; cx = sx; }
           }
         }
-        if (cx === null) {                       // give up gracefully at the edge
-          cx = slots.length ? (target < width / 2 ? slots[0] : slots[slots.length - 1])
-            : (target < width / 2 ? NH + NP + 2 : width - NH - NP - 2);
+        if (cx === null) {                       // every lane busy: pick the calmest
+          const pool = slots.length ? slots : [NH + NP + 2, width - NH - NP - 2];
+          let best = Infinity;
+          for (const sx of pool) {
+            let n = 0;
+            for (const iv of taken) if (iv[2] !== sec && sx - NH - NP < iv[1] && sx + NH + NP > iv[0]) n++;
+            const score = n * 10000 + Math.abs(sx - target);
+            if (score < best) { best = score; cx = sx; }
+          }
         }
         spans.push({ x1: cx - NH, x2: cx + NH, yTop: rows[r].yTop, yBot: rows[r].yBot, neck: true });
         reserve(r, cx - NH - NP - NSEP, cx + NH + NP + NSEP, sec);
@@ -1057,7 +1065,7 @@ function renderPane(pane, area, level, keepScroll) {
     html += '<div class="band" data-b="' + b.di + '" style="top:' + b.top
       + 'px;height:' + (b.bottom - b.top) + 'px">'
       + (b.first ? "" : '<div class="bline"></div>')
-      + '<div class="blabel' + (raw.length > 7 ? " sm" : "") + '">'
+      + '<div class="blabel' + (/^\d/.test(raw) ? "" : " sm") + '">'
       + esc(DECADE_LABEL[raw] || raw) + "</div></div>";
   }
   for (let i = 0; i < L.items.length; i++) {
@@ -1130,7 +1138,7 @@ function renderPane(pane, area, level, keepScroll) {
       const sat = Math.max(24, ah[1]) + (g.si % 2 ? 7 : -3);
       const spans = g.spans.map(sp => ({ x1: sp.x1 + PAD_L, x2: sp.x2 + PAD_L,
         yTop: sp.yTop, yBot: sp.yBot, neck: sp.neck }));
-      const d = blobPath(spans, 7, 3, 7, 20, 11, 14);
+      const d = blobPath(spans, 7, 2, 7, 20, 11, 14);
       if (!d) continue;
       blobHtml += '<path class="blob" d="' + d + '" fill="hsl(' + h + ' ' + sat + '% 62% / .055)"'
         + ' stroke="hsl(' + h + ' ' + sat + '% 72% / .26)" stroke-width="1" stroke-dasharray="5 4"></path>';
@@ -1416,11 +1424,14 @@ function setBlobs(on) {
 }
 blobBtn.addEventListener("click", () => {
   if (!areaHasSubGroups(order[curAreaIdx])) {
-    showTipAt(blobBtn, "No sub-genres in " + areaLabel(order[curAreaIdx]), false, 2000);
+    showTipAt(blobBtn, "No sub-genres in " + areaLabel(order[curAreaIdx]), false, 2000, "right");
     tipEl.dataset.action = "";
     return;
   }
   setBlobs(!curBlobs);
+  showTipAt(blobBtn, curBlobs ? "Sub-genre groups shown" : "Sub-genre groups hidden",
+    false, 1300, "right");
+  tipEl.dataset.action = "";
 });
 
 /* -------------------------------------------------------------- drilldown */
@@ -1575,12 +1586,37 @@ function hideTip() {
   tipEl.classList.remove("show", "premium");
   cancelAnimationFrame(tipRaf); tipRaf = 0;
 }
-function showTipAt(el, text, premium, autohide) {
-  const r = el.getBoundingClientRect();
+/* Put the tooltip where it can actually be read. Above its anchor by default,
+   slid sideways so it never leaves the screen, with the arrow following the
+   anchor. Controls hugging the left edge get it to their right instead. */
+const TIP_MARGIN = 8;
+function placeTip(r, side, minTop) {
+  const vw = window.innerWidth;
+  const w = tipEl.offsetWidth, h = tipEl.offsetHeight;
+  tipEl.classList.toggle("side", side === "right");
+  if (side === "right") {
+    const left = Math.min(r.right + 10, vw - w - TIP_MARGIN);
+    const top = r.top + r.height / 2 - h / 2;
+    tipEl.style.left = left + "px";
+    tipEl.style.top = top + "px";
+    tipEl.style.setProperty("--ox", "0%");
+    tipEl.style.setProperty("--oy", "50%");
+    return;
+  }
+  const cx = r.left + r.width / 2;
+  const left = Math.max(TIP_MARGIN, Math.min(cx - w / 2, vw - w - TIP_MARGIN));
+  const top = Math.max(minTop || TIP_MARGIN, r.top - 8 - h);
+  const ax = Math.max(12, Math.min(cx - left, w - 12));
+  tipEl.style.left = left + "px";
+  tipEl.style.top = top + "px";
+  tipEl.style.setProperty("--ax", ax + "px");
+  tipEl.style.setProperty("--ox", ax + "px");
+  tipEl.style.setProperty("--oy", "100%");
+}
+function showTipAt(el, text, premium, autohide, side) {
   tipEl.textContent = text;
   tipEl.classList.toggle("premium", !!premium);
-  tipEl.style.left = (r.left + r.width / 2) + "px";
-  tipEl.style.top = (r.top - 8) + "px";
+  placeTip(el.getBoundingClientRect(), side);
   tipEl.dataset.action = premium ? "" : "info";
   tipEl.classList.add("show");
   clearTimeout(tipTimer);
@@ -1588,10 +1624,8 @@ function showTipAt(el, text, premium, autohide) {
 }
 function positionTip(pane) {
   if (!pane.selEl) return;
-  const r = pane.selEl.getBoundingClientRect();
   const vp = viewport.getBoundingClientRect();
-  tipEl.style.left = (r.left + r.width / 2) + "px";
-  tipEl.style.top = Math.max(vp.top + 18, r.top - 8) + "px";
+  placeTip(pane.selEl.getBoundingClientRect(), "above", vp.top + 6);
 }
 function trackTip(pane) {
   const it = pane.focused;
