@@ -224,6 +224,7 @@ function measure(text, imp, k) {
 
 const GAP_X = 22, ROW_GAP = 38;
 const BAND_TOP = 34, BAND_BOTTOM = 24;
+const EXT_GAP = 22;       // gap between an external-parent oval and the row it hugs
 const EXT_H = 34;
 const CLEAR = 4;          // keep-out margin around a brick for routed lines
 const LANE = 4;           // minimum distance between two parallel connectors
@@ -443,6 +444,17 @@ function buildLayout(area, level, width, flip, blobs, uiK) {
     }
   }
 
+  /* An external parent is not placed in its own decade — that decade often has
+     nothing else in this Area (Tuareg Music is ancient, its child Tishoumaren is
+     1980s). Instead the oval sits in a thin band immediately on the "older" side
+     of the earliest genre it feeds here, so it reads as that genre's origin. */
+  for (const it of items) {
+    if (it.kind !== "ext" || !it.down.length) continue;
+    let earliest = Infinity;
+    for (const c of it.down) if (c.di < earliest) earliest = c.di;
+    it.di = earliest - 0.5;
+  }
+
   /* ---- layers ---- */
   const layers = new Map();
   for (const it of items) {
@@ -450,6 +462,13 @@ function buildLayout(area, level, width, flip, blobs, uiK) {
     layers.get(it.di).push(it);
   }
   const dis = Array.from(layers.keys()).sort((a, b) => a - b);   // oldest first
+  /* pseudo-layers holding nothing but external-parent ovals take part in the
+     ordering sweeps, but get no decade line, no
+     label and no band of its own: each oval is threaded in next to the row
+     that anchors it (see vertical placement) */
+  const ghostDi = new Set();
+  for (const [di, layer] of layers) if (layer.every(it => it.kind === "ext")) ghostDi.add(di);
+
   for (const it of items) it.x = (width - it.w) / 2;
 
   /* Within one decade there is no chronology to lean on, so rank by depth in
@@ -520,17 +539,42 @@ function buildLayout(area, level, width, flip, blobs, uiK) {
     dis.forEach((di, i) => layers.set(di, best.ord[i]));
   }
 
+  /* Every external-parent oval is anchored to the earliest genre it feeds here
+     rather than to its own decade: it is placed in a thin row right next to
+     that genre's row, on the "older" side of it. */
+  const extAnchor = new Map();          // anchor item -> its external ovals
+  for (const it of items) {
+    if (it.kind !== "ext" || !it.down.length) continue;
+    let a = null;
+    for (const c of it.down) if (!a || c.di < a.di || (c.di === a.di && c.rank < a.rank)) a = c;
+    if (!extAnchor.has(a)) extAnchor.set(a, []);
+    extAnchor.get(a).push(it);
+  }
+
   /* ---- vertical placement, band by band ---- */
   const bands = [], rows = [];
   let y = 0;
-  const seq = flip ? dis : dis.slice().reverse();
+  const realDis = dis.filter(di => !ghostDi.has(di));
+  const seq = flip ? realDis : realDis.slice().reverse();
   for (let bi = 0; bi < seq.length; bi++) {
     const di = seq[bi];
     const layer = layers.get(di);
     const rowsOut = packLayer(layer, width, secInset);
+    /* older side means below while new music is on top, above once flipped */
+    const plan = [];
+    for (const r of rowsOut) {
+      let ovals = [];
+      for (const it of r) if (extAnchor.has(it)) ovals = ovals.concat(extAnchor.get(it));
+      const gRows = ovals.length ? packLayer(ovals, width, secInset) : [];
+      if (flip) for (const g of gRows) plan.push({ r: g, ghost: true });
+      plan.push({ r: r, ghost: false });
+      if (!flip) for (const g of gRows) plan.push({ r: g, ghost: true });
+    }
     const bandTop = y;
     let ry = y + BAND_TOP;
-    for (const r of rowsOut) {
+    for (let pi = 0; pi < plan.length; pi++) {
+      const r = plan[pi].r;
+      if (pi) ry += (plan[pi].ghost || plan[pi - 1].ghost) ? EXT_GAP : ROW_GAP;
       let rh = 0; for (const it of r) if (it.h > rh) rh = it.h;
       const rowIdx = rows.length;
       let yTop = Infinity, yBot = -Infinity;
@@ -541,9 +585,9 @@ function buildLayout(area, level, width, flip, blobs, uiK) {
         if (it.y + it.h > yBot) yBot = it.y + it.h;
       }
       rows.push({ yTop, yBot, items: r.slice() });
-      ry += rh + ROW_GAP;
+      ry += rh;
     }
-    y = ry - ROW_GAP + BAND_BOTTOM;
+    y = ry + BAND_BOTTOM;
     bands.push({ di, top: bandTop, bottom: y, first: bi === 0 });
   }
   for (const it of items) { it.cx = it.x + it.w / 2; it.cy = it.y + it.h / 2; }
